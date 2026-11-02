@@ -19,3 +19,24 @@ test('missing and corrupted OCI proof fail closed',()=>{const p=proof();assert.t
 test('corrupted archive headers are rejected before reading proof bytes',()=>{const p=proof(),corrupt=Buffer.from(p.bytes);corrupt[101]^=1;assert.throws(()=>C.verifyOciArchive(corrupt,p.expected),/header checksum/);});
 test('image build never manufactures any of six successful qualification suites',()=>{const q=C.qualification();assert.equal(q.productionQualified,false);assert.equal(q.requiredSuites.length,6);assert(q.requiredSuites.every(suite=>suite.status==='not_run'&&suite.conclusion==='unverified'));});
 test('CD handoff rejects unqualified receipts and preserves required private audio',()=>{const result=handoff.inspect({kind:'api-image-build-only',repository:C.REPOSITORY,sourceCommit:commit,mode:'local-unqualified',authenticated:false,productionQualified:false},"const REPOSITORY='blockmonkey1992/hanq_api',WORKFLOW='.github/workflows/functional.yml';const required=['/run/hanq-ca/ca.crt'];");assert.equal(result.ready,false);assert(result.missingApprovedTargets.includes('/run/hanq-private-toeic-audio'));assert(result.missingApprovedTargets.includes('/app/private-textbook-semantic-data'));assert.equal(result.applyPerformed,false);});
+
+test('schema54 source matches the pinned complete baseline and unchanged privileges',()=>{
+ const S=require('./schema54-contract.cjs'),path=require('node:path'),root=path.resolve(__dirname,'..');
+ const head=C.git(root,['rev-parse','HEAD']).trim(),source=C.sourceManifest(root,head);
+ assert.deepEqual(source.rows,S.baselineRows());assert.equal(source.manifestSha256,S.MANIFEST_SHA256);assert.equal(source.privilegesSha256,S.PRIVILEGES_SHA256);
+ const rows=S.baselineRows();assert.equal(rows.length,54);assert(!rows.some(row=>/^047_/.test(row.version)));assert(rows.some(row=>/^055_/.test(row.version)));
+ assert.deepEqual(S.validateRows([...rows].reverse()),rows);
+});
+test('same-count migration substitution, checksum changes and privileges drift fail closed',()=>{
+ const S=require('./schema54-contract.cjs');
+ for(const change of [rows=>{rows[0].checksum='0'.repeat(64);},rows=>{rows[0].version='001_replaced.sql';},rows=>{rows[0].version='047_not_in_baseline.sql';},rows=>{rows[0]={...rows[1]};}]){
+  const rows=S.baselineRows();change(rows);assert.throws(()=>S.validateRows(rows));
+ }
+ assert.throws(()=>S.validateManifest({migrations:S.baselineRows(),privilegesSha256:'0'.repeat(64)}),/privileges differ/);
+});
+test('schema55 cannot borrow schema54 image or migration qualification',()=>{
+ const S=require('./schema54-contract.cjs'),rows=S.baselineRows();
+ // Synthetic metadata only: even the provided 056 checksum cannot qualify an untested upgrade.
+ rows.push({version:'056_synthetic_candidate.sql',checksum:'13eeb81ff165a6ad1ad03aa2c1793ede79e020cdd5cc5383917fe740cd6796ab'});
+ assert.throws(()=>S.validateRows(rows),/separately reviewed restore, upgrade and rollback/);
+});

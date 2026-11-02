@@ -1,6 +1,7 @@
 'use strict';
 // Produces execution evidence, never deployment approval or authenticated provenance.
 const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+const schema54=require('./schema54-contract.cjs');
 const REPOSITORY='hddooo/file-island-api',WORKFLOW='.github/workflows/functional.yml';
 const SUITES=['api-unit','api-integration','migration-compatibility','fe-unit','core-ui','deploy-controller'];
 const CASES={
@@ -17,10 +18,7 @@ function validateBindings(b){
  for(const field of ['imageId','imageConfigDigest'])must(digest.test(b[field]),field+' missing');
  for(const field of ['archiveSha256','composeSha256','bootstrapSha256','controllerSha256'])must(hex.test(b[field]),field+' missing');
  must(b.databaseTarget==='hanq_final_20261028','wrong intended deployment target');
- must(Array.isArray(b.migrations)&&b.migrations.length===54,'schema54 required');
- const names=b.migrations.map(x=>x.version);must(new Set(names).size===54&&names.every(x=>/^\d{3}_[a-z0-9_]+\.sql$/.test(x)),'invalid migration inventory');
- must(names.some(x=>/^055_/.test(x))&&!names.some(x=>/^(047|056)_/.test(x)),'unexpected migration boundary');
- must(b.migrations.every(x=>hex.test(x.checksum)),'migration checksum missing');
+ schema54.validateRows(b.migrations);
  const fields=['apiCommit','frontendCommit','deployCommit','imageId','imageConfigDigest','archiveSha256','composeSha256','bootstrapSha256','controllerSha256','databaseTarget'];
  return {...Object.fromEntries(fields.map(key=>[key,b[key]])),migrations:b.migrations.map(({version,checksum})=>({version,checksum})),migrationManifestSha256:manifestHash(b.migrations)};
 }
@@ -99,7 +97,7 @@ function verifyInputBytes(b,roots){
  const controller=path.join(roots.deploy,'scripts/deploy.cjs');must(hash(fs.readFileSync(controller))===b.controllerSha256,'controller bundle byte hash mismatch');
  const source=require('./image-build-contract.cjs').sourceManifest(roots.api,b.apiCommit);must(source.manifestSha256===b.migrationManifestSha256,'schema54 differs from committed Git LF bytes');
  const image=JSON.parse(fs.readFileSync(input.imageReceipt,'utf8'));
- must(image.kind==='api-image-build-only'&&image.repository===REPOSITORY&&image.sourceCommit===b.apiCommit&&image.imageId===b.imageId&&image.imageConfigDigest===b.imageConfigDigest&&image.archiveSha256===b.archiveSha256&&image.migrationManifestSha256===b.migrationManifestSha256,'image build/source/input receipt mismatch');
+ must(image.kind==='api-image-build-only'&&image.repository===REPOSITORY&&image.sourceCommit===b.apiCommit&&image.imageId===b.imageId&&image.imageConfigDigest===b.imageConfigDigest&&image.archiveSha256===b.archiveSha256&&image.migrationManifestSha256===b.migrationManifestSha256&&image.privilegesSha256===source.privilegesSha256,'image build/source/input receipt mismatch');
 }
 function executePlan(plan,roots,env){
  const b=validateBindings(plan.bindings);must(plan.version===1&&Array.isArray(plan.suites)&&plan.suites.length===6,'invalid execution plan');

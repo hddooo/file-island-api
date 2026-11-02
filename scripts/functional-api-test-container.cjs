@@ -9,7 +9,16 @@ const REQUIRED_CASES={
  'xp-preservation':['coin-eggs.test.js'],
 };
 function files(root){return fs.readdirSync(root,{withFileTypes:true}).flatMap(item=>{const file=path.join(root,item.name);assert(!fs.lstatSync(file).isSymbolicLink(),'Symlink test input');return item.isDirectory()?files(file):item.name.endsWith('.test.js')?[file]:[];}).sort();}
-function countsFromTap(text){const result={};for(const m of text.matchAll(/^# (tests|pass|fail|skipped|cancelled|todo) (\d+)\r?$/gm))result[m[1]]=Number(m[2]);assert(['tests','pass','fail','skipped','cancelled','todo'].every(k=>Number.isInteger(result[k])),'Missing complete TAP counts');return result;}
+function countsFromTap(text){
+ const result={};
+ for(const field of ['tests','pass','fail','skipped','cancelled','todo']){
+  const matches=[...text.matchAll(new RegExp('^# '+field+' (\\d+)\\r?$','gm'))];
+  assert.equal(matches.length,1,'Exactly one final TAP '+field+' summary required');
+  result[field]=Number(matches[0][1]);assert(Number.isSafeInteger(result[field]),'Invalid TAP count');
+ }
+ assert(!/^\s*not ok\b/m.test(text)&&!/^\s*(?:ok|not ok)\b[^\r\n]*#\s*(?:SKIP|TODO)\b/im.test(text)&&!/^\s*Bail out!/im.test(text),'Failed, skipped or incomplete TAP subtest');
+ return result;
+}
 function passed(row){const c=row?.counts;return !!c&&['tests','pass','fail','skipped','cancelled','todo'].every(k=>Number.isInteger(c[k])&&c[k]>=0)&&row.exitCode===0&&!row.signal&&c.tests>0&&c.pass===c.tests&&c.fail===0&&c.skipped===0&&c.cancelled===0&&c.todo===0;}
 function semanticIdentity(root){const rows=[];function walk(relative){for(const name of fs.readdirSync(path.join(root,relative)).sort((a,b)=>a.localeCompare(b,'en'))){const file=path.join(root,relative,name),s=fs.lstatSync(file);assert(!s.isSymbolicLink(),'Semantic symlink');if(s.isDirectory())walk(path.join(relative,name));else{assert(s.isFile());rows.push({path:path.join(relative,name).split(path.sep).join('/'),size:s.size,sha256:sha(fs.readFileSync(file))});}}}walk('');assert.equal(rows.length,298,'Expected semantic298');return {files:rows.length,sha256:sha(JSON.stringify(rows))};}
 function main(){

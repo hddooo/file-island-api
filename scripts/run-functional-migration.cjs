@@ -2,6 +2,7 @@
 // Creates its own network-isolated synthetic PostgreSQL cluster. Never accepts a database URL.
 const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto'),assert=require('node:assert/strict');
 const C=require('./functional-evidence.cjs');
+const schema54=require('./schema54-contract.cjs');
 const PG17='sha256:b8faeff7712663c2773a190181e1246e37e364b887611c04658c28b44e2408fe';
 const digest=/^sha256:[a-f0-9]{64}$/;
 function config(input,env=process.env){
@@ -10,7 +11,7 @@ function config(input,env=process.env){
  assert.equal(input.postgresImage,PG17,'reviewed existing PostgreSQL17 image required');
  for(const field of ['baselineImage','candidateImage'])assert(digest.test(input[field]),'immutable image required');
  assert(/^[a-f0-9]{40}$/.test(input.sourceCommit));assert(path.isAbsolute(input.manifestFile));
- const m=JSON.parse(fs.readFileSync(input.manifestFile,'utf8'));assert.equal(m.migrations.length,54);assert(m.migrations.some(x=>/^055_/.test(x.version)));assert(!m.migrations.some(x=>/^(047|056)_/.test(x.version)));
+ const m=JSON.parse(fs.readFileSync(input.manifestFile,'utf8'));schema54.validateManifest(m);
  return {...input,manifestSha256:C.manifestHash(m.migrations)};
 }
 function docker(args,options={}){
