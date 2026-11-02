@@ -1,0 +1,11 @@
+# INACTIVE: reviewed test-only image installation approval is required before building.
+# Context: exact FE .ci-tools/package.json and package-lock.json, copied as these two names.
+FROM node:24-bookworm-slim@sha256:a43f7fc3e52e87d12a905f46eea0275def84ca8f2981a5b53fed44d7fb398ee0
+WORKDIR /qa
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+COPY package.json package-lock.json ./
+RUN npm ci --no-fund && npx --no-install playwright install --with-deps chromium webkit
+ARG FRONTEND_TOOLS_LOCK_SHA256
+LABEL hanq.playwright.version="1.64.1" hanq.frontend.tools.lock.sha256=$FRONTEND_TOOLS_LOCK_SHA256
+USER node
+ENTRYPOINT ["node"]
