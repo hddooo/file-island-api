@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "suites": [
+    {
+      "name": "api-unit",
+      "steps": [
+        {
+          "script": "scripts/run-functional-api-tests.cjs",
+          "args": [
+            "qualification-inputs/api-unit.json",
+            "--tap"
+          ],
+          "timeoutMs": 3600000,
+          "checkout": "api"
+        }
+      ],
+      "caseTitles": {}
+    },
+    {
+      "name": "api-integration",
+      "steps": [
+        {
+          "script": "scripts/run-functional-api-tests.cjs",
+          "args": [
+            "qualification-inputs/api-integration.json",
+            "--tap"
+          ],
+          "timeoutMs": 3600000,
+          "checkout": "api"
+        }
+      ],
+      "caseTitles": {
+        "auth-session": "auth-session",
+        "profile-contract": "profile-contract",
+        "collection-concurrency": "collection-concurrency",
+        "server-hatch-clock": "server-hatch-clock",
+        "xp-preservation": "xp-preservation"
+      }
+    },
+    {
+      "name": "migration-compatibility",
+      "steps": [
+        {
+          "script": "scripts/run-functional-migration.cjs",
+          "args": [
+            "qualification-inputs/migration.json"
+          ],
+          "timeoutMs": 3600000,
+          "checkout": "api"
+        }
+      ],
+      "caseTitles": {
+        "baseline-checksums": "baseline-checksums",
+        "restore-and-upgrade": "restore-and-upgrade",
+        "idempotent-migrations": "idempotent-migrations",
+        "legacy-xp-preserved": "legacy-xp-preserved",
+        "rollback-schema-compatible": "rollback-schema-compatible"
+      }
+    },
+    {
+      "name": "fe-unit",
+      "steps": [
+        {
+          "script": "scripts/run-functional-node-tests.cjs",
+          "args": [
+            "frontend",
+            "ops-prep/fe-node-test-list.json"
+          ],
+          "timeoutMs": 3600000,
+          "checkout": "api"
+        }
+      ],
+      "caseTitles": {}
+    },
+    {
+      "name": "core-ui",
+      "steps": [
+        {
+          "script": "scripts/run-functional-core-ui.cjs",
+          "args": [
+            "qualification-inputs/core-ui.json"
+          ],
+          "timeoutMs": 3600000,
+          "checkout": "api"
+        }
+      ],
+      "caseTitles": {
+        "login-session-restore": "login-session-restore",
+        "mypage-profile": "mypage-profile",
+        "zero-coin-egg": "zero-coin-egg",
+        "unique-family": "unique-family",
+        "server-hatch-60s": "server-hatch-60s",
+        "partner-switch": "partner-switch",
+        "equipped-only-xp": "equipped-only-xp",
+        "stored-xp-preserved": "stored-xp-preserved",
+        "account-xp-sum": "account-xp-sum",
+        "pending-features-locked": "pending-features-locked"
+      }
+    },
+    {
+      "name": "deploy-controller",
+      "steps": [
+        {
+          "script": "scripts/run-functional-node-tests.cjs",
+          "args": [
+            "deploy",
+            "ops-prep/deploy-node-test-list.json"
+          ],
+          "timeoutMs": 3600000,
+          "checkout": "api"
+        }
+      ],
+      "caseTitles": {}
+    }
+  ]
+}

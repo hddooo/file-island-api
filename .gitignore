@@ -34,3 +34,4 @@ assets/home-server/
 *.dump
 *.sql.gz
 release-artifact/
+qualification-inputs/

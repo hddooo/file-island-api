@@ -1,0 +1,10 @@
+[
+  "scripts/archive-proof.test.cjs",
+  "scripts/controller-snapshot.test.cjs",
+  "scripts/deploy.test.cjs",
+  "scripts/execution-phase-v2.test.cjs",
+  "scripts/health-hostname.test.cjs",
+  "scripts/policy-candidate.test.cjs",
+  "scripts/provenance.test.cjs",
+  "scripts/release-test-gate.test.cjs"
+]
