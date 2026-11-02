@@ -24,6 +24,7 @@ test('source inventory retains the exact schema54 baseline and requires an expli
  const S=require('./schema54-contract.cjs'),P=require('./migration-build-profile.cjs'),path=require('node:path'),root=path.resolve(__dirname,'..');
  const head=C.git(root,['rev-parse','HEAD']).trim(),fixture=JSON.parse(C.git(root,['show',head+':test/fixtures/migration-manifest-20261030.json']));
  const profile=fixture.migrations.some(row=>/^056_/.test(row.version))?P.SCHEMA55_IMAGE_ONLY:P.SCHEMA54,source=C.sourceManifest(root,head,profile);
+ assert.deepEqual(source.rows,fixture.migrations.map(({version,checksum})=>({version,checksum})).sort((a,b)=>a.version.localeCompare(b.version)));
  assert.deepEqual(source.rows.filter(row=>!/^056_/.test(row.version)),S.baselineRows());assert.equal(source.privilegesSha256,S.PRIVILEGES_SHA256);
  assert.equal(source.manifestSha256,profile===P.SCHEMA54?S.MANIFEST_SHA256:P.SCHEMA55_MANIFEST_SHA256);
  if(profile===P.SCHEMA55_IMAGE_ONLY)assert.throws(()=>C.sourceManifest(root,head),/schema-preserving schema54/);
