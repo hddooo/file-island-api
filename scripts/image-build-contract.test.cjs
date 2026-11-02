@@ -20,10 +20,13 @@ test('corrupted archive headers are rejected before reading proof bytes',()=>{co
 test('image build never manufactures any of six successful qualification suites',()=>{const q=C.qualification();assert.equal(q.productionQualified,false);assert.equal(q.requiredSuites.length,6);assert(q.requiredSuites.every(suite=>suite.status==='not_run'&&suite.conclusion==='unverified'));});
 test('CD handoff rejects unqualified receipts and preserves required private audio',()=>{const result=handoff.inspect({kind:'api-image-build-only',repository:C.REPOSITORY,sourceCommit:commit,mode:'local-unqualified',authenticated:false,productionQualified:false},"const REPOSITORY='blockmonkey1992/hanq_api',WORKFLOW='.github/workflows/functional.yml';const required=['/run/hanq-ca/ca.crt'];");assert.equal(result.ready,false);assert(result.missingApprovedTargets.includes('/run/hanq-private-toeic-audio'));assert(result.missingApprovedTargets.includes('/app/private-textbook-semantic-data'));assert.equal(result.applyPerformed,false);});
 
-test('schema54 source matches the pinned complete baseline and unchanged privileges',()=>{
- const S=require('./schema54-contract.cjs'),path=require('node:path'),root=path.resolve(__dirname,'..');
- const head=C.git(root,['rev-parse','HEAD']).trim(),source=C.sourceManifest(root,head);
- assert.deepEqual(source.rows,S.baselineRows());assert.equal(source.manifestSha256,S.MANIFEST_SHA256);assert.equal(source.privilegesSha256,S.PRIVILEGES_SHA256);
+test('source inventory retains the exact schema54 baseline and requires an explicit image profile for056',()=>{
+ const S=require('./schema54-contract.cjs'),P=require('./migration-build-profile.cjs'),path=require('node:path'),root=path.resolve(__dirname,'..');
+ const head=C.git(root,['rev-parse','HEAD']).trim(),fixture=JSON.parse(C.git(root,['show',head+':test/fixtures/migration-manifest-20261030.json']));
+ const profile=fixture.migrations.some(row=>/^056_/.test(row.version))?P.SCHEMA55_IMAGE_ONLY:P.SCHEMA54,source=C.sourceManifest(root,head,profile);
+ assert.deepEqual(source.rows.filter(row=>!/^056_/.test(row.version)),S.baselineRows());assert.equal(source.privilegesSha256,S.PRIVILEGES_SHA256);
+ assert.equal(source.manifestSha256,profile===P.SCHEMA54?S.MANIFEST_SHA256:P.SCHEMA55_MANIFEST_SHA256);
+ if(profile===P.SCHEMA55_IMAGE_ONLY)assert.throws(()=>C.sourceManifest(root,head),/schema-preserving schema54/);
  const rows=S.baselineRows();assert.equal(rows.length,54);assert(!rows.some(row=>/^047_/.test(row.version)));assert(rows.some(row=>/^055_/.test(row.version)));
  assert.deepEqual(S.validateRows([...rows].reverse()),rows);
 });

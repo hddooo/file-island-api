@@ -13,6 +13,13 @@ test('child TAP cannot overwrite a failed summary or hide failed and skipped sub
  for(const raw of [good+'# pass 1\n',good.replace('# pass 1','# pass 0\n# pass 1'),good.replace('ok 1','not ok 1'),good.replace('synthetic child','synthetic child # SKIP'),good.replace('synthetic child','synthetic child # TODO'),good+'Bail out!\n',good.replace('# tests 1','# tests 9007199254740992')])assert.throws(()=>T.countsFromTap(raw));
  assert(T.passed({counts:T.countsFromTap(good.replaceAll('\n','\r\n')),exitCode:0}));
 });
+test('nested TAP keeps the global CRLF summary and zero tests cannot qualify',()=>{
+ const nested='TAP version 13\n# Subtest: parent\n    # Subtest: child\n    ok 1 - child\nok 1 - parent\n# tests 2\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n';
+ assert(T.passed({counts:T.countsFromTap(nested.replaceAll('\n','\r\n')),exitCode:0}));
+ assert.throws(()=>T.countsFromTap(nested.replace('    ok 1','    not ok 1')));
+ const empty='# tests 0\n# pass 0\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n';
+ assert.equal(T.passed({counts:T.countsFromTap(empty),exitCode:0}),false);
+});
 function summary(){const counts={tests:1,pass:1,fail:0,cancelled:0,skipped:0,todo:0};return {suite:'api-unit',sourceCommit:commit,semantic:{files:298,sha256:'c'.repeat(64)},originalFixture:{sha256:'d'.repeat(64)},files:Array.from({length:64},(_,n)=>({file:'test-'+n+'.test.js',counts:{...counts},exitCode:0,signal:null})),caseResults:[],passed:true,containerExitCode:0};}
 test('TAP wrapper derives outcome from every child and refuses duplicate/incomplete inventories',()=>{const data=summary(),tap=C.tapFor(data);assert(tap.includes('ok 65 - api-unit all 64 files'));data.files[2].counts.skipped=1;const failed=C.tapFor(data);assert(failed.includes('not ok 3 - api-unit test-2.test.js'));assert(failed.includes('not ok 65 - api-unit all 64 files'));assert.throws(()=>C.tapFor({...summary(),files:summary().files.slice(1)}));const duplicate=summary();duplicate.files[1]=duplicate.files[0];assert.throws(()=>C.tapFor(duplicate));});
 test('source bindings reject missing files, forged pass conclusions and source drift',()=>{const data=summary(),source={files:data.files.map(x=>({path:'test/unit/'+x.file.replace(/\.js$/,'.ts')}))};assert(C.validateSummary(data,'unit',config(),source,0));assert.throws(()=>C.validateSummary({...data,sourceCommit:'e'.repeat(40)},'unit',config(),source,0));assert.throws(()=>C.validateSummary({...data,files:data.files.slice(1)},'unit',config(),source,0));const skipped=summary();skipped.files[0].counts.skipped=1;assert.throws(()=>C.validateSummary(skipped,'unit',config(),source,0));assert.throws(()=>C.validateSummary(data,'unit',config(),source,1));});

@@ -2,6 +2,7 @@
 // Produces execution evidence, never deployment approval or authenticated provenance.
 const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto'),assert=require('node:assert/strict');
 const schema54=require('./schema54-contract.cjs');
+const profiles=require('./migration-build-profile.cjs');
 const REPOSITORY='hddooo/file-island-api',WORKFLOW='.github/workflows/functional.yml';
 const SUITES=['api-unit','api-integration','migration-compatibility','fe-unit','core-ui','deploy-controller'];
 const CASES={
@@ -97,6 +98,7 @@ function verifyInputBytes(b,roots){
  const controller=path.join(roots.deploy,'scripts/deploy.cjs');must(hash(fs.readFileSync(controller))===b.controllerSha256,'controller bundle byte hash mismatch');
  const source=require('./image-build-contract.cjs').sourceManifest(roots.api,b.apiCommit);must(source.manifestSha256===b.migrationManifestSha256,'schema54 differs from committed Git LF bytes');
  const image=JSON.parse(fs.readFileSync(input.imageReceipt,'utf8'));
+ must((image.migrationProfile??profiles.SCHEMA54)===profiles.SCHEMA54,'schema55 image-only receipts cannot qualify the schema54 functional harness');
  must(image.kind==='api-image-build-only'&&image.repository===REPOSITORY&&image.sourceCommit===b.apiCommit&&image.imageId===b.imageId&&image.imageConfigDigest===b.imageConfigDigest&&image.archiveSha256===b.archiveSha256&&image.migrationManifestSha256===b.migrationManifestSha256&&image.privilegesSha256===source.privilegesSha256,'image build/source/input receipt mismatch');
 }
 function executePlan(plan,roots,env){
