@@ -1,0 +1,39 @@
+# INACTIVE: rename/enable only after the reviewed execution recipe, six harnesses,
+# exact input hashes, original local fixture, API runner authorization and v2 controller approval exist.
+name: Functional six-suite qualification (execution receipts, no deployment)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  qualify:
+    # Proposed NEW API-repository execution scope; no runner is registered by this file.
+    runs-on: [self-hosted, Windows, X64, hanq-api-qualification]
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Validate producer contract
+        run: node --test scripts/functional-evidence.test.cjs
+      - name: Execute reviewed six-suite recipe
+        shell: pwsh
+        # These are non-secret, pre-reviewed local configuration FILE PATHS.
+        # Plan contains runtime bindings plus a definition matching an API Git blob.
+        # Roots contain separate exact clean API/FE/deploy checkouts and input paths.
+        env:
+          HANQ_FUNCTIONAL_PLAN_FILE: ${{ vars.HANQ_FUNCTIONAL_PLAN_FILE }}
+          HANQ_FUNCTIONAL_ROOTS_FILE: ${{ vars.HANQ_FUNCTIONAL_ROOTS_FILE }}
+          HANQ_TOEIC_FIXTURE_DIR: ${{ vars.HANQ_TOEIC_FIXTURE_DIR }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if (!$env:HANQ_FUNCTIONAL_PLAN_FILE -or !$env:HANQ_FUNCTIONAL_ROOTS_FILE -or !$env:HANQ_TOEIC_FIXTURE_DIR) { throw 'Reviewed execution inputs and original local fixture required' }
+          node scripts/run-functional-evidence.cjs $env:HANQ_FUNCTIONAL_PLAN_FILE $env:HANQ_FUNCTIONAL_ROOTS_FILE release-evidence.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Retain exact execution evidence only
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: hanq-release-evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence.json
+          if-no-files-found: error
+          retention-days: 14
