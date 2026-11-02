@@ -1,5 +1,17 @@
 # File Island 저장소 이관 기록
 
+## API image producer와 CD 인계 구현 (2026-11-02)
+
+기존 baseline 테스트 CI와 원본 held/Dockerfile/producer/SQL은 유지합니다. 새 수동 `.github/workflows/image.yml`과 `scripts/build-file-island-image.cjs`는 main의 정확한 새 API Git SHA에 묶인 **이미지 build 증거만** 만듭니다. Git blob으로 별도 LF context를 작성하고 기존 비활성 runtime-mount Dockerfile 후보를 명시적으로 선택합니다. 비공개 자료·비밀 파일·host credential은 context에 넣지 않습니다. 원본 Dockerfile은 교체하지 않습니다.
+
+build 후 network-none/readonly/권한 축소 container에서 API bootstrap 모듈 import, argon2 합성 hash와54개 SQL/privileges 원본 바이트를 검사합니다. API 서버·DB·실제 bootstrap·비공개 자료는 실행/연결하지 않습니다. 공식 pinned base를 유지하고 Docker build의 부가 attestation/index 출력을 분리하여 기존 archive gate가 요구하는 단일 runtime manifest와 config digest를 직접 검증합니다. GitHub run/artifact 출처 인증은 별개이며 생략하지 않습니다.
+
+결과는 `file-island-api-image-<SHA>-<run>-<attempt>` artifact의 image archive와 `release.json`, context manifest/checksum입니다. `release.json`은 항상 productionQualified=false이고6개 배포 자격 suite는 not_run/unverified입니다. `release-evidence.json`이나 인증된 functional qualification을 만들어낸 것으로 보고하지 않습니다. 로컬 `--local-build`는 run ID를 조작하지 않으며 local-unqualified로 기록합니다. 기존 controller가 허용하는 `hanq-release-evidence-*`와 다른 이름으로 보존합니다.
+
+`scripts/check-image-cd-handoff.cjs <image-receipt> [controller-source]`는 읽기 전용으로 남은 계약을 보고하고 ready=false/exit2를 반환합니다. apply/설치/재시작 기능이 없습니다. 관찰한 controller는 원본 API/functional.yml 고정이며 mount6개만 허용하여 승인된 readonly 음원이 포함된 현재 운영 compose와 맞지 않습니다. 음원을 제거하지 않고 controller policy·native 설치·approval을 별도로 검토해야 합니다. 외부 semantic bundle의 추가 readonly mount/읽기권한/무결성 검증도 필요합니다.
+
+후속 인계 대상은 기존 private `blockmonkey1992/hanq-home-deploy`의 owner-controlled 수동 제어와 기존 Windows runner입니다. 새 runner 등록 없이 유지하는 안을 우선하며, 새 private API Actions/Contents 읽기에 필요한 인증 주체와 정확 범위를 먼저 확정해야 합니다. 신규 접근 권한·credential·controller 설치·운영 image 교체는 이 코드 구현에 포함하지 않습니다. 전체6suite/격리 restore/FE·deploy 정확 SHA 증거·기존 audio와 rollback 보존 전에는 production cutover를 허용하지 않습니다. schema54/056 분리를 유지합니다.
+
 ## Windows 조사와 전환 준비 (2026-11-02)
 
 준비 branch `prep/windows-migration`, 기준 main `96c6b7a1fdc16660edb97676ed5f8a5ba1b3d4ec`. 새 repo SHA는 기존 Git Credential Manager 인증을 재사용한 원격 조회로 확인했습니다. 이 변경은 문서와 비활성 build 후보의 소스 동기화입니다. CI 실행·운영 반영은 별도입니다.

@@ -33,3 +33,4 @@ assets/home-server/
 *.pfx
 *.dump
 *.sql.gz
+release-artifact/
