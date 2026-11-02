@@ -8,7 +8,7 @@
 
 원격 `dev=c15858cae5d48dbea60118c3f854d6b79fab712a`를 운영 기준으로 사용하지 않았습니다. 개발 후보 `3654b914ab7b3fe956d102bf46ae8960b1934dd7`와 `migrations/056_admin_partner_xp.sql`은 이 main 스냅샷에 섞지 않습니다. 후보의 원본 Git 객체와 작업 폴더는 그대로 보존했습니다.
 
-이 소스 트리에는 `055_coin_eggs_timed_hatch.sql`이 있지만 실제 운영 DB schema54라는 전달 정보를 소스 존재와 구분합니다. 어떤 migration도 실행하지 않았습니다. `npm start`는 일반 migrator를 호출할 수 있으므로 운영 연결 전에 실행하지 않습니다. Dockerfile의 `/run/hanq-production/bootstrap.mjs`는 외부 운영 마운트이며 이 저장소에 복사하지 않았습니다.
+운영 `schema54`는 적용된 versioned SQL 파일이 54개라는 뜻입니다. 파일 번호는 최대 `055`이고 `047`이 없는 구성입니다. 앞선 운영 검증에서 원본 54개 SQL의 해시 일치와 `055_coin_eggs_timed_hatch.sql`의 운영 반영을 확인했습니다. 따라서 `055`는 미적용 파일이 아니며 이번 이관을 위해 추가 migration할 필요가 없습니다. `056_admin_partner_xp.sql`은 별도 미배포 Growth 후보입니다. 이번 문서 정정에서는 운영 DB를 조회하거나 migration을 실행하지 않았습니다. `npm start`는 일반 migrator를 호출할 수 있으므로 운영 연결 전에 실행하지 않습니다. Dockerfile의 `/run/hanq-production/bootstrap.mjs`는 외부 운영 마운트이며 이 저장소에 복사하지 않았습니다.
 
 제외한 비공개 `private-textbook-semantic-data/` 자료 298개는 정답·파생 교재·이미지입니다. 해당 교재 기능, `scripts/check-textbook-bundle.cjs`, 현재 Dockerfile COPY/build 검사는 별도 비공개 자료 연결 없이는 통과하지 않습니다. 접속·인증 fixture를 내장한 `test/local/native*.cjs` 7개도 제외했으며 일반 소스 컴파일과 환경변수를 사용하는 테스트는 유지했습니다.
 
@@ -42,7 +42,7 @@
 | 일반 비공개 textbook 자료 | `/srv/file-island/private-textbook-data/` | `/run/file-island/private-textbook-data/` 읽기 전용 mount | 필요한 자료가 있는 경우 runtime에 `HANQ_TEXTBOOK_DATA_DIR=/run/file-island/private-textbook-data` 설정. semantic bundle과 별개 |
 | CBT private assets | `/srv/file-island/cbt-assets/` | `/run/file-island/cbt-assets/` 읽기 전용 mount | `HANQ_CBT_ASSET_DIR=/run/file-island/cbt-assets` 설정 |
 | CBT manifest | `/srv/file-island/cbt-manifest.json` | `/run/file-island/cbt-manifest.json` 읽기 전용 mount | `HANQ_CBT_ASSET_MANIFEST=/run/file-island/cbt-manifest.json` 설정. manifest 실제 bytes는 Git 외부 |
-| 검증된 production bootstrap | `/etc/file-island/bootstrap.mjs` | `/run/hanq-production/bootstrap.mjs` 읽기 전용 mount | 현재 Docker CMD의 정확한 경로. schema54와 source migration055 차이를 검증할 bootstrap을 별도로 검토. 기존 host 파일을 무단 복사하지 않음 |
+| 검증된 production bootstrap | `/etc/file-island/bootstrap.mjs` | `/run/hanq-production/bootstrap.mjs` 읽기 전용 mount | 현재 Docker CMD의 정확한 경로. 운영에 적용된 54개 SQL(최대 번호 055, 047 없음)의 검증된 해시를 유지하도록 bootstrap을 검토. 055 추가 적용은 불필요. 기존 host 파일을 무단 복사하지 않음 |
 | runtime 환경값 | `/etc/file-island/api.env` | container process environment 주입 | 제안 env-file을 container 실행 관리 설정에서 읽도록 연결. 파일을 image/Git/Actions artifact에 넣지 않음 |
 
 후속 작업은 (1) private 자료 소유·경로·읽기 권한 확정, (2) 비공개 자료를 image build context에 넣지 않는 Dockerfile/runtime mount 방식으로 별도 변경·검수, (3) bundle 검사를 격리된 비공개 검증 작업에서 수행, (4) non-root container 사용자에게 필요한 읽기 권한만 확인, (5) 격리 DB와 staging에서 bootstrap·이미지·기능 검사 순서입니다. 그 전에는 이 저장소를 바로 production 배포 가능한 image로 간주하지 않습니다. 원본 Dockerfile과 기존 운영 bootstrap/이미지는 이번에 변경하지 않았습니다.

@@ -54,7 +54,7 @@ GitHub 등록 화면(필요가 확인된 뒤 사용자 직접 사용):
 
 1. 새 private 저장소 main의 이관 commit과 원본 SHA를 확인합니다. 기존 운영 연결은 그대로 둡니다.
 2. GitHub App/Vercel/runner가 새 repo를 읽어야 하는지, deploy job이 무엇을 쓰는지 설계합니다. 접근 권한·새 credential·등록 대상별 승인을 받은 뒤 필요한 항목만 설정합니다. 저장소 생성이나 코드 push로 자동 승인된 것으로 보지 않습니다.
-3. 비공개 자료의 외부 mount와 Docker build 제약을 먼저 해결하고 격리된 검사로 image를 검증합니다. 현 source의 migration055 존재와 운영 schema54를 별도로 대조하며 migration을 자동 실행하지 않습니다. Growth/schema056은 별도 기능 후보로 유지합니다.
+3. 비공개 자료의 외부 mount와 Docker build 제약을 먼저 해결하고 격리된 검사로 image를 검증합니다. 운영 schema54는 54개 versioned SQL이 적용된 상태이며 최대 파일 번호는 055, 047은 없습니다. 앞선 운영 검증에서 54개 원본 SQL 해시와 055의 반영을 확인했으므로 055 추가 적용은 필요하지 않습니다. migration은 자동 실행하지 않습니다. Growth/056은 별도 미배포 후보로 유지합니다.
 4. 홈서버 runtime env-file에 필요한 세 비밀 항목과 비밀이 아닌 설정을 안전한 입력/사용자 직접 입력으로 준비합니다. 기존 DB credential·JWT key를 재사용할지, 세션 호환·권한 범위가 무엇인지 명시한 action-time 승인 뒤 수행합니다. 값은 채팅·Git·README·로그에 넣지 않습니다.
 5. workflow 보류 경로를 실제 `.github/workflows/`로 복구하기 전에 검토합니다. 현재 independent CI는 secret 없이 동작하도록 설계됐지만 교재/원본 fixture 의존 검사의 경계를 다시 확인해야 합니다. 배포 job은 새 repo SHA·artifact·runtime을 명확히 고정한 별도 변경으로 준비합니다.
 6. 격리 staging에서 인증·CORS·cookie·교재·asset·version/schema를 검수하고 rollback할 기존 image/SHA·연결을 확보합니다. API npm start가 일반 migrator를 부를 수 있으므로 기존 운영 DB를 연결한 상태로 시험 시작하지 않습니다.
