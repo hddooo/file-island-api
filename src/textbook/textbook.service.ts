@@ -7,7 +7,7 @@ import { notFound } from '../common/app-error';
 import { projectRoot } from '../common/project-root';
 import { APP_CONFIG } from '../common/tokens';
 import type { AppConfig } from '../config/config';
-import { readSemanticFile, readSemanticJson, semanticPageNumber, semanticQuizId, semanticFigureId } from './semantic-data';
+import { readSemanticFile, readSemanticJson, semanticPageNumber, semanticQuizId, semanticFigureId, semanticSourceProfile } from './semantic-data';
 import { textbookUnavailable } from './textbook-member.guard';
 
 type JsonObject = Record<string, unknown>;
@@ -58,7 +58,7 @@ export class TextbookService {
     const manifest = await readSemanticJson(this.semanticRoot(), 'manifest.json');
     const entry = (manifest.quizzes as JsonObject[]).find(q => q.id === id);
     if (!entry) throw notFound();
-    const data = await readSemanticJson(this.semanticRoot(), `quizzes/${id}.json`);
+    const data = await readSemanticJson(this.semanticRoot(), `quizzes/${id}.json`, semanticSourceProfile(manifest));
     if (entry.itemCount !== undefined && entry.itemCount !== (data.items as unknown[]).length) throw textbookUnavailable();
     return publicData(data);
   }
@@ -66,13 +66,14 @@ export class TextbookService {
   async semanticChoices(id: string) {
     if (!semanticQuizId(id)) throw notFound();
     const manifest = await readSemanticJson(this.semanticRoot(), 'manifest.json');
+    const profile = semanticSourceProfile(manifest);
     const entry = Array.isArray(manifest.fourChoices) ? (manifest.fourChoices as JsonObject[]).find(q => q.id === id) : undefined;
     if (!entry) throw notFound();
-    const data = await readSemanticJson(this.semanticRoot(), `quizzes/four-choice/${id}.json`);
+    const data = await readSemanticJson(this.semanticRoot(), `quizzes/four-choice/${id}.json`, profile);
     if (entry.itemCount !== (data.items as unknown[]).length) throw textbookUnavailable();
-    const sourceBytes = await readSemanticFile(this.semanticRoot(), `quizzes/${id}.json`);
+    const sourceBytes = await readSemanticFile(this.semanticRoot(), `quizzes/${id}.json`, profile);
     if (createHash('sha256').update(sourceBytes).digest('hex') !== data.sourceQuizSha256) throw textbookUnavailable();
-    const original = await readSemanticJson(this.semanticRoot(), `quizzes/${id}.json`);
+    const original = await readSemanticJson(this.semanticRoot(), `quizzes/${id}.json`, profile);
     for (const value of data.items as JsonObject[]) {
       const source = (original.items as JsonObject[]).find(i => i.id === value.sourceItemId);
       const question = value.sourceQuestion as JsonObject;
@@ -93,19 +94,30 @@ export class TextbookService {
   }
 
   async semanticPage(page: string) {
-    if (!/^[1-9]\d{0,2}$/.test(page) || !semanticPageNumber(Number(page))) throw notFound();
-    const manifest = await readSemanticJson(this.semanticRoot(), 'manifest.json');
+    if (!/^[1-9]\d{0,2}$/.test(page)) throw notFound();
+    const manifest = await readSemanticJson(this.semanticRoot(), 'manifest.json').catch(error => {
+      // Without a validated source the original144 bound still applies.
+      if (!semanticPageNumber(Number(page))) throw notFound();
+      throw error;
+    });
+    const profile = semanticSourceProfile(manifest);
+    if (!semanticPageNumber(Number(page), profile)) throw notFound();
     if (!(manifest.pages as JsonObject[]).some(p => p.pdfPage === Number(page))) throw notFound();
-    return publicData(await readSemanticJson(this.semanticRoot(), `pages/page-${page.padStart(3, '0')}.json`));
+    return publicData(await readSemanticJson(this.semanticRoot(), `pages/page-${page.padStart(3, '0')}.json`, profile));
   }
 
   async semanticFigure(id: string): Promise<{ data: Buffer; mime: 'image/jpeg' | 'image/png' }> {
-    if (!semanticFigureId(id)) throw notFound();
-    const manifest = await readSemanticJson(this.semanticRoot(), 'manifest.json');
+    if (!/^p\d{3}-figure-[1-9]\d{0,2}$/.test(id)) throw notFound();
+    const manifest = await readSemanticJson(this.semanticRoot(), 'manifest.json').catch(error => {
+      if (!semanticFigureId(id)) throw notFound();
+      throw error;
+    });
+    const profile = semanticSourceProfile(manifest);
+    if (!semanticFigureId(id, profile)) throw notFound();
     const entry = Array.isArray(manifest.figures) ? manifest.figures.find(f => object(f) && f.id === id) as JsonObject | undefined : undefined;
     if (!entry) throw notFound();
     const extension = entry.extension ?? 'jpeg';
-    const data = await readSemanticFile(this.semanticRoot(), `assets/${id}.${extension}`);
+    const data = await readSemanticFile(this.semanticRoot(), `assets/${id}.${extension}`, profile);
     const valid = extension === 'png' ? data.subarray(0, 8).equals(PNG_SIGNATURE)
       : data.length >= 4 && data[0] === 0xff && data[1] === 0xd8 && data[data.length - 2] === 0xff && data[data.length - 1] === 0xd9;
     if (!valid || (entry.bytes !== undefined && entry.bytes !== data.length)
