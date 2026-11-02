@@ -7,7 +7,7 @@ import { after,before,describe,it } from 'node:test';
 import type { Pool } from 'pg';
 import request from 'supertest';
 import { bearer,signin,signup,startApp,type Session,type TestApp } from '../helpers/app';
-import { freshDatabase } from '../helpers/db';
+import { freshDatabase, frontCatalog } from '../helpers/db';
 import { testConfig } from '../helpers/env';
 
 describe('CBT server stars and partial reviews: isolated DB only',()=>{
@@ -72,16 +72,20 @@ describe('CBT server stars and partial reviews: isolated DB only',()=>{
   assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.attempts WHERE user_id=$1',[A.userId])).rows[0].n,before);
   assert.equal((await post('/reviews/'+review+'/resume',{})).body.run.paused,false);
  });
- it('one atomic immutable batch, safe retries, no growth or full-exam-score changes',async()=>{
+ it('one atomic immutable batch, safe retries, exact original-point growth without full-exam-score changes',async()=>{
   const body={submissionKey:randomUUID(),currentPosition:1,answers:[{position:0,optionId:questions[1].correct_option_id},{position:1,optionId:wrong(3)}]};
   assert.equal((await post('/reviews/'+review+'/submit',{...body,answers:body.answers.slice(1)})).status,400);
   assert.equal((await post('/reviews/'+review+'/submit',{...body,answers:[body.answers[1],body.answers[0]]})).status,400);
   assert.equal((await post('/reviews/'+review+'/submit',{...body,answers:[{position:0,optionId:'foreign-option'},body.answers[1]]})).status,400);
   const before=await get('/runs/'+full);const growth=(await pool.query('SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id=$1',[A.userId])).rows[0].n;
   const results=await Promise.all([post('/reviews/'+review+'/submit',body),post('/reviews/'+review+'/submit',body)]);assert.deepEqual(results.map(x=>x.status),[200,200]);
-  assert.deepEqual(results[0].body.run.result,{kind:'review',total:2,answered:2,correct:1,wrong:1,unanswered:0});
+  const reviewedPoints=(id:string)=>{const q=frontCatalog().find(x=>x.questionId===id);assert(q);return q.points;};
+  const earned=reviewedPoints(questions[1].question_id),lost=reviewedPoints(questions[3].question_id);
+  assert.deepEqual(results[0].body.run.result,{kind:'review',total:2,answered:2,correct:1,wrong:1,unanswered:0,growthPolicy:'per-question-original-points',growthReward:earned-lost});
+  assert.deepEqual(results[1].body.run.result,results[0].body.run.result,'concurrent retry returns identical stored reward');
+  assert.deepEqual((await pool.query('SELECT g.kind,g.amount,a.question_id FROM hanq.growth_ledger g JOIN hanq.attempts a ON a.id=g.attempt_id WHERE a.user_id=$1 AND a.cbt_review_id=$2 ORDER BY a.question_id',[A.userId,review])).rows,[{kind:'practice-mock',amount:earned,question_id:questions[1].question_id},{kind:'practice-mock',amount:-lost,question_id:questions[3].question_id}]);
   assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.attempts WHERE user_id=$1 AND cbt_review_id=$2',[A.userId,review])).rows[0].n,2);
-  assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id=$1',[A.userId])).rows[0].n,growth);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id=$1',[A.userId])).rows[0].n,growth+2,'one growth row per answered item, despite concurrent retries');
   assert.deepEqual((await get('/runs/'+full)).body.run.result,before.body.run.result);
   assert.equal((await post('/reviews/'+review+'/submit',{...body,submissionKey:randomUUID()})).status,409);
   assert.equal((await post('/reviews/'+review+'/pause',{...body,checkpointVersion:1})).status,409);
@@ -104,7 +108,7 @@ describe('CBT server stars and partial reviews: isolated DB only',()=>{
   const id=next.body.run.id;await post('/reviews/'+id+'/start',{});
   const before=(await pool.query('SELECT count(*)::int n FROM hanq.attempts WHERE user_id=$1',[A.userId])).rows[0].n;
   const r=await post('/reviews/'+id+'/submit',{submissionKey:randomUUID(),currentPosition:0,answers:[{position:0,optionId:null},{position:1,optionId:null}]});
-  assert.deepEqual(r.body.run.result,{kind:'review',total:2,answered:0,correct:0,wrong:0,unanswered:2});
+  assert.deepEqual(r.body.run.result,{kind:'review',total:2,answered:0,correct:0,wrong:0,unanswered:2,growthPolicy:'per-question-original-points',growthReward:0});
   assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.attempts WHERE user_id=$1',[A.userId])).rows[0].n,before);
   assert.deepEqual((await makeReview()).body.items.map((i:{number:number})=>i.number),[2,4]);
   assert.equal((await get('/reviews',B)).body.reviews.length,0);

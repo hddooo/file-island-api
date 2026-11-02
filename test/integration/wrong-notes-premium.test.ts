@@ -13,7 +13,8 @@ describe('wrong notes (derived), premium replay and server runs', () => {
   const byId = new Map([...quiz, ...mock].map((q) => [q.questionId, q]));
   before(async () => {
     pool = await freshDatabase(testConfig());
-    t = await startApp();
+    // This suite explicitly exercises ten-minute token expiry; normal access remains seven days.
+    t = await startApp({HANQ_ACCESS_TTL_SECONDS:'600'});
   });
   after(async () => {
     await t.close();
