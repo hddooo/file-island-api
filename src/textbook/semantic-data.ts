@@ -8,7 +8,7 @@ export const SEMANTIC_DIRECTORY = 'private-textbook-semantic-data';
 export const SEMANTIC_QUIZZES = ['prehistory', 'ancient', 'nambuk', 'goryeo', 'joseon', 'opening', 'colonial', 'modern'] as const;
 const OLD_SOURCE_SHA = '35d850c6e9d9910c24cccce4b2ae37b963ee1ecd24f1926033f48d98f9de0442';
 const NEW_SOURCE_SHA = 'd54c1aa5d5816eeb73a2e82da0ec699555c2cbf1e7cb717a3b84420ed18296de';
-type SemanticSourceProfile = Readonly<{maxPdfPages: 144 | 147; sourceSha256?: string; checkReferences?: boolean}>;
+export type SemanticSourceProfile = Readonly<{maxPdfPages: 144 | 147; sourceSha256?: string; checkReferences?: boolean}>;
 const LEGACY_PROFILE: SemanticSourceProfile = Object.freeze({maxPdfPages: 144});
 const OLD_PROFILE: SemanticSourceProfile = Object.freeze({maxPdfPages: 144, sourceSha256: OLD_SOURCE_SHA});
 const NEW_PROFILE: SemanticSourceProfile = Object.freeze({maxPdfPages: 147, sourceSha256: NEW_SOURCE_SHA, checkReferences: true});
@@ -16,15 +16,28 @@ const object = (v: unknown): v is Record<string, unknown> => !!v && typeof v ===
 const hash = (v: unknown) => typeof v === 'string' && /^[0-9a-f]{64}$/i.test(v);
 
 /** A source profile grants bounds, not review/readiness or a new revision identity. */
-export function semanticSourceProfile(manifest: Record<string, unknown>): SemanticSourceProfile {
+export function textbookRevisionPageCount(revision: string): 144 | 147 {
+ if (revision === OLD_SOURCE_SHA) return 144;
+ if (revision === NEW_SOURCE_SHA) return 147;
+ throw notFound();
+}
+export function semanticSourceProfile(manifest: Record<string, unknown>, sourceRevision?: string): SemanticSourceProfile {
  const source = object(manifest.source) ? manifest.source : undefined, total = source?.totalPdfPages;
+ let profile: SemanticSourceProfile;
  if (source?.sha256 === NEW_SOURCE_SHA) {
   if (total !== 147) throw textbookUnavailable();
-  return NEW_PROFILE;
+  profile = NEW_PROFILE;
+ } else {
+  if (source?.sha256 === OLD_SOURCE_SHA && total !== undefined && total !== 144) throw textbookUnavailable();
+  if (total !== undefined && (!Number.isSafeInteger(total) || Number(total) < 1 || Number(total) > 144)) throw textbookUnavailable();
+  profile = source?.sha256 === OLD_SOURCE_SHA ? OLD_PROFILE : LEGACY_PROFILE;
  }
- if (source?.sha256 === OLD_SOURCE_SHA && total !== undefined && total !== 144) throw textbookUnavailable();
- if (total !== undefined && (!Number.isSafeInteger(total) || Number(total) < 1 || Number(total) > 144)) throw textbookUnavailable();
- return source?.sha256 === OLD_SOURCE_SHA ? OLD_PROFILE : LEGACY_PROFILE;
+ if (sourceRevision !== undefined) {
+  if (source?.sha256 !== sourceRevision || total !== textbookRevisionPageCount(sourceRevision)) throw textbookUnavailable();
+  profile = Object.freeze({...profile, sourceSha256: sourceRevision, checkReferences: true});
+  validateSourceReferences(manifest, profile);
+ }
+ return profile;
 }
 export const semanticPageNumber = (value: unknown, profile: SemanticSourceProfile = LEGACY_PROFILE): value is number => typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= profile.maxPdfPages;
 export const semanticQuizId = (value: unknown): value is string => typeof value === 'string' && (SEMANTIC_QUIZZES as readonly string[]).includes(value);
@@ -43,17 +56,18 @@ function allowedFile(filename: string, profile: SemanticSourceProfile): boolean 
 }
 
 /** PDF provenance hashes differ from figure/render/quiz JSON hashes. Keep those checks separate. */
-function validateSourceReferences(data: unknown, profile: SemanticSourceProfile) {
+export function validateSourceReferences(data: unknown, profile: SemanticSourceProfile) {
  const sourceHash = (value: unknown) => {
-  if ((profile.checkReferences && value !== profile.sourceSha256) || (value === NEW_SOURCE_SHA && profile !== NEW_PROFILE)) throw textbookUnavailable();
+  if ((profile.checkReferences && value !== profile.sourceSha256) || (value === NEW_SOURCE_SHA && profile.sourceSha256 !== NEW_SOURCE_SHA)) throw textbookUnavailable();
  };
  const pending: {value: unknown; key: string}[] = [{value: data, key: ''}];
  while (pending.length) {
   const {value, key} = pending.pop()!;
   if (profile.checkReferences) {
-   if (['pdfPage', 'answerPdfPage', 'sourcePage'].includes(key) && !semanticPageNumber(value, profile)) throw textbookUnavailable();
+   if (['pdfPage', 'answerPdfPage', 'sourcePage', 'pdfFrom', 'pdfTo', 'fromPage', 'toPage'].includes(key) && !semanticPageNumber(value, profile)) throw textbookUnavailable();
    if (key === 'pdfPages' && (!Array.isArray(value) || !value.every(page => semanticPageNumber(page, profile)))) throw textbookUnavailable();
-   if (['pageDimensions', 'sourceRenderSha256'].includes(key) && (!object(value) || !Object.keys(value).every(page => /^[1-9]\d{0,2}$/.test(page) && semanticPageNumber(Number(page), profile)))) throw textbookUnavailable();
+   if (key === 'pageDimensions' && (!object(value) || !Object.keys(value).every(page => /^[1-9]\d{0,2}$/.test(page) && semanticPageNumber(Number(page), profile)))) throw textbookUnavailable();
+   if (key === 'sourceRenderSha256' && !hash(value) && (!object(value) || !Object.entries(value).every(([page, renderHash]) => /^[1-9]\d{0,2}$/.test(page) && semanticPageNumber(Number(page), profile) && hash(renderHash)))) throw textbookUnavailable();
    if (key === 'totalPdfPages' && value !== profile.maxPdfPages) throw textbookUnavailable();
    if (typeof value === 'string' && /(?:^id$|Ids?$)/.test(key)) {
     const anchor = /^p(\d{3})(?:-|:)/.exec(value);
@@ -70,12 +84,11 @@ function validateSourceReferences(data: unknown, profile: SemanticSourceProfile)
 }
 
 /** Fixed server-only filenames: no filesystem paths from HTTP parameters or JSON are followed. */
-export async function readSemanticFile(repositoryRoot: string, filename: string, profile: SemanticSourceProfile = LEGACY_PROFILE): Promise<Buffer> {
+export async function readSemanticDirectoryFile(directory: string, filename: string, profile: SemanticSourceProfile = LEGACY_PROFILE): Promise<Buffer> {
   if (!allowedFile(filename, profile)) throw notFound();
   try {
-    const repository = await realpath(repositoryRoot);
-    const root = resolve(repository, SEMANTIC_DIRECTORY);
-    if (await realpath(root) !== root) throw textbookUnavailable();
+    const root = resolve(directory);
+    if (await realpath(directory) !== root) throw textbookUnavailable();
     const path = resolve(root, filename);
     if (await realpath(path) !== path) throw textbookUnavailable();
     const file = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW);
@@ -84,6 +97,14 @@ export async function readSemanticFile(repositoryRoot: string, filename: string,
       if (!stat.isFile() || stat.size > 2 * 1024 * 1024) throw textbookUnavailable();
       return await file.readFile();
     } finally { await file.close(); }
+  } catch { throw textbookUnavailable(); }
+}
+
+export async function readSemanticFile(repositoryRoot: string, filename: string, profile: SemanticSourceProfile = LEGACY_PROFILE): Promise<Buffer> {
+  if (!allowedFile(filename, profile)) throw notFound();
+  try {
+    const repository = await realpath(repositoryRoot);
+    return await readSemanticDirectoryFile(resolve(repository, SEMANTIC_DIRECTORY), filename, profile);
   } catch { throw textbookUnavailable(); }
 }
 
@@ -141,4 +162,10 @@ export function validateSemanticJson(filename: string, data: unknown, sourceProf
 export async function readSemanticJson(repositoryRoot: string, filename: string, profile: SemanticSourceProfile = LEGACY_PROFILE) {
   try { return validateSemanticJson(filename, JSON.parse((await readSemanticFile(repositoryRoot, filename, profile)).toString('utf8')), profile); }
   catch { if (!allowedFile(filename, profile)) throw notFound(); throw textbookUnavailable(); }
+}
+
+/** Direct canonical directories are selected only by the fixed revision resolver. */
+export async function readSemanticDirectoryJson(directory: string, filename: string, profile: SemanticSourceProfile = LEGACY_PROFILE) {
+ try { return validateSemanticJson(filename, JSON.parse((await readSemanticDirectoryFile(directory, filename, profile)).toString('utf8')), profile); }
+ catch { if (!allowedFile(filename, profile)) throw notFound(); throw textbookUnavailable(); }
 }

@@ -31,47 +31,49 @@ class SourceBatchDto implements SourceBatch {
  @IsArray() @ArrayMaxSize(200) @ValidateNested({each:true}) @Type(()=>SourceBatchUpdateDto) updates: SourceBatchUpdateDto[];
 }
 
-@Controller('api/v1/textbook')
+@Controller(['api/v1/textbook', 'api/v1/textbook/revisions/:sourceRevision'])
 @UseGuards(JwtAuthGuard, TextbookMemberGuard)
 export class TextbookController {
   constructor(private readonly textbook: TextbookService, private readonly sourceProgress: SourceBlankProgressService) {}
 
+  private selected(sourceRevision?: string) { return sourceRevision === undefined ? Promise.resolve(this.textbook) : this.textbook.forRevision(sourceRevision); }
+
   @Get('semantic/workspaces/:id')
   @Header('Cache-Control','private, no-store')
-  sourceWorkspaceGet(@CurrentAuth() who: AuthContext,@Param('id') id: string){return this.sourceProgress.getWorkspace(who.userId,id);}
+  async sourceWorkspaceGet(@CurrentAuth() who: AuthContext,@Param('id') id: string,@Param('sourceRevision') sourceRevision?: string){return this.sourceProgress.getWorkspace(who.userId,id,await this.selected(sourceRevision));}
 
   @Put('semantic/workspaces/:id')
   @Header('Cache-Control','private, no-store')
-  sourceWorkspaceSave(@CurrentAuth() who: AuthContext,@Param('id') id: string,@Body() dto: SourceBatchDto){return this.sourceProgress.saveWorkspace(who.userId,id,dto);}
+  async sourceWorkspaceSave(@CurrentAuth() who: AuthContext,@Param('id') id: string,@Body() dto: SourceBatchDto,@Param('sourceRevision') sourceRevision?: string){return this.sourceProgress.saveWorkspace(who.userId,id,dto,await this.selected(sourceRevision));}
 
   @Get('semantic/progress/:id')
   @Header('Cache-Control', 'private, no-store')
-  sourceProgressGet(@CurrentAuth() who: AuthContext, @Param('id') id: string) { return this.sourceProgress.get(who.userId,id); }
+  async sourceProgressGet(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Param('sourceRevision') sourceRevision?: string) { return this.sourceProgress.get(who.userId,id,await this.selected(sourceRevision)); }
 
   @Put('semantic/progress/:id')
   @Header('Cache-Control', 'private, no-store')
-  sourceProgressSave(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Body() dto: SourceProgressDto) { return this.sourceProgress.save(who.userId,id,dto); }
+  async sourceProgressSave(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Body() dto: SourceProgressDto, @Param('sourceRevision') sourceRevision?: string) { return this.sourceProgress.save(who.userId,id,dto,await this.selected(sourceRevision)); }
 
   @Get('semantic/manifest')
   @Header('Cache-Control', 'private, no-store')
-  semanticManifest() { return this.textbook.semanticManifest(); }
+  async semanticManifest(@Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).semanticManifest(); }
 
   @Get('semantic/quizzes/:id')
   @Header('Cache-Control', 'private, no-store')
-  semanticQuiz(@Param('id') id: string) { return this.textbook.semanticQuiz(id); }
+  async semanticQuiz(@Param('id') id: string, @Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).semanticQuiz(id); }
 
   @Get('semantic/choices/:id')
   @Header('Cache-Control', 'private, no-store')
-  semanticChoices(@Param('id') id: string) { return this.textbook.semanticChoices(id); }
+  async semanticChoices(@Param('id') id: string, @Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).semanticChoices(id); }
 
   @Get('semantic/pages/:page')
   @Header('Cache-Control', 'private, no-store')
-  semanticPage(@Param('page') page: string) { return this.textbook.semanticPage(page); }
+  async semanticPage(@Param('page') page: string, @Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).semanticPage(page); }
 
   @Get('semantic/figures/:id')
   @Header('Cache-Control', 'private, no-store')
-  async semanticFigure(@Param('id') id: string, @Res() response: Response) {
-    const { data, mime } = await this.textbook.semanticFigure(id);
+  async semanticFigure(@Param('id') id: string, @Res() response: Response, @Param('sourceRevision') sourceRevision?: string) {
+    const { data, mime } = await (await this.selected(sourceRevision)).semanticFigure(id);
     response.setHeader('Content-Type', mime);
     response.setHeader('X-Content-Type-Options', 'nosniff');
     response.setHeader('Cross-Origin-Resource-Policy', 'same-site');
@@ -80,16 +82,16 @@ export class TextbookController {
 
   @Get('manifest')
   @Header('Cache-Control', 'private, no-store')
-  manifest() { return this.textbook.manifest(); }
+  async manifest(@Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).manifest(); }
 
   @Get('pages/:page')
   @Header('Cache-Control', 'private, no-store')
-  page(@Param('page') page: string) { return this.textbook.page(page); }
+  async page(@Param('page') page: string, @Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).page(page); }
 
   @Get('pages/:page/enhanced')
   @Header('Cache-Control', 'private, no-store')
-  async enhanced(@Param('page') page: string, @Res() response: Response) {
-    const image = await this.textbook.image(page, true);
+  async enhanced(@Param('page') page: string, @Res() response: Response, @Param('sourceRevision') sourceRevision?: string) {
+    const image = await (await this.selected(sourceRevision)).image(page, true);
     response.setHeader('Content-Type', 'image/png');
     response.setHeader('X-Content-Type-Options', 'nosniff');
     response.setHeader('Cross-Origin-Resource-Policy', 'same-site');
@@ -98,8 +100,8 @@ export class TextbookController {
 
   @Get('pages/:page/image')
   @Header('Cache-Control', 'private, no-store')
-  async image(@Param('page') page: string, @Res() response: Response) {
-    const image = await this.textbook.image(page);
+  async image(@Param('page') page: string, @Res() response: Response, @Param('sourceRevision') sourceRevision?: string) {
+    const image = await (await this.selected(sourceRevision)).image(page);
     response.setHeader('Content-Type', 'image/png');
     response.setHeader('X-Content-Type-Options', 'nosniff');
     response.setHeader('Cross-Origin-Resource-Policy', 'same-site');

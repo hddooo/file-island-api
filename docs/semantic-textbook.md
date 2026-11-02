@@ -36,3 +36,18 @@ Author wording and historical assertions were retained, including source timelin
 ### Reviewed illustration layout repair
 
 `repair-textbook-figure-layout.py` is the follow-up layout step after the prior source extract/transcription, based on enlarged original PDF review. It conserves every native source span, moves allowed existing figure IDs into their original row/column relationships, and keeps raster-only diagram labels as native caption text. The added illustration column is an explicit semantic envelope for a source image overlaid across multiple text rows, not a claim of an extra printed border. Native table row merges and nested labels remain intact. No quiz payload, held asset, source text or image bytes change.
+
+## Source revisions
+
+The legacy `/api/v1/textbook/*` paths keep their existing configured raw bundle and default 144-page semantic bundle. They do not select a source from a query parameter. The optional `/api/v1/textbook/revisions/:sourceRevision/*` prefix supports only the two exact PDF SHA256 values:
+
+- 144 pages: `35d850c6e9d9910c24cccce4b2ae37b963ee1ecd24f1926033f48d98f9de0442`.
+- 147 pages: `d54c1aa5d5816eeb73a2e82da0ec699555c2cbf1e7cb717a3b84420ed18296de`.
+
+A server may separately configure `HANQ_TEXTBOOK_REVISIONS_DIR` to an absolute canonical private directory outside the API repository. Each allowed SHA selects only its fixed `semantic/` and `raw/` children. Both manifests must exist and match that SHA and its expected page count. An absent/unavailable root or half bundle returns503 only on revision routes; an unknown revision returns404. No directory or original PDF is statically exposed. This code does not mount or activate source data.
+
+The revision prefix retains the existing suffixes, methods and DTOs: GET `manifest`, `pages/:page`, `pages/:page/image`, `pages/:page/enhanced`, `semantic/manifest`, `semantic/pages/:page`, `semantic/figures/:id`, `semantic/quizzes/:id`, `semantic/choices/:id`; GET/PUT `semantic/progress/:id` and `semantic/workspaces/:id`. A missing enhanced image remains404. JWT/live-session/member guards and `private, no-store` apply to both prefixes. Readers retain fixed filenames, listing membership, canonical/no-follow access, size and MIME checks; scoped raw pages/images also verify their manifest hashes.
+
+Every request receives its own immutable source context. `sourceRevision` is the PDF SHA, response `version` remains the quiz digest of `{schema, source, items}`, and body/response `revision` remains the numeric CAS counter. The existing `(user, quiz, source_version)` keys select old and new progress independently, including legacy progress recovery into a workspace. Neither reading another edition nor saving its workspace deletes, regrades or migrates the other edition. Clients must keep the same prefix for source quiz, progress/workspace, image zoom and original-page navigation; the legacy prefix is not a fallback for an unsupported revision route. No registry/list endpoint is added.
+
+Implementation and synthetic tests are separate from source fidelity, operating data activation and deployment qualification. Original materials remain external; no PDF, answer corpus or source bundle is added to Git by this routing change.

@@ -7,7 +7,7 @@ import { notFound } from '../common/app-error';
 import { projectRoot } from '../common/project-root';
 import { APP_CONFIG } from '../common/tokens';
 import type { AppConfig } from '../config/config';
-import { readSemanticFile, readSemanticJson, semanticPageNumber, semanticQuizId, semanticFigureId, semanticSourceProfile } from './semantic-data';
+import { readSemanticFile, readSemanticJson, semanticPageNumber, semanticQuizId, semanticFigureId, semanticSourceProfile, readSemanticDirectoryFile, readSemanticDirectoryJson, textbookRevisionPageCount, validateSourceReferences, type SemanticSourceProfile } from './semantic-data';
 import { textbookUnavailable } from './textbook-member.guard';
 
 type JsonObject = Record<string, unknown>;
@@ -41,39 +41,71 @@ function publicData(value: unknown): unknown {
 }
 
 export const SEMANTIC_REPOSITORY_ROOT = Symbol('SEMANTIC_REPOSITORY_ROOT');
+const REVISION_SCOPE = Symbol('TEXTBOOK_REVISION_SCOPE');
+type RevisionScope = Readonly<{sourceRevision: string; semanticDirectory: string; rawDirectory: string}>;
 
 @Injectable()
 export class TextbookService {
   constructor(
     @Inject(APP_CONFIG) private readonly config: AppConfig,
     @Optional() @Inject(SEMANTIC_REPOSITORY_ROOT) private readonly semanticRepositoryRoot?: string,
+    @Optional() @Inject(REVISION_SCOPE) private readonly revisionScope?: RevisionScope,
   ) {}
 
   private semanticRoot() { return this.semanticRepositoryRoot ?? projectRoot(); }
 
-  async semanticManifest() { return publicData(await readSemanticJson(this.semanticRoot(), 'manifest.json')); }
+  /** A fresh immutable context per request; the default singleton never changes its roots. */
+  async forRevision(sourceRevision: string): Promise<TextbookService> {
+    textbookRevisionPageCount(sourceRevision);
+    const requested = this.config.textbook?.revisionsDir;
+    if (!requested || !isAbsolute(requested) || requested.includes('\u0000')) throw textbookUnavailable();
+    try {
+      const repository = await realpath(projectRoot()), root = resolve(requested);
+      if (await realpath(requested) !== root || root === repository || within(repository, root)) throw textbookUnavailable();
+      const revisionDirectory = resolve(root, sourceRevision);
+      const scope = Object.freeze({sourceRevision, semanticDirectory: resolve(revisionDirectory, 'semantic'), rawDirectory: resolve(revisionDirectory, 'raw')});
+      for (const directory of [revisionDirectory, scope.semanticDirectory, scope.rawDirectory]) if (await realpath(directory) !== directory) throw textbookUnavailable();
+      const service = new TextbookService(this.config, undefined, scope);
+      // A half bundle or crossed source metadata must not serve even one side.
+      await service.rawManifest();
+      await service.semanticJson('manifest.json');
+      return service;
+    } catch { throw textbookUnavailable(); }
+  }
+
+  private profile(manifest: JsonObject) { return semanticSourceProfile(manifest, this.revisionScope?.sourceRevision); }
+  private async semanticJson(filename: string, profile?: SemanticSourceProfile) {
+    const data = this.revisionScope ? await readSemanticDirectoryJson(this.revisionScope.semanticDirectory, filename, profile) : await readSemanticJson(this.semanticRoot(), filename, profile);
+    if (filename === 'manifest.json') this.profile(data);
+    return data;
+  }
+  private semanticFile(filename: string, profile: SemanticSourceProfile) {
+    return this.revisionScope ? readSemanticDirectoryFile(this.revisionScope.semanticDirectory, filename, profile) : readSemanticFile(this.semanticRoot(), filename, profile);
+  }
+
+  async semanticManifest() { return publicData(await this.semanticJson('manifest.json')); }
 
   async semanticQuiz(id: string) {
     if (!semanticQuizId(id)) throw notFound();
-    const manifest = await readSemanticJson(this.semanticRoot(), 'manifest.json');
+    const manifest = await this.semanticJson('manifest.json');
     const entry = (manifest.quizzes as JsonObject[]).find(q => q.id === id);
     if (!entry) throw notFound();
-    const data = await readSemanticJson(this.semanticRoot(), `quizzes/${id}.json`, semanticSourceProfile(manifest));
+    const data = await this.semanticJson(`quizzes/${id}.json`, this.profile(manifest));
     if (entry.itemCount !== undefined && entry.itemCount !== (data.items as unknown[]).length) throw textbookUnavailable();
     return publicData(data);
   }
 
   async semanticChoices(id: string) {
     if (!semanticQuizId(id)) throw notFound();
-    const manifest = await readSemanticJson(this.semanticRoot(), 'manifest.json');
-    const profile = semanticSourceProfile(manifest);
+    const manifest = await this.semanticJson('manifest.json');
+    const profile = this.profile(manifest);
     const entry = Array.isArray(manifest.fourChoices) ? (manifest.fourChoices as JsonObject[]).find(q => q.id === id) : undefined;
     if (!entry) throw notFound();
-    const data = await readSemanticJson(this.semanticRoot(), `quizzes/four-choice/${id}.json`, profile);
+    const data = await this.semanticJson(`quizzes/four-choice/${id}.json`, profile);
     if (entry.itemCount !== (data.items as unknown[]).length) throw textbookUnavailable();
-    const sourceBytes = await readSemanticFile(this.semanticRoot(), `quizzes/${id}.json`, profile);
+    const sourceBytes = await this.semanticFile(`quizzes/${id}.json`, profile);
     if (createHash('sha256').update(sourceBytes).digest('hex') !== data.sourceQuizSha256) throw textbookUnavailable();
-    const original = await readSemanticJson(this.semanticRoot(), `quizzes/${id}.json`, profile);
+    const original = await this.semanticJson(`quizzes/${id}.json`, profile);
     for (const value of data.items as JsonObject[]) {
       const source = (original.items as JsonObject[]).find(i => i.id === value.sourceItemId);
       const question = value.sourceQuestion as JsonObject;
@@ -95,29 +127,29 @@ export class TextbookService {
 
   async semanticPage(page: string) {
     if (!/^[1-9]\d{0,2}$/.test(page)) throw notFound();
-    const manifest = await readSemanticJson(this.semanticRoot(), 'manifest.json').catch(error => {
+    const manifest = await this.semanticJson('manifest.json').catch(error => {
       // Without a validated source the original144 bound still applies.
       if (!semanticPageNumber(Number(page))) throw notFound();
       throw error;
     });
-    const profile = semanticSourceProfile(manifest);
+    const profile = this.profile(manifest);
     if (!semanticPageNumber(Number(page), profile)) throw notFound();
     if (!(manifest.pages as JsonObject[]).some(p => p.pdfPage === Number(page))) throw notFound();
-    return publicData(await readSemanticJson(this.semanticRoot(), `pages/page-${page.padStart(3, '0')}.json`, profile));
+    return publicData(await this.semanticJson(`pages/page-${page.padStart(3, '0')}.json`, profile));
   }
 
   async semanticFigure(id: string): Promise<{ data: Buffer; mime: 'image/jpeg' | 'image/png' }> {
     if (!/^p\d{3}-figure-[1-9]\d{0,2}$/.test(id)) throw notFound();
-    const manifest = await readSemanticJson(this.semanticRoot(), 'manifest.json').catch(error => {
+    const manifest = await this.semanticJson('manifest.json').catch(error => {
       if (!semanticFigureId(id)) throw notFound();
       throw error;
     });
-    const profile = semanticSourceProfile(manifest);
+    const profile = this.profile(manifest);
     if (!semanticFigureId(id, profile)) throw notFound();
     const entry = Array.isArray(manifest.figures) ? manifest.figures.find(f => object(f) && f.id === id) as JsonObject | undefined : undefined;
     if (!entry) throw notFound();
     const extension = entry.extension ?? 'jpeg';
-    const data = await readSemanticFile(this.semanticRoot(), `assets/${id}.${extension}`, profile);
+    const data = await this.semanticFile(`assets/${id}.${extension}`, profile);
     const valid = extension === 'png' ? data.subarray(0, 8).equals(PNG_SIGNATURE)
       : data.length >= 4 && data[0] === 0xff && data[1] === 0xd8 && data[data.length - 2] === 0xff && data[data.length - 1] === 0xd9;
     if (!valid || (entry.bytes !== undefined && entry.bytes !== data.length)
@@ -126,6 +158,10 @@ export class TextbookService {
   }
 
   private async root(): Promise<string> {
+    if (this.revisionScope) {
+      if (await realpath(this.revisionScope.rawDirectory) !== this.revisionScope.rawDirectory) throw textbookUnavailable();
+      return this.revisionScope.rawDirectory;
+    }
     return resolveTextbookDataRoot(this.config.textbook?.dataDir, projectRoot());
   }
 
@@ -159,6 +195,11 @@ export class TextbookService {
           && typeof p.width === 'number' && Number.isFinite(p.width) && p.width > 0
           && typeof p.height === 'number' && Number.isFinite(p.height) && p.height > 0
           && (p.printedPage === null || Number.isSafeInteger(p.printedPage)))) throw textbookUnavailable();
+      if (this.revisionScope) {
+        if (data.source.sha256 !== this.revisionScope.sourceRevision || data.source.pageCount !== textbookRevisionPageCount(this.revisionScope.sourceRevision)
+          || !data.pages.every((p, i) => object(p) && p.dataPath === `pages/page-${String(i + 1).padStart(3, '0')}.json` && p.imagePath === `renders/page-${String(i + 1).padStart(3, '0')}.png`
+            && typeof p.dataSha256 === 'string' && /^[a-f0-9]{64}$/i.test(p.dataSha256) && typeof p.imageSha256 === 'string' && /^[a-f0-9]{64}$/i.test(p.imageSha256))) throw textbookUnavailable();
+      }
       return data as JsonObject & { pages: JsonObject[] };
     } catch { throw textbookUnavailable(); }
   }
@@ -179,16 +220,20 @@ export class TextbookService {
   async page(page: string) {
     const { stem, pageNumber, entry } = await this.selected(page);
     try {
-      const data: unknown = JSON.parse((await this.read(`pages/${stem}.json`, 32 * 1024 * 1024)).toString('utf8'));
+      const bytes = await this.read(`pages/${stem}.json`, 32 * 1024 * 1024);
+      if (this.revisionScope && createHash('sha256').update(bytes).digest('hex') !== String(entry.dataSha256).toLowerCase()) throw textbookUnavailable();
+      const data: unknown = JSON.parse(bytes.toString('utf8'));
       if (!object(data) || data.pdfPage !== pageNumber || data.printedPage !== entry.printedPage
         || data.width !== entry.width || data.height !== entry.height || !Array.isArray(data.textBlocks)) throw textbookUnavailable();
+      if (this.revisionScope) validateSourceReferences(data, {maxPdfPages: textbookRevisionPageCount(this.revisionScope.sourceRevision), sourceSha256: this.revisionScope.sourceRevision, checkReferences: true});
       return publicData(data);
     } catch { throw textbookUnavailable(); }
   }
 
   async image(page: string, enhanced = false): Promise<Buffer> {
-    const { stem } = await this.selected(page);
+    const { stem, entry } = await this.selected(page);
     const data = await this.read(`${enhanced ? 'enhanced' : 'renders'}/${stem}.png`, 32 * 1024 * 1024, enhanced);
+    if (this.revisionScope && !enhanced && createHash('sha256').update(data).digest('hex') !== String(entry.imageSha256).toLowerCase()) throw textbookUnavailable();
     if (!data.subarray(0, 8).equals(PNG_SIGNATURE)) throw textbookUnavailable();
     return data;
   }
