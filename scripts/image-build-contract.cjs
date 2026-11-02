@@ -1,6 +1,6 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto'),assert=require('node:assert/strict');
-const schema54=require('./schema54-contract.cjs');
+const profiles=require('./migration-build-profile.cjs');
 const REPOSITORY='hddooo/file-island-api',WORKFLOW='.github/workflows/image.yml';
 const BASE='node:24-bookworm-slim@sha256:a43f7fc3e52e87d12a905f46eea0275def84ca8f2981a5b53fed44d7fb398ee0';
 const DOCKERFILE='ops-prep/Dockerfile.runtime-mount.disabled',IGNORE=DOCKERFILE+'.dockerignore';
@@ -13,12 +13,12 @@ function identity(env,commit,local){
  assert.equal(env.GITHUB_ACTIONS,'true','Use --local-build outside Actions');assert.equal(env.GITHUB_REPOSITORY,REPOSITORY,'Untrusted repository');assert.equal(env.GITHUB_SHA,commit,'CI source mismatch');assert.equal(env.GITHUB_REF,'refs/heads/main','Only main builds are supported');assert.equal(env.GITHUB_EVENT_NAME,'workflow_dispatch','Manual image build only');assert.equal(env.GITHUB_WORKFLOW_REF,REPOSITORY+'/'+WORKFLOW+'@refs/heads/main','Unexpected workflow path');assert(/^\d+$/.test(env.GITHUB_RUN_ID||''));assert(/^[1-9]\d*$/.test(env.GITHUB_RUN_ATTEMPT||''));
  return {mode:'github-actions-build',repository:REPOSITORY,sourceCommit:commit,workflowPath:WORKFLOW,runId:env.GITHUB_RUN_ID,runAttempt:env.GITHUB_RUN_ATTEMPT,authenticated:false};
 }
-function sourceManifest(root,commit){
+function sourceManifest(root,commit,profile=profiles.SCHEMA54){
+ assert(typeof commit==='string'&&commit.length===40&&/^[a-f0-9]{40}$/.test(commit),'Exact source commit required for migration build profile');
  const names=git(root,['ls-tree','-r','--name-only',commit,'--','migrations']).trim().split('\n').filter(name=>/^migrations\/\d{3}_[a-z0-9_]+\.sql$/.test(name)).sort();
  const rows=names.map(name=>({version:path.posix.basename(name),checksum:hash(git(root,['show',commit+':'+name],true))}));
  const privilegesSha256=hash(git(root,['show',commit+':migrations/repeatable/privileges.sql'],true));
- schema54.validateManifest({migrations:rows,privilegesSha256});
- return {rows,privilegesSha256,manifestSha256:hash(Buffer.from(JSON.stringify(rows)))};
+ return profiles.validateManifest({migrations:rows,privilegesSha256},profile);
 }
 function stageContext(root,commit,destination){
  assert(!fs.existsSync(destination),'Preserve existing build context');
@@ -40,5 +40,5 @@ function verifyOciArchive(bytes,{imageId,configId,sourceCommit}){
  const index=JSON.parse(found.get('index.json')),manifestBytes=found.get('blobs/sha256/'+imageId.slice(7)),configBytes=found.get('blobs/sha256/'+configId.slice(7));assert(index.manifests.some(item=>item.digest===imageId),'Runtime digest absent from OCI index');assert.equal('sha256:'+hash(manifestBytes),imageId);const manifest=JSON.parse(manifestBytes);assert.equal(manifest.config?.digest,configId,'Runtime ID must identify a single image manifest, not an attestation/index');assert(Array.isArray(manifest.layers));assert.equal('sha256:'+hash(configBytes),configId);const config=JSON.parse(configBytes);assert.equal(config.os,'linux');assert.equal(config.architecture,'amd64');assert.equal(config.config.User,'node');assert.equal(config.config.Labels['org.opencontainers.image.source'],'https://github.com/'+REPOSITORY);assert.equal(config.config.Labels['org.opencontainers.image.revision'],sourceCommit);assert.deepEqual(config.config.Cmd,['node','/run/hanq-production/bootstrap.mjs']);
  return {imageId,imageConfigDigest:configId,sourceCommit,platform:'linux/amd64',user:'node',singleManifestVerified:true};
 }
-function qualification(){return {productionQualified:false,deploymentPerformed:false,requiredSuites:REQUIRED_SUITES.map(name=>({name,status:'not_run',conclusion:'unverified'})),blockers:['Six complete suites and authenticated functional receipt are not produced by image build','Installed controller trusts the original repository/functional.yml and hanq-release-evidence artifact prefix','Observed controller allows six mounts; approved runtime includes readonly private audio and must be preserved','External semantic bundle needs separately reviewed readonly mount and readability/integrity tests','Native controller/approval/compose/bootstrap and rollback must be reviewed before cutover']};}
+function qualification(profile=profiles.SCHEMA54){profiles.validateName(profile);return {productionQualified:false,deploymentPerformed:false,requiredSuites:REQUIRED_SUITES.map(name=>({name,status:'not_run',conclusion:'unverified'})),blockers:['Six complete suites and authenticated functional receipt are not produced by image build','Installed controller trusts the original repository/functional.yml and hanq-release-evidence artifact prefix','Observed controller allows six mounts; approved runtime includes readonly private audio and must be preserved','External semantic bundle needs separately reviewed readonly mount and readability/integrity tests','Native controller/approval/compose/bootstrap and rollback must be reviewed before cutover',...(profile===profiles.SCHEMA55_IMAGE_ONLY?[profiles.MIGRATION_BLOCKER]:[])]};}
 module.exports={REPOSITORY,WORKFLOW,BASE,DOCKERFILE,REQUIRED_SUITES,hash,git,identity,sourceManifest,stageContext,tarEntries,verifyOciArchive,qualification};
