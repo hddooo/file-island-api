@@ -1,5 +1,6 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+const schema54=require('./schema54-contract.cjs');
 const REPOSITORY='hddooo/file-island-api',WORKFLOW='.github/workflows/image.yml';
 const BASE='node:24-bookworm-slim@sha256:a43f7fc3e52e87d12a905f46eea0275def84ca8f2981a5b53fed44d7fb398ee0';
 const DOCKERFILE='ops-prep/Dockerfile.runtime-mount.disabled',IGNORE=DOCKERFILE+'.dockerignore';
@@ -13,9 +14,11 @@ function identity(env,commit,local){
  return {mode:'github-actions-build',repository:REPOSITORY,sourceCommit:commit,workflowPath:WORKFLOW,runId:env.GITHUB_RUN_ID,runAttempt:env.GITHUB_RUN_ATTEMPT,authenticated:false};
 }
 function sourceManifest(root,commit){
- const names=git(root,['ls-tree','-r','--name-only',commit,'--','migrations']).trim().split('\n').filter(name=>/^migrations\/\d{3}_[a-z0-9_]+\.sql$/.test(name)).sort();assert.equal(names.length,54,'Expected schema54');assert(names.at(-1).includes('/055_'));assert(!names.some(name=>/\/(047|056)_/.test(name)));
+ const names=git(root,['ls-tree','-r','--name-only',commit,'--','migrations']).trim().split('\n').filter(name=>/^migrations\/\d{3}_[a-z0-9_]+\.sql$/.test(name)).sort();
  const rows=names.map(name=>({version:path.posix.basename(name),checksum:hash(git(root,['show',commit+':'+name],true))}));
- return {rows,privilegesSha256:hash(git(root,['show',commit+':migrations/repeatable/privileges.sql'],true)),manifestSha256:hash(Buffer.from(JSON.stringify(rows)))};
+ const privilegesSha256=hash(git(root,['show',commit+':migrations/repeatable/privileges.sql'],true));
+ schema54.validateManifest({migrations:rows,privilegesSha256});
+ return {rows,privilegesSha256,manifestSha256:hash(Buffer.from(JSON.stringify(rows)))};
 }
 function stageContext(root,commit,destination){
  assert(!fs.existsSync(destination),'Preserve existing build context');

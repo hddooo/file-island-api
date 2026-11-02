@@ -6,6 +6,10 @@
 
 build 후 network-none/readonly/권한 축소 container에서 API bootstrap 모듈 import, argon2 합성 hash와54개 SQL/privileges 원본 바이트를 검사합니다. API 서버·DB·실제 bootstrap·비공개 자료는 실행/연결하지 않습니다. 공식 pinned base를 유지하고 Docker build의 부가 attestation/index 출력을 분리하여 기존 archive gate가 요구하는 단일 runtime manifest와 config digest를 직접 검증합니다. GitHub run/artifact 출처 인증은 별개이며 생략하지 않습니다.
 
+이미지 producer·functional binding·migration preflight는 같은 `scripts/schema54-contract.cjs`를 사용합니다. 001–055 중047이 없는54개 전체 filename/checksum을 manifest SHA256 `c082a2e30f2caab4d2e7802944fb58c4f60e890c636e6d5a30958ebd9d04fdfa`로 고정하고, privileges SHA256 `9fc57d632355720757da4ec9ba9a44fcb59bae296b295fb561e0a494039960c0`도 유지합니다. 개수만 같은 SQL 교체와 image receipt의 privileges 불일치도 거절합니다. 현재 migration harness는 복원 뒤 적용0개·기존54개·데이터 불변을 검사하므로056/schema55의 upgrade 검사가 아닙니다. 056 checksum을 알고 있어도 별도 restore/upgrade/rollback 근거 전에는 이미지 제작과 functional qualification 모두 차단합니다. 이 변경은 schema55 지원이나 운영 migration 승인이 아닙니다.
+
+API 테스트 container는 각 child TAP의 summary를 정확히 한 번씩 요구합니다. 중복 summary로 앞선 실패를 덮거나 실패·SKIP·TODO·bail-out을 정상 count로 포장한 결과는 qualification에 사용하지 않습니다. 원본 TAP와 비공개 fixture는 artifact에 내보내지 않습니다.
+
 결과는 `file-island-api-image-<SHA>-<run>-<attempt>` artifact의 image archive와 `release.json`, context manifest/checksum입니다. `release.json`은 항상 productionQualified=false이고6개 배포 자격 suite는 not_run/unverified입니다. `release-evidence.json`이나 인증된 functional qualification을 만들어낸 것으로 보고하지 않습니다. 로컬 `--local-build`는 run ID를 조작하지 않으며 local-unqualified로 기록합니다. 기존 controller가 허용하는 `hanq-release-evidence-*`와 다른 이름으로 보존합니다.
 
 `scripts/check-image-cd-handoff.cjs <image-receipt> [controller-source]`는 읽기 전용으로 남은 계약을 보고하고 ready=false/exit2를 반환합니다. apply/설치/재시작 기능이 없습니다. 관찰한 controller는 원본 API/functional.yml 고정이며 mount6개만 허용하여 승인된 readonly 음원이 포함된 현재 운영 compose와 맞지 않습니다. 음원을 제거하지 않고 controller policy·native 설치·approval을 별도로 검토해야 합니다. 외부 semantic bundle의 추가 readonly mount/읽기권한/무결성 검증도 필요합니다.
