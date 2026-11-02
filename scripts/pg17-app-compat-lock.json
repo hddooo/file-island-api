@@ -1,0 +1,11 @@
+{
+  "applicationSource": "3af9a175c69f976e4cc74346245caf68654ef746",
+  "blobs": {
+    "src": "f1e79ef8726fcfceff95aefeb79583230b27ca0b",
+    "migrations": "7b1e3a0ed473ad0eee8ab4092254cc703fd05ab8",
+    "test": "7c42568be6666148b60da293e8249ae3d1840b72",
+    "package.json": "5607382a69edcafeff5d45980d82c5fbb1e122cb",
+    "package-lock.json": "53c32d0d2b73d6e544ba719e0f28060f1cfad143",
+    "Dockerfile": "ad4d6abdf2e22bcede6c3aa55be044e47c46275d"
+  }
+}

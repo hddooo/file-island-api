@@ -3,6 +3,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      pg17_app_compat:
+        description: Run synthetic PG17 app compatibility only (no backup or deployment qualification)
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -25,6 +30,10 @@ jobs:
       - name: Verify image and functional qualification contracts
         run: node --test scripts/image-build-contract.test.cjs scripts/migration-build-profile.test.cjs scripts/functional-evidence.test.cjs scripts/functional-api-tests.test.cjs scripts/functional-core-ui.test.cjs scripts/prepare-functional-plan.test.cjs
       - run: npm run typecheck
+      - name: Compile and check manual PG17 compatibility safety contracts
+        run: |
+          npx --no-install tsc -p tsconfig.json
+          node --test scripts/pg17-app-compat.test.cjs
       - name: Unit tests independent of private frontend and textbook fixtures
         shell: bash
         run: |
@@ -43,3 +52,31 @@ jobs:
       - name: Existing lint gate (runs after tests to preserve test evidence)
         if: always()
         run: npm run lint
+  pg17-app-compat:
+    if: github.event_name == 'workflow_dispatch' && inputs.pg17_app_compat == true
+    needs: independent
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci --no-fund
+      - run: npx --no-install tsc -p tsconfig.json
+      - name: Run selected existing integration tests on disposable PG17
+        env:
+          PG17_APP_COMPAT_OPT_IN: 'true'
+        run: node scripts/pg17-app-compat.cjs
+      - name: Preserve sanitized compatibility result only
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: pg17-app-compat-${{ github.sha }}
+          path: pg17-app-compat-result.json
+          if-no-files-found: warn
+          retention-days: 7
