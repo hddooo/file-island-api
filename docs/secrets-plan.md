@@ -1,5 +1,26 @@
 # File Island 환경 설정 및 Secrets 계획
 
+## Windows 실측 보완 (2026-11-02, 소스 동기화·미배포)
+
+아래 Windows 조사 결과를 우선합니다. 문서 뒤의 `/etc/file-island/api.env`와 `/srv/file-island/*`는 최초 제안이며 실제 운영 경로가 아닙니다. 이번에 env-file·credential·runner·environment·Secrets를 생성하거나 비밀값을 추출/복사하지 않았습니다.
+
+현재 운영은 Docker Desktop Linux engine / WSL2 `docker-desktop`입니다. API는 환경변수에 비밀을 저장하는 대신 기존 readonly 파일 mount를 bootstrap이 읽어 process environment에 연결합니다. 운영 이미지의 직접 환경변수 이름에는 `DATABASE_URL`과 JWT 비밀 항목이 없으며, bootstrap 소스에는 아래 canonical 이름이 있습니다. 값은 조회하지 않았습니다.
+
+| 이름 | 기존 파일의 container 소비 위치 (원본 host 접속 경로 미기록) | 이번 확인 |
+|---|---|---|
+| `DATABASE_URL` | `/run/hanq-secrets/db-password`; 기존 bootstrap이 조립 | readonly bind mount 확인. 값 미조회 |
+| `HANQ_JWT_ACCESS_SECRET` | `/run/hanq-secrets/jwt-access` | readonly bind mount 확인. 값 미조회 |
+| `HANQ_JWT_REFRESH_SECRET` | `/run/hanq-secrets/jwt-refresh` | readonly bind mount 확인. 값 미조회 |
+| `HANQ_JWT_ISSUER` | `/run/hanq-secrets/jwt-issuer` | readonly bind mount 확인. 값 미조회 |
+| DB CA | `/run/hanq-ca/ca.crt` | readonly bind mount 확인 |
+| 비공개 음원 | `/run/hanq-private-toeic-audio` | 승인된 readonly bind mount 유지 |
+
+이번 source snapshot 전환에는 새 JWT 생성이나 운영 비밀값의 GitHub 복제가 필요하지 않습니다. 기존 mount/bootstrap의 재사용 대상과 세션 호환성을 검토한 뒤 runtime 전환에 명시적으로 포함해야 합니다. 기존 파일 내용·권한은 변경하지 않습니다. `HANQ_PROVENANCE_TOKEN`은 기존 controller의 인증된 Actions artifact 검증에 필요한 별도 이름이며 현재 provisioning은 미확인입니다. 배포 저장소의 `GITHUB_TOKEN`이 private API repository를 읽을 수 있다고 가정하지 않습니다.
+
+인증 수단: PATH와 표준 설치 경로에 `gh` 없음, in-app browser는 로그아웃 상태이며 GitHub connector는 새 private repo 문서를 404로 반환했습니다. 기존 Git Credential Manager를 비대화식으로 그대로 사용한 `git ls-remote`와 source-only clone은 성공했습니다. 기존 세션/credential을 다른 인증 수단으로 변환하지 않았습니다.
+
+승인 순서는 (1) 필요시 새 API의 Actions/Contents 읽기만 허용할 provenance 인증 주체, (2) `hddooo`의 runner 연결 대상과 신뢰 가능한 workflow/작성자 범위, (3) runtime image 교체와 기존 파일 mount 재사용, (4) 별도 FE 호스팅 연결 순서입니다. 새 credential/runner/권한/네트워크/실제 전환은 이번에 실행하지 않았습니다. 토큰·비밀번호를 채팅으로 받지 않습니다.
+
 실제 등록: 아직 0개. 기존 GitHub Secret 값은 재조회할 수 없으며 파일/브라우저/프로세스에서 추출하지 않습니다. 새 credential도 생성하지 않았습니다.
 
 ## GitHub Actions

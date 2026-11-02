@@ -1,5 +1,44 @@
 # File Island 저장소 이관 기록
 
+## Windows 조사와 전환 준비 (2026-11-02)
+
+준비 branch `prep/windows-migration`, 기준 main `96c6b7a1fdc16660edb97676ed5f8a5ba1b3d4ec`. 새 repo SHA는 기존 Git Credential Manager 인증을 재사용한 원격 조회로 확인했습니다. 이 변경은 문서와 비활성 build 후보의 소스 동기화입니다. CI 실행·운영 반영은 별도입니다.
+
+### 직접 확인한 운영 상태
+
+- 호스트 `DESKTOP-LKMB8TS`; Docker server 29.9.2 / context `desktop-linux`; WSL은 `docker-desktop`만 등록·실행 중인 것으로 확인했습니다. Linux `/etc` 제안을 Windows 운영 경로로 취급하지 않습니다.
+- API `hanq-api-staging`: healthy, loopback `8080`, image `sha256:5ffd2cc49f557fab789dd8f5092350ff27c8396ccfee0dda1c29c774e0a347b6`, image source revision `987be5798893b0023674a194626704a9d5033a37`.
+- PostgreSQL `local-postgres` healthy. 기존 Nginx Proxy Manager `fileisland-npm-local` 실행 중. 관련 port 점유는 API 8080, DB 33006, proxy 18080/18081/18443이며 proxy HTTPS 18443은 기존 LAN에도 bind되어 있습니다. 80/443/8082 listener는 조회 당시 없었습니다. 외부 접근·DNS·TLS 유효성·새 공개 port는 확인하거나 변경하지 않았습니다.
+- C: 여유 약377GiB, D: 약1.1GiB. Docker image 약5.5GB / build cache 약2.1GB. 정리·삭제하지 않았습니다.
+- 실제 API compose: `C:\Users\INNOGRID\Documents\Codex\2026-10-29\task\candidate\hanq_final_20261028.compose.json`; bootstrap은 같은 폴더의 `hanq_final_20261028.bootstrap.mjs` → `/run/hanq-production/bootstrap.mjs` readonly bind입니다. 비밀 파일/CA/음원 mount는 [설정 계획](secrets-plan.md)의 Windows 표를 따릅니다.
+- runner 실행파일: `C:\Users\INNOGRID\Documents\Codex\2026-10-28\task-2\runner-package\unregistered\bin\Runner.Listener.exe`; 설정 이름 `hanq-home-windows`, 연결 repo `blockmonkey1992/hanq-home-deploy`. 프로세스와 `HanQ-Interactive-Deploy-Runner` Running, 최신 runner 로그의 listening/session 생성은 확인했습니다. GitHub 서버의 현재 online badge는 직접 확인하지 않았습니다. `HanQ-API-Recovery` Disabled는 유지했습니다.
+- runner checkout은 `_work\hanq-home-deploy\hanq-home-deploy\hanq-verify-source` SHA `4b105f4b9bd718a9eb854ed7a377f663c172a28e`, `hanq-contract-hash-source` SHA `50ea6a4f5294f886203d2200b651985d5f2eb2c3`. 두 checkout은 clean입니다. 이들은 API 소스 SHA가 아닌 배포 도구 SHA입니다.
+- 도구 실행 view의 `%LOCALAPPDATA%\HanQDeploy\deploy.cjs`는 34079 bytes / SHA256 `6ac725dce62e4270e4c1f1adf36b2100ddbcd4423c950e60ccdf681c76d97a6f`. 과거 문서에 Scheduler native view 차이가 기록되어 있어 이 readback을 실제 Scheduler 설치 검증으로 간주하지 않습니다. 재설치·예약 작업 실행은 하지 않았습니다.
+
+후속 읽기 점검에서 Windows PowerShell 직접 조회도 같은 deploy.cjs 크기/hash를 반환했습니다. deploy.cmd는169 bytes / SHA256 `71cff0d4694e3592e96c30da5ae8500c40a8da1ccdc45052c09d33620d9368f8`입니다. 두 파일 ACL은 상속을 허용하며 조회한 광범위 사용자 principal의 write allow는0개였습니다. 이는 완전한 보안 감사나 Scheduler에서 controller를 실행한 검증이 아닙니다. runner Scheduler action의 supervisor/RunnerDirectory는 실행 중인 listener 경로와 일치하며 Interactive/Limited입니다. Listener1개, Worker0개, deployment.lock 없음, 복구 task Disabled를 확인했습니다. recovery state에는 recoveryEnabled 필드가 없어 그 값은 미확인입니다. 현재 approval은 source987/schema54와 compose/bootstrap hash를 가지지만 testEvidence/provenance/controllerSha256은 없습니다. 현재 도구 process의 provenance token 환경변수는 부재하며 새 repo Actions 읽기 권한은 미확인입니다.
+
+후속 DB 조회는 기존 passwordless local socket과 READ ONLY transaction만 사용했습니다. 기대 DB 일치, PostgreSQL17.11, migration54행/최대055/047없음/056없음을 확인했고54개 checksum은 Git 원본 blob과 모두 일치했습니다. 단, Windows checkout의54개 SQL은 CRLF 변환 때문에 운영 checksum과 다르므로 Windows Docker build에서는 Git 원본 LF 바이트를 보존한 별도 context가 필요합니다. 이 문제를 migration 재적용으로 해결하지 않습니다. dump/restore/migration/일반 startup은 실행하지 않았습니다. 운영 프론트 `cfc9892a2a180a33b177a8689bcdfa8f0b5607f7` 0.2.9 및 실제 HTML/19자산 검증 완료는 FE 담당 전달 사항입니다. 기존 dev/Vercel은 변경하지 않았습니다.
+
+### 비공개 자료와 비활성 build 제안
+
+실제 semantic bundle은 `C:\Users\INNOGRID\Documents\Codex\2026-10-28\task-2\api-ci-validation\private-textbook-semantic-data`에 있으며 파일 수298개를 확인했습니다. 내용·해시·container node 사용자의 읽기 가능 여부는 이번에 검증하지 않았습니다. 원본 자료를 복사하거나 image context에 넣지 않았습니다.
+
+`ops-prep/Dockerfile.runtime-mount.disabled`와 전용 `.dockerignore`를 준비했습니다. 원본 Dockerfile은 유지하고 제안 파일에서만 private bundle COPY와 build-time bundle 검사를 분리했습니다. pinned base/non-root/bootstrap CMD/migrations는 보존했고 source label만 새 repo로 지정했습니다. 전용 ignore는 비공개 bundle을 context에서 제외합니다. pinned base image가 로컬에 없고 새 pull/설치/운영 접근 없이 마치는 소스 준비 단계이므로 Docker build·container 실행·기능 검증은 미실행입니다. production image가 아닙니다.
+
+향후 승인된 격리 검사에서 실제 bundle을 `/app/private-textbook-semantic-data`에 readonly bind하여 `scripts/check-textbook-bundle.cjs`를 실행하고 node 사용자의 접근을 검증해야 합니다. 고정 경로와 realpath 검사 때문에 다른 환경변수나 symlink로 대체하지 않습니다. 이 검사 분리는 교재 검증 생략이 아니며 배포 증거에 성공 결과를 반드시 포함해야 합니다. 기존 음원 readonly mount는 semantic bundle과 별개로 유지합니다.
+
+### 저녁 전환 순서와 승인 대상
+
+1. FE `prep/windows-fe-029`의 17파일 delta(16 일반 파일 + held CI1개)를 새 web에 동기화합니다. 초기931 snapshot에서 0.2.9 소스로 갱신하는 단계입니다. `.github/workflows-held/ci.yml.disabled`만 갱신하고 활성 workflow는 만들지 않았습니다. 새 README 이관 안내도 보존했습니다. 기존 FE 담당 CI/배포는 독립적으로 유지합니다.
+2. API 비활성 Dockerfile 후보를 검토하고 secret 없는 clean build·교재 mount 검사·별도 격리 DB/bootstrap 검수를 준비합니다. 운영 DB·키를 시험 실행에 연결하지 않습니다. schema54 SQL hash/055 반영을 확인하고 Growth/056은 별도로 둡니다.
+3. controller 신뢰 원본은 현재 `blockmonkey1992/hanq_api`와 `.github/workflows/functional.yml`에 고정되어 있습니다. 새 snapshot SHA/source label/workflow/evidence와 배포 도구의 provenance 정책을 함께 검토·테스트해야 합니다. repo 주소만 치환한 apply는 허용되지 않습니다. 현재 controller는 schema 변경을 거절하므로 migration056은 이 전환에 포함하지 않습니다.
+4. **승인 필요:** 새 API repo의 Actions/Contents 읽기 인증 수단, `hddooo` runner 등록/접근 범위(기존 runner 이동은 기존 제어 영향 포함), environment 보호 규칙, controller 설치의 정확 bundle/hash. 이번에 생성·등록·설치하지 않았습니다. 일반 소스 CI는 secret 없이 GitHub-hosted로 분리하고, self-hosted 배포는 신뢰한 수동 workflow만 대상으로 설계합니다.
+5. **별도 승인 필요:** API image 교체 대상 `hanq-api-staging`, 고정 후보 image/SHA와 기존 DB/JWT/CA/음원 mount 재사용, rollback image/compose/bootstrap hash. 실제 변경 직전 native controller와 현재 baseline을 재확인합니다. env-file·키 rotation은 선제적으로 만들지 않습니다.
+6. 정적서버는 기존 NPM을 HTTPS proxy 후보로 재사용할 수 있습니다. 공개 허용 asset만 별도 폴더에 readonly mount하고 loopback8082 후보를 검사하는 설계를 검토합니다. `HanQPrivateMedia`나 semantic 자료를 public root로 사용하지 않습니다. **승인 필요:** 정확 domain·NPM proxy host·인증서·포트·방화벽/DNS 변경. 기존 노출 설정이 새 static 공개 승인이 되지 않습니다.
+7. 새 FE hosting 연결은 별도 항목입니다. **승인 필요:** 새 `hddooo/file-island-web`에 대한 GitHub/Vercel 연결과 실제 전환 대상. 전환 후 새 commit의 version/HTML/자산 hash, API 인증/CORS/cookie/교재/음원과 rollback을 검증합니다. 기존 dev/Vercel 연결 해제는 그 검증과 별도 승인 이후입니다.
+
+준비/조회는 끝났지만 새 CI/CD는 연결하지 않았습니다. 추가 비밀값 입력은 현재 단계에 필요하지 않습니다. 신규 인증이 실제로 필요하면 대상·권한·안전한 사용자 입력 위치부터 확정합니다.
+
 원본 저장소: `blockmonkey1992/hanq_api`
 
 원본 SHA: `987be5798893b0023674a194626704a9d5033a37`

@@ -1,0 +1,14 @@
+**
+!Dockerfile
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.build.json
+!src/
+!src/**
+!scripts/
+!scripts/**
+!migrations/
+!migrations/**
+!certs/
+!certs/supabase-prod-ca-2021.crt
