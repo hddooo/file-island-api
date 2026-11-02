@@ -1,5 +1,7 @@
 name: API baseline tests only (no image or deployment)
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,6 +22,8 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm ci --no-fund
+      - name: Verify image and functional qualification contracts
+        run: node --test scripts/image-build-contract.test.cjs scripts/functional-evidence.test.cjs scripts/functional-api-tests.test.cjs
       - run: npm run typecheck
       - name: Unit tests independent of private frontend fixtures
         shell: bash
