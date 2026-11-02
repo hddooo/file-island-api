@@ -1,0 +1,633 @@
+{
+  "sourceSha256": "35d850c6e9d9910c24cccce4b2ae37b963ee1ecd24f1926033f48d98f9de0442",
+  "scope": "Native non-whitespace character multisets, including running headers, above y=775 PDF points; repeated page footers/page numbers excluded. Raster text has explicit visual transcriptions and is not certified by this character audit. Order and relationships have separate schema/DOM/source review evidence.",
+  "semanticPages": 104,
+  "exerciseSourcePages": 41,
+  "allPdfPagesRepresented": true,
+  "results": [
+    {
+      "pdfPage": 1,
+      "nativeContentChars": 0,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 2,
+      "nativeContentChars": 1361,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 3,
+      "nativeContentChars": 1762,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 4,
+      "nativeContentChars": 690,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 5,
+      "nativeContentChars": 0,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 6,
+      "nativeContentChars": 0,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 7,
+      "nativeContentChars": 0,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 8,
+      "nativeContentChars": 66,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 9,
+      "nativeContentChars": 467,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 10,
+      "nativeContentChars": 426,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 11,
+      "nativeContentChars": 501,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 12,
+      "nativeContentChars": 717,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 13,
+      "nativeContentChars": 441,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 16,
+      "nativeContentChars": 58,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 17,
+      "nativeContentChars": 474,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 18,
+      "nativeContentChars": 257,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 19,
+      "nativeContentChars": 492,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 20,
+      "nativeContentChars": 571,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 21,
+      "nativeContentChars": 259,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 22,
+      "nativeContentChars": 635,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 23,
+      "nativeContentChars": 469,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 24,
+      "nativeContentChars": 255,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 25,
+      "nativeContentChars": 437,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 26,
+      "nativeContentChars": 330,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 31,
+      "nativeContentChars": 486,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 32,
+      "nativeContentChars": 702,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 33,
+      "nativeContentChars": 313,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 34,
+      "nativeContentChars": 672,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 35,
+      "nativeContentChars": 249,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 36,
+      "nativeContentChars": 135,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 37,
+      "nativeContentChars": 518,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 40,
+      "nativeContentChars": 68,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 41,
+      "nativeContentChars": 608,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 42,
+      "nativeContentChars": 732,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 43,
+      "nativeContentChars": 594,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 44,
+      "nativeContentChars": 562,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 45,
+      "nativeContentChars": 362,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 46,
+      "nativeContentChars": 598,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 47,
+      "nativeContentChars": 447,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 51,
+      "nativeContentChars": 576,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 52,
+      "nativeContentChars": 580,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 53,
+      "nativeContentChars": 825,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 54,
+      "nativeContentChars": 180,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 57,
+      "nativeContentChars": 60,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 58,
+      "nativeContentChars": 159,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 59,
+      "nativeContentChars": 572,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 60,
+      "nativeContentChars": 599,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 63,
+      "nativeContentChars": 15,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 64,
+      "nativeContentChars": 561,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 65,
+      "nativeContentChars": 486,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 66,
+      "nativeContentChars": 747,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 67,
+      "nativeContentChars": 641,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 71,
+      "nativeContentChars": 459,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 72,
+      "nativeContentChars": 752,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 73,
+      "nativeContentChars": 557,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 74,
+      "nativeContentChars": 736,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 75,
+      "nativeContentChars": 479,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 76,
+      "nativeContentChars": 565,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 77,
+      "nativeContentChars": 453,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 78,
+      "nativeContentChars": 844,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 79,
+      "nativeContentChars": 257,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 85,
+      "nativeContentChars": 87,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 86,
+      "nativeContentChars": 621,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 88,
+      "nativeContentChars": 785,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 89,
+      "nativeContentChars": 685,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 90,
+      "nativeContentChars": 656,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 93,
+      "nativeContentChars": 912,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 94,
+      "nativeContentChars": 587,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 95,
+      "nativeContentChars": 630,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 96,
+      "nativeContentChars": 800,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 97,
+      "nativeContentChars": 647,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 102,
+      "nativeContentChars": 849,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 103,
+      "nativeContentChars": 62,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 105,
+      "nativeContentChars": 83,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 106,
+      "nativeContentChars": 673,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 107,
+      "nativeContentChars": 756,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 108,
+      "nativeContentChars": 772,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 109,
+      "nativeContentChars": 664,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 110,
+      "nativeContentChars": 638,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 113,
+      "nativeContentChars": 581,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 114,
+      "nativeContentChars": 352,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 115,
+      "nativeContentChars": 504,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 116,
+      "nativeContentChars": 610,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 117,
+      "nativeContentChars": 617,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 120,
+      "nativeContentChars": 842,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 123,
+      "nativeContentChars": 69,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 124,
+      "nativeContentChars": 706,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 125,
+      "nativeContentChars": 575,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 126,
+      "nativeContentChars": 653,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 127,
+      "nativeContentChars": 609,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 128,
+      "nativeContentChars": 620,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 129,
+      "nativeContentChars": 699,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 130,
+      "nativeContentChars": 482,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 131,
+      "nativeContentChars": 566,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 132,
+      "nativeContentChars": 582,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 133,
+      "nativeContentChars": 699,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    },
+    {
+      "pdfPage": 137,
+      "nativeContentChars": 597,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 138,
+      "nativeContentChars": 675,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 139,
+      "nativeContentChars": 839,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 140,
+      "nativeContentChars": 842,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 141,
+      "nativeContentChars": 3,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 142,
+      "nativeContentChars": 818,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 143,
+      "nativeContentChars": 925,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "not applicable to this audit"
+    },
+    {
+      "pdfPage": 144,
+      "nativeContentChars": 0,
+      "nativeCharDeficit": 0,
+      "rasterWordingReview": "explicit transcription metadata"
+    }
+  ]
+}

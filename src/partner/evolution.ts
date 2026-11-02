@@ -1,0 +1,6 @@
+import type{Queryable}from'../db/db.service';
+import{AppError}from'../common/app-error';
+export const PARTNER_CHAINS={agumon:[['botamon',0],['koromon',500],['agumon',1000],['greymon',1200],['metalgreymon',1500],['wargreymon',1800]],patamon:[['tokomon',0],['patamon',1200],['angemon',1500],['magnaangemon',1800]]}as const;
+export type PartnerFamily=keyof typeof PARTNER_CHAINS;
+export function initialStage(points:number,family:PartnerFamily){const c=PARTNER_CHAINS[family];let at=0;while(at+1<c.length&&points>=c[at+1][1])at++;return at;}
+export async function partnerState(q:Queryable,user:string,family:PartnerFamily,points:number,now:Date){await q.query('INSERT INTO hanq.partner_evolution(user_id,family,stage,initialized_points,initialized_at,updated_at) VALUES($1,$2,$3,$4,$5,$5) ON CONFLICT(user_id,family) DO NOTHING',[user,family,initialStage(points,family),points,now]);const r=await q.query<{stage:number;revision:number}>('SELECT stage,revision FROM hanq.partner_evolution WHERE user_id=$1 AND family=$2',[user,family]);const row=r.rows[0];if(!row)throw new AppError(503,'partner_unavailable','Partner unavailable');const chain=PARTNER_CHAINS[family],next=chain[row.stage+1];return{family,stage:row.stage,revision:row.revision,character:chain[row.stage][0],nextCharacter:next?.[0]??null,nextThreshold:next?.[1]??null,eligible:!!next&&points>=next[1],final:!next};}

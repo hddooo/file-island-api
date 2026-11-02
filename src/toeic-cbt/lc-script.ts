@@ -1,0 +1,3 @@
+import {createHash} from 'node:crypto';
+import {LC_SCRIPT_DATA} from './lc-script-data';
+export function scriptStudy(script:string,status:string){if(!script?.trim()||status!=='verified')return{available:false,reason:'verified_script_missing',pairs:[] as {english:string;translation:string}[]};const rows=LC_SCRIPT_DATA[createHash('sha256').update(script).digest('hex')];if(!rows)return{available:false,reason:'translation_missing',pairs:[] as {english:string;translation:string}[]};return{available:true,reason:null,pairs:rows.map(([start,end,translation])=>({english:script.slice(start,end),translation}))};}

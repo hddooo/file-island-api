@@ -1,0 +1,6 @@
+import {AppError} from './app-error';
+/** Official item weights are authoritative; unanswered items never deduct growth. */
+export function historyQuestionGrowth(correct:boolean,answered:boolean,points:number){if(!Number.isInteger(points)||points<1||points>3)throw new AppError(409,'question_points_unavailable','Original question points are unavailable');return !answered?0:correct?points:-points;}
+export function historyExamGrowth(items:{correct:boolean;answered:boolean;points:number}[]){return items.reduce((sum,x)=>sum+historyQuestionGrowth(x.correct,x.answered,x.points),0);}
+import type {Queryable} from '../db/db.service';import {boundedGrowth} from './growth-floor';
+export async function awardHistoryAttempt(q:Queryable,owner:string,id:string,correct:boolean,answered:boolean,kind:'quiz'|'mock',points:number,now:Date){const delta=await boundedGrowth(q,owner,historyQuestionGrowth(correct,answered,kind==='mock'?points:1));await q.query(`INSERT INTO hanq.growth_ledger(user_id,event_key,kind,amount,attempt_id,created_at) VALUES($1,'practice:'||$2::uuid::text,$3,$4,$2::uuid,$5) ON CONFLICT(user_id,event_key) DO NOTHING`,[owner,id,kind==='mock'?'practice-mock':'practice-quiz',delta,now]);return delta;}

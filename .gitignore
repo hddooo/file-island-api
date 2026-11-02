@@ -1,0 +1,35 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.pem
+*.crt
+*.key
+# Exception: Supabase's PUBLIC server CA (not a secret), pinned by SHA-256 in src/db/supabase-ca.ts
+!certs/supabase-prod-ca-2021.crt
+
+
+# Never commit private textbook inputs or local build tooling
+.npm-cache/
+*.log
+hanq-private-data/
+
+# Audited minimal private-textbook-data runtime bundle is intentionally tracked
+# in this PRIVATE API repository only; full source archives remain excluded.
+
+# File Island migration: local credentials and private learning inputs stay outside Git.
+.env
+.env.*
+!.env.example
+private-data/
+hanq-private-data/
+private-textbook-semantic-data/
+assets/home-server/
+*.pem
+*.key
+*.p12
+*.pfx
+*.dump
+*.sql.gz

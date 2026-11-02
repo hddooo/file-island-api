@@ -1,0 +1,9 @@
+import 'reflect-metadata';
+import assert from 'node:assert/strict';
+import {it} from 'node:test';
+import {ToeicPracticeService} from '../../src/toeic-cbt/practice';
+it('player includes owned mistakes from both rounds, deduplicates shared passages and returns only English/timing media fields',async()=>{
+ const collections=[2,1].map(n=>({id:'source'+n,source_key:'round'+n,title:n+'회',content:{metadata:{roundIndex:n},wrongNumbers:n===1?[35,36]:[8],groups:[{id:'g',questionNumbers:n===1?[35,36,37]:[8],audioUrl:'https://fixture.invalid/'+n+'.mp3',script:'Hello world.',scriptStatus:'verified',timing:{sourceText:'Hello world.',words:[{text:'Hello',start:0,end:.4},{text:'world.',start:.4,end:1}]}}],questions:n===1?[{number:35,part:3,groupId:'g'},{number:36,part:3,groupId:'g'},{number:99,part:5,groupId:'g'}]:[{number:8,part:2,groupId:'g'}]}}));const queries:string[]=[];
+ const query=async(sql:string,args?:unknown[])=>{queries.push(sql);if(sql.includes('toeic_member_notebook')&&!sql.includes('toeic_cbt_collections'))return{rows:[]};if(sql.startsWith('SET'))return{rows:[]};assert(sql.includes('user_id=$1'));assert.equal(args?.[0],'owner-only');if(sql.includes('toeic_cbt_items'))return{rows:[]};return{rows:collections}};
+ const service:ToeicPracticeService=Object.assign(Object.create(ToeicPracticeService.prototype),{db:{tx:async(fn:(q:{query:typeof query})=>unknown)=>fn({query})}});const result=await service.playlist('owner-only');assert.equal(result.items.length,2);assert.deepEqual(result.items.map(x=>x.sourceTitle),['1회','2회']);assert.equal(result.items[0].script,'Hello world.');assert.equal(result.items[0].timing?.words.length,2);for(const item of result.items){assert(!('options'in item));assert(!('correctOptionId'in item));assert(!('translation'in item));}assert(queries[0].includes('READ ONLY'));
+});

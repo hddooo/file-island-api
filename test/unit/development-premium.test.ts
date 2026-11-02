@@ -1,0 +1,21 @@
+import 'reflect-metadata';
+import assert from 'node:assert/strict';
+import {test} from 'node:test';
+import {PremiumService} from '../../src/premium/premium.service';
+import {PremiumRepository} from '../../src/premium/premium.repository';
+import {PaymentsService} from '../../src/payments/payments.service';
+import {PaymentsRepository} from '../../src/payments/payments.repository';
+import {developmentPremiumOpen} from '../../src/premium/development-policy';
+import {assertQuestionAccess} from '../../src/portal/member-state';
+import {AppError} from '../../src/common/app-error';
+import type {AppConfig} from '../../src/config/config';
+import type {DbService,Queryable} from '../../src/db/db.service';
+const now=new Date('2026-10-27T00:00:00Z'),clock={now:()=>now};
+function fixture(open:boolean,expiry:Date|null){let writes=0;const config={env:'test',premium:{planId:'premium-1m',priceKRW:5000,currency:'KRW',period:'fixed-days',fixedDays:30,testFreePassEnabled:true,developmentOpen:open},payment:{provider:'none'}} as AppConfig;
+ const db={pool:{query:async()=>{throw Error('unexpected database mutation/read');}},tx:async()=>{writes++;throw Error('unexpected grant transaction');}} as unknown as DbService;
+ const repo=new PremiumRepository();repo.getExpiry=async()=>expiry;repo.ledger=async()=>[];
+ return {config,db,service:new PremiumService(config,clock,db,repo),writes:()=>writes};}
+test('development open covers new/existing/expired/paid members without granting or rewriting expiry',async()=>{for(const expiry of [null,new Date('2020-01-01'),new Date('2030-01-01')]){const f=fixture(true,expiry),s=await f.service.status('synthetic');assert.equal(s.active,true);assert.equal(s.expiresAt,null);assert('paidExpiresAt' in s);assert.equal(s.paidExpiresAt,expiry?.toISOString()||null);assert('developmentOpen' in s);assert.equal(s.developmentOpen,true);await f.service.assertActive(f.db.pool,'synthetic',now);const grant=await f.service.claimTestFreePass('synthetic');assert('alreadyCovered' in grant&&grant.alreadyCovered);assert.equal(f.service.testFreePassInfo().available,false);assert.equal(f.service.plan().developmentOpen,true);assert.equal(f.writes(),0);}});
+test('turning central policy off restores the real entitlement and creates no replacement grant',async()=>{const f=fixture(false,new Date('2020-01-01'));assert.equal((await f.service.status('synthetic')).active,false);await assert.rejects(f.service.assertActive(f.db.pool,'synthetic',now),e=>e instanceof AppError&&e.getStatus()===403);assert.equal(f.service.plan().developmentOpen,undefined);assert.equal(f.writes(),0);});
+test('development open refuses fresh paid orders and marks checkout unavailable',async()=>{const f=fixture(true,null),payment=new PaymentsService(f.config,clock,f.db,new PaymentsRepository(),f.service);assert.equal(payment.checkoutInfo().available,false);assert.equal(payment.checkoutInfo().reason,'development-premium-open');await assert.rejects(payment.createOrder('synthetic','premium-1m'),e=>e instanceof AppError&&e.code==='development_premium_open');assert.equal(f.writes(),0);});
+test('direct question gate follows central flag without writing a paid pass',async()=>{const prior=process.env.HANQ_DEVELOPMENT_PREMIUM_OPEN;try{process.env.HANQ_DEVELOPMENT_PREMIUM_OPEN='true';assert.equal(developmentPremiumOpen(),true);const forbidden={query:async()=>{throw Error('should not write or issue pass');}} as unknown as Queryable;await assertQuestionAccess(forbidden,'synthetic',{question_id:'q',chapter:null,era:null,kind:'quiz'},now);process.env.HANQ_DEVELOPMENT_PREMIUM_OPEN='false';assert.equal(developmentPremiumOpen(),false);const empty={query:async()=>({rowCount:0,rows:[]})} as unknown as Queryable;await assert.rejects(assertQuestionAccess(empty,'synthetic',{question_id:'q',chapter:null,era:null,kind:'quiz'},now),e=>e instanceof AppError&&e.code==='premium_required');}finally{if(prior===undefined)delete process.env.HANQ_DEVELOPMENT_PREMIUM_OPEN;else process.env.HANQ_DEVELOPMENT_PREMIUM_OPEN=prior;}});

@@ -1,0 +1,43 @@
+const {PGlite}=require(process.env.PGLITE_PATH||'@electric-sql/pglite');const assert=require('node:assert/strict');const root=require('node:path').resolve(__dirname,'..');const {MyRecordsService}=require(root+'/dist/src/attempts/my-records');
+(async()=>{const db=new PGlite();await db.exec(`CREATE SCHEMA hanq;
+CREATE TABLE hanq.attempts(id uuid,user_id uuid,question_id text,version text,option_id text,correct boolean,source text,run_id uuid,created_at timestamptz,reported_at timestamptz);
+CREATE TABLE hanq.question_versions(question_id text,version text,review_payload jsonb,public_payload jsonb,correct_option_id text);
+CREATE TABLE hanq.weakness_practice_attempts(user_id uuid,event_id uuid,bank_id text,question_id text,question_version int,selected_option int,correct_option int,attempted_at timestamptz,received_at timestamptz);
+CREATE TABLE hanq.battle_wrong_attempts(user_id uuid,request_key uuid,match_id uuid,round_no int,item_id text,option_id text,correct boolean,created_at timestamptz);
+CREATE TABLE hanq.toeic_cbt_practice_answers(id uuid,user_id uuid,collection_id uuid,question_number int,selected_option text,answer_verified boolean,correct boolean,created_at timestamptz);
+CREATE TABLE hanq.toeic_cbt_collections(id uuid,title text,content jsonb);
+CREATE TABLE hanq.toeic_cbt_runs(id uuid,user_id uuid,collection_id uuid,status text,final_at timestamptz);
+CREATE TABLE hanq.toeic_cbt_items(run_id uuid,user_id uuid,position int,question_number int,selected_option text,correct boolean);
+CREATE TABLE hanq.toeic_cbt_verification_runs(user_id uuid,run_id uuid);
+CREATE TABLE hanq.battle_matches(id uuid,challenger uuid,opponent uuid,subject text,status text,state jsonb DEFAULT '{}',created_at timestamptz DEFAULT now());
+CREATE TABLE hanq.battle_rounds(match_id uuid,round_no int,content jsonb,submissions jsonb,started_at timestamptz);
+CREATE TABLE hanq.battle_practice_matches(id uuid,owner_id uuid,status text,state jsonb DEFAULT '{}',created_at timestamptz DEFAULT now());
+CREATE TABLE hanq.battle_practice_rounds(match_id uuid,round_no int,content jsonb,submissions jsonb,started_at timestamptz);`);
+const owner='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',other='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',match='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+for(let n=0;n<23;n++)await db.query('INSERT INTO hanq.attempts(id,user_id,question_id,version,option_id,correct,source,run_id,created_at) VALUES($1,$2,$3,$4,$5,true,$6,null,$7)',[`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`,owner,'same-question','v','a','practice','2026-10-28T00:00:00Z']);
+await db.query('INSERT INTO hanq.attempts(id,user_id,question_id,version,option_id,correct,source,run_id,created_at) VALUES($1,$2,$3,$4,$5,false,$6,null,$7)',[other,other,'secret','v','a','practice','2026-10-28T00:01:00Z']);
+await db.query('INSERT INTO hanq.battle_matches(id,challenger,opponent,subject,status) VALUES($1,$2,$3,$4,$5)',[match,other,owner,'history','finished']);await db.query('INSERT INTO hanq.battle_rounds VALUES($1,1,$2,$3,$4)',[match,{key:'battle-question',items:[{id:'1',prompt:'synthetic question',answer:'a',explanation:'explanation'},{id:'2',prompt:'unanswered',answer:'b'}]}, {left:{answers:[{id:'1',optionId:'b',at:1793145601000}]},right:{answers:[{id:'1',optionId:'a',at:1793145602000}]}},'2026-10-28T00:00:00Z']);
+
+await db.query('INSERT INTO hanq.weakness_practice_attempts VALUES($1,$2,$3,$4,1,0,0,$5,$5)',[owner,owner,'focus-adj-adv-v2-100','focus-adj-adv-v2-100-001','2026-10-28T01:00:00Z']);
+await db.query('INSERT INTO hanq.battle_wrong_attempts VALUES($1,$2,$3,1,$4,$5,true,$6)',[owner,owner,match,'1','a','2026-10-27T02:00:00Z']);
+const collection='dddddddd-dddd-4ddd-8ddd-dddddddddddd',run='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+await db.query('INSERT INTO hanq.toeic_cbt_collections VALUES($1,$2,$3)',[collection,'Synthetic source',{groups:[{id:'g',passage:'synthetic shared passage',script:'synthetic script'}],questions:[{number:1,groupId:'g',stem:'synthetic TOEIC',correctOptionId:'A',explanation:'synthetic explanation'}]}]);
+await db.query('INSERT INTO hanq.toeic_cbt_practice_answers VALUES($1,$2,$3,1,$4,true,false,$5)',[collection,owner,collection,'B','2026-10-27T03:00:00Z']);
+await db.query('INSERT INTO hanq.toeic_cbt_runs VALUES($1,$2,$3,$4,$5)',[run,owner,collection,'final','2026-10-27T04:00:00Z']);await db.query('INSERT INTO hanq.toeic_cbt_items VALUES($1,$2,1,1,$3,true)',[run,owner,'A']);
+const svc=new MyRecordsService({tx:async fn=>{await db.exec('BEGIN');try{const r=await fn(db);await db.exec('COMMIT');return r;}catch(e){await db.exec('ROLLBACK');throw e;}}});const a=await svc.list(owner,{}),b=await svc.list(owner,{page:2,snapshot:a.snapshot});assert.equal(a.total,28);assert.equal(a.items.length,20);assert.equal(b.items.length,8);assert.equal(new Set([...a.items,...b.items].map(i=>i.key)).size,28);assert(!a.items.some(x=>x.detail.questionId==='secret'));const battle=a.items.find(x=>x.key.startsWith('battle:'));assert.equal(battle.detail.selected,'a');assert.equal(battle.detail.correct,true);assert.equal((await svc.list(owner,{source:'battle'})).total,1);assert.equal((await svc.list(owner,{source:'review'})).total,1);assert.equal((await svc.list(owner,{source:'unknown'})).total,26);assert.equal((await svc.list(owner,{subject:'toeic'})).total,3);assert.equal((await svc.list(owner,{page:999})).page,2);assert.equal([...a.items,...b.items].find(x=>x.key.startsWith('toeic:')).detail.passage,'synthetic shared passage');
+// A newly received offline answer must not shift a saved page even with a backdated solved time.
+await db.query('INSERT INTO hanq.weakness_practice_attempts VALUES($1,$2,$3,$4,1,1,0,$5,$6)',[owner,other,'focus-adj-adv-v2-100','focus-adj-adv-v2-100-001','2026-10-27T00:00:00Z',new Date(Date.parse(a.snapshot)+1000).toISOString()]);assert.equal((await svc.list(owner,{snapshot:a.snapshot})).total,28);
+// Verification runs are not a second study attempt.
+await db.query('INSERT INTO hanq.toeic_cbt_verification_runs VALUES($1,$2)',[owner,run]);assert.equal((await svc.list(owner,{})).total,27);
+// Match result is independent of the answer correctness, with both owner sides checked.
+for(const side of ['left','right'])for(const mode of ['win','loss','draw','void','unknown']){
+ const mine=side==='left'?other:owner,opposite=side==='left'?'right':'left';
+ const winner=mode==='win'?side:mode==='loss'?opposite:null;
+ await db.query('UPDATE hanq.battle_matches SET status=$2,state=$3 WHERE id=$1',[match,mode==='void'?'void':'finished',{fighters:{left:{name:'공개 상대 닉네임'},right:{name:'다른 상대'}},winner,finishReason:mode==='draw'?'double_ko':'hp_zero'}]);
+ const result=await svc.list(mine,{source:'battle'});assert.equal(result.total,1);assert.equal(result.items[0].detail.battle.outcome,mode);assert.equal(result.items[0].detail.battle.opponent,side==='left'?'다른 상대':'공개 상대 닉네임');
+ assert.equal(result.items[0].detail.selected,side==='left'?'b':'a');
+}
+await db.query('UPDATE hanq.battle_matches SET state=$2 WHERE id=$1',[match,{fighters:{left:{name:'private@example.test'}}}]);assert.equal((await svc.list(owner,{source:'battle'})).items[0].detail.battle.opponent,'상대 미확인');
+const review=await svc.list(owner,{source:'review'});assert.equal(review.items[0].detail.battle.opponent,'상대 미확인');assert(!JSON.stringify(review).includes('private@example.test'));
+const practice='ffffffff-ffff-4fff-8fff-ffffffffffff';await db.query('INSERT INTO hanq.battle_practice_matches(id,owner_id,status,state) VALUES($1,$2,$3,$4)',[practice,owner,'finished',{winner:'left',fighters:{right:{name:'연습 상대'}}}]);await db.query('INSERT INTO hanq.battle_practice_rounds VALUES($1,1,$2,$3,$4)',[practice,{key:'synthetic-practice',items:[{id:'p1',number:1,prompt:'synthetic',answer:'a'}]},{left:{answers:[{id:'p1',optionId:'b',at:1793145602000}]},right:{answers:[{id:'p1',optionId:'a'}]}},'2026-10-28T00:00:00Z']);const practiceRow=(await svc.list(owner,{source:'battle'})).items.find(r=>r.key.startsWith('practice-battle:'));assert.equal(practiceRow.detail.battle.opponent,'연습 상대');assert.equal(practiceRow.detail.battle.outcome,'win');assert.equal(practiceRow.detail.correct,false);assert(!(await svc.list(other,{source:'battle'})).items.some(r=>r.key.startsWith('practice-battle:')));
+await db.close();console.log('PASS embedded PostgreSQL (all persisted sources, snapshot/late offline receipt, verification exclusion): actual SQL, own side only, foreign user excluded, 23 repeated attempts retained, 28 total, tie pagination no overlap, filters, unknown provenance, unanswered not fabricated, out-of-range clamped, both battle sides WIN/LOSS/DRAW/VOID/UNKNOWN independent of correctness, public names only, practice owner isolation.');})().catch(e=>{console.error(e);process.exitCode=1});

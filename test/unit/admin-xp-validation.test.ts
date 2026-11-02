@@ -1,0 +1,3 @@
+import 'reflect-metadata';
+import{test}from'node:test';import assert from'node:assert/strict';import{validate}from'class-validator';import{AdminXpDto}from'../../src/portal/portal.dto';
+test('admin XP payload accepts bounded signed integer adjustment and confirmed balance only',async()=>{const base={requestId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',delta:200,expectedBalance:1000,reason:'지원 조정'};assert.equal((await validate(Object.assign(new AdminXpDto(),base))).length,0);for(const bad of[{delta:1.5},{delta:1000001},{delta:-1000001},{expectedBalance:-1},{expectedBalance:Number.MAX_SAFE_INTEGER+1},{requestId:'not-a-uuid'},{reason:''},{reason:'x'.repeat(301)}])assert((await validate(Object.assign(new AdminXpDto(),base,bad))).length>0);});

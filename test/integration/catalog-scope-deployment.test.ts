@@ -1,0 +1,43 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { after, before, describe, it } from 'node:test';
+import type { Pool } from 'pg';
+import request from 'supertest';
+import { bearer, buyPremium, signup, startApp, subId, type TestApp } from '../helpers/app';
+import { frontCatalog, migrationsDir, resetSchema } from '../helpers/db';
+import { testConfig } from '../helpers/env';
+import { migrate } from '../../src/db/migrator';
+import { projectRoot } from '../../src/common/project-root';
+import { parseGlobalAssignment } from '../../src/questions/catalog-loader';
+import { seedQuestions } from '../../src/questions/question-seeder';
+
+describe('703 API seed versus 990 front rolling deployment',()=>{
+ let pool:Pool,t:TestApp;
+ const all=frontCatalog();
+ const front=resolve(projectRoot(),process.env.HANQ_FRONT_DIR||'../hanq_front');
+ const raw=parseGlobalAssignment(readFileSync(resolve(front,'media/quiz-catalog.js'),'utf8'),'HANQ_QUIZ_CATALOG') as {questions:Record<string,unknown>};
+ const original=all.filter(q=>q.kind==='mock'||Object.hasOwn(raw.questions,q.questionId));
+ const selection=parseGlobalAssignment(readFileSync(resolve(front,'media/unified-quiz-selection.js'),'utf8'),'HANQ_UNIFIED_QUIZ_SELECTION') as {eras:Record<string,string[]>};
+ const scope=selection.eras.goryeo.map(id=>{const q=all.find(q=>q.questionId===id)!;return {questionId:id,version:q.version};});
+ before(async()=>{pool=await resetSchema(testConfig());await migrate(pool,migrationsDir());await seedQuestions(pool,original,new Date());t=await startApp();});
+ after(async()=>{await t.close();await pool.end();});
+ it('reproduces strict stale scope and aligned additive seed preserves attempts, free slots and submission identity',async()=>{
+  assert.equal(original.filter(q=>q.kind==='quiz').length,703);assert.equal(all.filter(q=>q.kind==='quiz').length,990+all.filter(q=>q.questionId.startsWith('z-reviewed-')).length);
+  const s=await signup(t);await buyPremium(t,s);
+  const read=()=>request(t.server).post('/api/v1/quiz/progress').set(bearer(s.access)).send({questions:scope});
+  const q=original.find(q=>q.kind==='quiz'&&q.chapter==='goryeo')!;
+  const body={questionId:q.questionId,version:q.version,optionId:q.correctOptionId,submissionId:subId()};
+  const graded=await request(t.server).post('/api/v1/attempts').set(bearer(s.access)).send(body);assert.equal(graded.status,201);
+  const slots=await pool.query('SELECT * FROM hanq.free_question_slots ORDER BY chapter,kind,position');
+  const stale=await read();assert.equal(stale.status,409);assert.equal(stale.body.error.code,'stale_quiz_scope');
+  assert.equal(scope.filter(p=>!Object.hasOwn(raw.questions,p.questionId)).length,scope.length);
+  await seedQuestions(pool,all,new Date());await seedQuestions(pool,all,new Date());
+  const aligned=await read();assert.equal(aligned.status,200);assert.equal(aligned.body.total,scope.length);
+  assert.deepEqual(aligned.body.items.map((x:{questionId:string})=>x.questionId),scope.map(p=>p.questionId));
+  assert.deepEqual((await pool.query('SELECT * FROM hanq.free_question_slots ORDER BY chapter,kind,position')).rows,slots.rows);
+  const replay=await request(t.server).post('/api/v1/attempts').set(bearer(s.access)).send(body);assert.equal(replay.status,201);assert.equal(replay.body.attempt.id,graded.body.attempt.id);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.attempts WHERE user_id=$1',[s.userId])).rows[0].n,1);
+  const bad=await request(t.server).post('/api/v1/quiz/progress').set(bearer(s.access)).send({questions:[{...scope[0],version:'unknown-version'}]});assert.equal(bad.status,409);
+ });
+});

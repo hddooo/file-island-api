@@ -1,0 +1,32 @@
+import 'reflect-metadata';
+import assert from 'node:assert/strict';
+import {after,before,describe,it} from 'node:test';
+import type {Pool} from 'pg';
+import request from 'supertest';
+import {freshDatabase} from '../helpers/db';
+import {testConfig} from '../helpers/env';
+import {bearer,signup,startApp,type TestApp} from '../helpers/app';
+import {toeicFixture} from '../helpers/toeic-fixture';
+import {storePrivateToeicCollection} from '../../src/toeic-cbt/import';
+const base='/api/v1/toeic-cbt';
+describe('simple question practice and permanent display numbers',()=>{
+ let t:TestApp,pool:Pool;
+ before(async()=>{pool=await freshDatabase(testConfig());t=await startApp();});after(async()=>{if(t)await t.close();if(pool)await pool.end();});
+ it('five-part entry data is private and never includes answer/script/tutor content before checking',async()=>{
+  const a=await signup(t),b=await signup(t),source=toeicFixture();source.questions[0].explanation='SECRET_EXPLANATION';source.groups[0].script='SECRET_SCRIPT';const id=await storePrivateToeicCollection(pool,a.userId,source);
+  await request(t.server).get(base+'/practice').expect(401);const empty=await request(t.server).get(base+'/practice').set(bearer(b.access)).expect(200);assert.equal(empty.body.items.length,0);await request(t.server).get(base+'/collections/'+id+'/practice').set(bearer(b.access)).expect(404);
+  const list=await request(t.server).get(base+'/practice').set(bearer(a.access)).expect(200);assert.deepEqual(list.body.items.map((x:{displayNumber:string})=>x.displayNumber),['0001','0002','0003','0004']);for(const q of list.body.items){assert.equal(q.correctOptionId,undefined);assert.equal(q.review,undefined);assert.equal(q.script,undefined);assert.equal(q.tutorExplanation,undefined);assert.equal(q.explanation,undefined);}assert(!JSON.stringify(list.body).includes('SECRET_'));assert.deepEqual(list.body.items[0].options.map((o:{text:string})=>o.text),['A','B','C','D']);
+ });
+ it('one-question check is owner-safe, idempotent and retains repeated mistakes after a later correct answer',async()=>{
+  const a=await signup(t),b=await signup(t),source=toeicFixture(),id=await storePrivateToeicCollection(pool,a.userId,source),path=base+'/collections/'+id+'/answer',payload={number:1,optionId:'A',requestKey:'question-check-key-0001'};
+  await request(t.server).post(path).set(bearer(b.access)).send(payload).expect(404);const results=await Promise.all([0,1].map(()=>request(t.server).post(path).set(bearer(a.access)).send(payload)));assert(results.every(x=>x.status===201));for(const r of results){assert.equal(r.body.correct,false);assert.equal(r.body.studyHistory.wrongCount,2);assert.equal(r.body.studyHistory.repeatedWrong,true);assert.equal(r.body.review.correctOptionId,'B');}assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.toeic_cbt_practice_answers WHERE user_id=$1',[a.userId])).rows[0].n,1);
+  await request(t.server).post(path).set(bearer(a.access)).send({...payload,optionId:'C'}).expect(409);const good=await request(t.server).post(path).set(bearer(a.access)).send({...payload,optionId:'B',requestKey:'question-check-key-0002'}).expect(201);assert.equal(good.body.correct,true);assert.equal(good.body.studyHistory.wrongCount,2);const fresh=await request(t.server).get(base+'/practice').set(bearer(a.access)).expect(200);assert.equal(fresh.body.items[0].review,undefined);assert.equal(fresh.body.items[0].selectedOptionId,undefined);assert.equal(fresh.body.items[0].studyHistory.everWrong,true);await assert.rejects(pool.query('UPDATE hanq.toeic_cbt_practice_answers SET selected_option=$1 WHERE user_id=$2',['C',a.userId]));
+ });
+ it('unofficial ETS feedback is only disclosed after selection and never becomes verified grading',async()=>{
+  const a=await signup(t),source=toeicFixture();source.questions.forEach(q=>{q.answerVerified=false;q.answerStatus='assistant_inferred_not_officially_verified';});const id=await storePrivateToeicCollection(pool,a.userId,source);const list=await request(t.server).get(base+'/practice').set(bearer(a.access)).expect(200);assert(list.body.items.every((q:{officiallyVerified:boolean;available:boolean})=>!q.officiallyVerified&&q.available));const answer=await request(t.server).post(base+'/collections/'+id+'/answer').set(bearer(a.access)).send({number:1,optionId:'B',requestKey:'unofficial-feedback-0001'}).expect(201);assert.equal(answer.body.officiallyVerified,false);assert.equal(answer.body.correct,null);assert.equal(answer.body.studyHistory.wrongCount,0);await request(t.server).post(base+'/runs').set(bearer(a.access)).send({collectionId:id,idempotencyKey:'ets-still-grading-disabled'}).expect(409);
+ });
+ it('display bands persist through reimports, new versions, filters and new sources',async()=>{
+  const a=await signup(t),original=toeicFixture();await storePrivateToeicCollection(pool,a.userId,original);const rc=toeicFixture(),q=rc.questions[2];rc.roundKey='rc-source';rc.title='RC source';rc.wrongNumbers=[101,131,151];rc.groups=rc.wrongNumbers.map(n=>({...rc.groups[2],id:'r'+n,questionNumbers:[n],passage:'Original shared passage',passageVerified:true}));rc.questions=rc.wrongNumbers.map((number,i)=>({...structuredClone(q),number,part:[5,6,7][i],groupId:'r'+number}));await storePrivateToeicCollection(pool,a.userId,rc);const first=await request(t.server).get(base+'/practice').set(bearer(a.access)).expect(200),numbers=first.body.items.map((q:{displayNumber:string})=>q.displayNumber);assert.deepEqual(numbers,['0001','0002','0003','0004','5000','5001','7000']);
+  rc.questions[0].explanation='Updated explanation without renumbering';await storePrivateToeicCollection(pool,a.userId,rc);await storePrivateToeicCollection(pool,a.userId,rc);const extra=structuredClone(rc);extra.roundKey='new-source';extra.questions=[{...extra.questions[0],number:9,groupId:'new'}];extra.wrongNumbers=[9];extra.groups=[{...extra.groups[0],id:'new',questionNumbers:[9]}];await storePrivateToeicCollection(pool,a.userId,extra);const later=await request(t.server).get(base+'/practice').set(bearer(a.access)).expect(200);for(const n of numbers)assert(later.body.items.some((q:{displayNumber:string})=>q.displayNumber===n));assert(later.body.items.some((q:{displayNumber:string;number:number})=>q.displayNumber==='5002'&&q.number===9));assert.equal(later.body.items.length,8);assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.toeic_cbt_display_numbers WHERE user_id=$1',[a.userId])).rows[0].n,8);
+ });
+});

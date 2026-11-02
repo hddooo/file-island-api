@@ -1,0 +1,14 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {WeaknessPracticeService} from '../../src/toeic-notes/weakness-practice';import {FOCUS_KEYS} from '../../src/toeic-notes/focus-answer-key';import type{Queryable,DbService}from'../../src/db/db.service';
+test('TOEIC XP: one new server attempt, owner lock, retry idempotency, retake and zero floor',async()=>{
+ type AttemptRow={event_id:string;bank_id:string;question_id:string;question_version:number;selected_option:number;correct_option:number;tags:string[];attempted_at:Date|string;received_at:Date|string};
+ const events=new Map<string,AttemptRow>(),ledger=new Map<string,number>(),balances=new Map([['A',1],['B',0]]);let locks=0;
+ const db={tx:async<T>(fn:(q:Queryable)=>Promise<T>)=>fn({query:async(sql:string,v:unknown[])=>{const owner=String(v[0]),event=String(v[1]);if(sql.includes('FOR UPDATE')){locks++;return{rows:[]};}if((sql.includes('coalesce(sum(amount)') || sql.includes('SELECT xp::text points FROM hanq.owned_digimon')))return{rows:[{points:String(balances.get(owner)||0)}]};if(sql.startsWith('INSERT INTO hanq.growth_ledger')){const k=v[0]+':'+v[1];assert(!ledger.has(k),'new attempt should award once');ledger.set(k,Number(v[2]));balances.set(owner,(balances.get(owner)||0)+Number(v[2]));return{rows:[]};}if(sql.startsWith('INSERT INTO hanq.weakness_practice_attempts')){const k=v[0]+':'+v[1];if(events.has(k))return{rows:[]};const r={event_id:event,bank_id:String(v[2]),question_id:String(v[3]),question_version:Number(v[4]),selected_option:Number(v[5]),correct_option:Number(v[6]),tags:[],attempted_at:v[8] as Date|string,received_at:v[8] as Date|string};events.set(k,r);return{rows:[r]};}if(sql.startsWith('SELECT *'))return{rows:[events.get(v[0]+':'+v[1])]};return{rows:[{attempt_count:1,wrong_count:0}]};}} as unknown as Queryable)}as unknown as DbService;
+ const at='2026-10-24T00:00:00Z',s=new WeaknessPracticeService(db,{now:()=>new Date(at)}),id='focus-ly-50-001',answer=FOCUS_KEYS[id].answer,body={eventId:'11111111-1111-4111-8111-111111111111',questionId:id,version:FOCUS_KEYS[id].version,selected:answer,attemptedAt:at};
+ assert.equal((await s.answer('A','focus-ly-50',body)).growth?.delta,1);assert.equal(balances.get('A'),2);assert.equal((await s.answer('A','focus-ly-50',body)).growth,null);assert.equal(balances.get('A'),2);assert.equal(ledger.size,1);
+ await s.answer('A','focus-ly-50',{...body,eventId:'22222222-2222-4222-8222-222222222222',selected:(answer+1)%4});assert.equal(balances.get('A'),1);
+ assert.equal((await s.answer('B','focus-ly-50',{...body,selected:(answer+1)%4})).growth?.delta,0);assert.equal(balances.get('B'),0);assert.equal(balances.get('A'),1);assert.equal(events.size,3);assert.equal(locks,4);
+});
+
+import {isGrowthReason} from '../../src/profile/growth-history';
+test('TOEIC XP remains visible in existing growth history',()=>{assert(isGrowthReason('toeic-answer'));assert(!isGrowthReason('client-supplied-score'));});

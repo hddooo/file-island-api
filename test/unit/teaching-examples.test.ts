@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {teachingExample} from '../../src/toeic-notes/teaching-examples';
+import {publicNote,type NoteRow} from '../../src/toeic-notes/toeic-notes.service';
+const copied='Spectators are purchasing tickets to the final match of the Wilbur Tennis Championship as the event is fast approaching.';
+const base=(expression:string,example=copied):NoteRow=>({id:'existing-note',part:'5-6',expression,expression_key:expression,meaning:'입장을 허용하다',structure:'admit someone to a venue',example,confusion:'',translation:'기존 원문 번역',source_text:'원래 문항 그대로',source_reference:'기존 출처',revision:7,created_at:new Date(0),updated_at:new Date(0)});
+test('copied distractor example gets a complete matching teaching sentence and translation without changing history identity',()=>{const n=base('admit (admitting)'),before=JSON.stringify(n),view=publicNote(n);assert.match(view.example,/are admitting ticket holders to the stadium/);assert.match(view.translation,/입장시키고/);assert.equal(view.originalExample,copied);assert.equal(view.originalTranslation,n.translation);assert.equal(view.sourceText,n.source_text);assert.equal(view.sourceReference,n.source_reference);assert.equal(view.id,n.id);assert.equal(view.revision,7);assert.equal(JSON.stringify(n),before);});
+test('already suitable approach example and future user edits are never replaced',()=>{const n=base('approach (approaching)');assert.equal(teachingExample(n).example,copied);assert.equal(teachingExample(n).exampleKind,'source');const edited=base('admit (admitting)','She admitted making an error.');assert.equal(teachingExample(edited).example,edited.example);assert.equal(teachingExample(edited).originalExample,null);});

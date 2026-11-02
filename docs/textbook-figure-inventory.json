@@ -1,0 +1,4171 @@
+{
+  "sourceSha256": "35d850c6e9d9910c24cccce4b2ae37b963ee1ecd24f1926033f48d98f9de0442",
+  "counts": {
+    "connected-source-asset": 183,
+    "held-atomic-group-with-p009-figure-5": 1,
+    "held-user-approval": 2,
+    "semantic-transcription-reviewed": 44,
+    "excluded-decorative": 42,
+    "excluded-page-raster": 25
+  },
+  "figures": [
+    {
+      "sourceHashMatched": true,
+      "id": "p009-figure-1",
+      "pdfPage": 9,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "0a92a1d91f69738f0dd4214768bedafe950276600c04f1728c67b1cb4ec8e406",
+      "sourceBbox": [
+        402.3599853515625,
+        274.9200134277344,
+        488.39996337890625,
+        349.20001220703125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p009-figure-2",
+      "pdfPage": 9,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "47b58fab9f378c2b4567f0c14a2cd1a6afa815ccd3466dcc36ffc8793fed84c0",
+      "sourceBbox": [
+        399.0,
+        375.72003173828125,
+        502.55999755859375,
+        440.4000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p009-figure-3",
+      "pdfPage": 9,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "3d9a8646657fda17ef69fd5a453e0906fc8e08ccf230e11ac8b62848030188de",
+      "sourceBbox": [
+        393.5999755859375,
+        464.27996826171875,
+        502.3199768066406,
+        526.9199829101562
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p009-figure-4",
+      "pdfPage": 9,
+      "classification": "unclassified-source-image",
+      "status": "held-atomic-group-with-p009-figure-5",
+      "sourceSha256": "da1cd3afb43769c76692d2a957f6558de7ef79a5fe75f03361e32b6911bdbf3c",
+      "sourceBbox": [
+        389.27996826171875,
+        535.9199829101562,
+        510.3599853515625,
+        560.0399780273438
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p009-figure-5",
+      "pdfPage": 9,
+      "classification": "unclassified-source-image",
+      "status": "held-user-approval",
+      "sourceSha256": "0ae79142c23297e173648a2e5af707eb974b6a356653ddc1e0ab9c2329fcb0c5",
+      "sourceBbox": [
+        389.27996826171875,
+        560.0399780273438,
+        510.3599853515625,
+        584.1599731445312
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p009-figure-6",
+      "pdfPage": 9,
+      "classification": "unclassified-source-image",
+      "status": "held-user-approval",
+      "sourceSha256": "fe29c4e8bebfc498205b5399452614c02a408f025399035eb0ecefec7aa9324f",
+      "sourceBbox": [
+        399.1199951171875,
+        598.43994140625,
+        502.55999755859375,
+        672.719970703125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p009-figure-7",
+      "pdfPage": 9,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "6cb5a79f3d5fcbac54c440f49c5bcab7634911a5b64c47ba1aabad88fe705e76",
+      "sourceBbox": [
+        192.1199951171875,
+        140.0399932861328,
+        510.239990234375,
+        201.83999633789062
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p010-figure-1",
+      "pdfPage": 10,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "ba36914c59fe681735300a383713635aea4021919558dea4298957e875860a7c",
+      "sourceBbox": [
+        184.6800079345703,
+        99.24000549316406,
+        220.6800079345703,
+        130.44000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p011-figure-1",
+      "pdfPage": 11,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "9c9c67f4cef8b8e7f0de2b6e2c85a21d69742e30b26efe002ece3f298fe74c1d",
+      "sourceBbox": [
+        260.8800048828125,
+        118.92000579833984,
+        509.6400146484375,
+        191.04000854492188
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p011-figure-2",
+      "pdfPage": 11,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "b0dd6c7f55447abb3d9e7f11191a3a5b8c87db2cf55bb095633fb6013b3493e3",
+      "sourceBbox": [
+        357.7200012207031,
+        263.8800048828125,
+        485.4000244140625,
+        327.7200012207031
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p011-figure-3",
+      "pdfPage": 11,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "cc3ccd07761468b2b6bc3398945b8477fb72740faa0212a5f9ab9c8e75b8d1da",
+      "sourceBbox": [
+        357.7200012207031,
+        327.7200012207031,
+        485.4000244140625,
+        391.55999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p011-figure-4",
+      "pdfPage": 11,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        185.04000854492188,
+        494.63995361328125,
+        221.04000854492188,
+        525.8399658203125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p012-figure-1",
+      "pdfPage": 12,
+      "classification": "source-map",
+      "status": "connected-source-asset",
+      "sourceSha256": "0f5077d6d5ef591bc77d864da8ecc35d0c1ac3be7f51d59c4af5d35d0779c829",
+      "sourceBbox": [
+        394.67999267578125,
+        205.07998657226562,
+        510.239990234375,
+        364.91998291015625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p013-figure-1",
+      "pdfPage": 13,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "7d19b2dc8f27366b6692ded1686e2654d3b71ac41609aff7ee8bbbc0378f88c4",
+      "sourceBbox": [
+        184.9199981689453,
+        98.27999877929688,
+        220.9199981689453,
+        129.36000061035156
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p017-figure-1",
+      "pdfPage": 17,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "b456fd5ca9c87b189063dd175b74de20ad41f0021dc2474717a3f563187c4b91",
+      "sourceBbox": [
+        89.15999603271484,
+        331.0799865722656,
+        148.3199920654297,
+        352.79998779296875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p017-figure-2",
+      "pdfPage": 17,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "9980465fbc5f0ae74d534651b4d6ed4a0a006cacf6c1378e239d4bf797163c30",
+      "sourceBbox": [
+        189.95999145507812,
+        178.4399871826172,
+        510.239990234375,
+        235.4399871826172
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p017-figure-3",
+      "pdfPage": 17,
+      "classification": "source-map",
+      "status": "connected-source-asset",
+      "sourceSha256": "10ecd2b59642e3ca277e21ab2fe55e118cfd3e0246fa64cdb0107d674c0edbfd",
+      "sourceBbox": [
+        381.4800109863281,
+        624.9600830078125,
+        510.239990234375,
+        754.080078125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p017-figure-4",
+      "pdfPage": 17,
+      "classification": "source-map",
+      "status": "connected-source-asset",
+      "sourceSha256": "078ead20e345764836f370380fff2a87670fea30fe309d63e292fbb8d855ad23",
+      "sourceBbox": [
+        371.0400085449219,
+        376.199951171875,
+        510.3599853515625,
+        561.8399658203125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p018-figure-1",
+      "pdfPage": 18,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "b040cbe7c6ab6e8690115912291365aa2a044c7e30f1530b23b218b067e2758f",
+      "sourceBbox": [
+        101.16000366210938,
+        298.9200134277344,
+        208.8000030517578,
+        433.32000732421875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p018-figure-2",
+      "pdfPage": 18,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "196dbd8625a1985816e058b37a7067efa8d5a3734d96d512300a325d8c44650a",
+      "sourceBbox": [
+        230.04000854492188,
+        335.4000244140625,
+        359.6400146484375,
+        396.96002197265625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p018-figure-3",
+      "pdfPage": 18,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "0c704d00fdc3a4c5942d591a05aec426b9001423edb75e7c0c8ea6bd9773a681",
+      "sourceBbox": [
+        369.8399963378906,
+        313.6800231933594,
+        499.44000244140625,
+        418.8000183105469
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p018-figure-4",
+      "pdfPage": 18,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "7a43e3b741f6c74c377f90d8cc6dbb700f3f5a47d6e70fd40185375084115af2",
+      "sourceBbox": [
+        90.23999786376953,
+        492.5999755859375,
+        219.83999633789062,
+        583.7999877929688
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p018-figure-5",
+      "pdfPage": 18,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "be03edabab8497941d28ad5e8cbc1af188b1e72e87c3dcec48d5e60ad0621425",
+      "sourceBbox": [
+        230.04000854492188,
+        478.800048828125,
+        359.6400146484375,
+        597.7200317382812
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p018-figure-6",
+      "pdfPage": 18,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "37291f56b93e5061068551b1239f805fb10a44fb143d731f083fc256a26858cc",
+      "sourceBbox": [
+        369.8399963378906,
+        495.1200256347656,
+        499.44000244140625,
+        581.52001953125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p019-figure-1",
+      "pdfPage": 19,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        191.63999938964844,
+        95.76000213623047,
+        227.63999938964844,
+        126.95999908447266
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p020-figure-1",
+      "pdfPage": 20,
+      "classification": "source-map",
+      "status": "connected-source-asset",
+      "sourceSha256": "0092fab3de7d3a883a2b8f8ce020bab35157f99febae8609b38f472b8ba9814a",
+      "sourceBbox": [
+        402.5999755859375,
+        424.67999267578125,
+        510.239990234375,
+        567.47998046875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p020-figure-2",
+      "pdfPage": 20,
+      "classification": "source-map",
+      "status": "connected-source-asset",
+      "sourceSha256": "6f4b081eef576ef0945351f99a0161fbb5ed2a5ed39bffe88a314818e4636499",
+      "sourceBbox": [
+        402.5999755859375,
+        193.07997131347656,
+        510.239990234375,
+        336.5999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p020-figure-3",
+      "pdfPage": 20,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "f3aed48f61166b91c039cde78470123b0082a9ecf08513007f79e084d98934e1",
+      "sourceBbox": [
+        200.75999450683594,
+        99.24000549316406,
+        510.239990234375,
+        166.32000732421875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p021-figure-1",
+      "pdfPage": 21,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "fca5c732b8a99ce250a4e695a7534c5372dcf4e0bbd172dea9e77085f5ae0292",
+      "sourceBbox": [
+        142.55999755859375,
+        298.08001708984375,
+        167.51998901367188,
+        456.4800109863281
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p021-figure-2",
+      "pdfPage": 21,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "56bed6f8b2adff79ad818f44b6ed7a578d40c5b66363e97aa618aca5eb7fee22",
+      "sourceBbox": [
+        230.04000854492188,
+        308.6399841308594,
+        359.6400146484375,
+        446.03997802734375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p021-figure-3",
+      "pdfPage": 21,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "e94a322fdce9d96dfb1c0ec01c3530e3d3ed3553b8acd6b5ba2ecaaf86b420e9",
+      "sourceBbox": [
+        369.8399963378906,
+        321.0,
+        499.44000244140625,
+        433.55999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p021-figure-4",
+      "pdfPage": 21,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "dc8afd7f13bbf3f6ec9b8a850b4fb87558233651b79677adc673e096df45bd0c",
+      "sourceBbox": [
+        90.23999786376953,
+        532.6799926757812,
+        219.83999633789062,
+        633.719970703125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p021-figure-5",
+      "pdfPage": 21,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "06d0a5e31924cec46cf796df704fb8338e7d9ac79dd74455271a953662c58d1c",
+      "sourceBbox": [
+        235.67999267578125,
+        496.199951171875,
+        354.0,
+        670.0799560546875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p021-figure-6",
+      "pdfPage": 21,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "f9bf2ea8d083198f95287dbc806ee90308fa06c6fef16d81011b01829bbba1c4",
+      "sourceBbox": [
+        369.8399963378906,
+        520.43994140625,
+        499.44000244140625,
+        645.9599609375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p022-figure-1",
+      "pdfPage": 22,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "221b0eb58c9256b02fe161868847796e0eb45448a034cf07697928acac6f9e00",
+      "sourceBbox": [
+        184.9199981689453,
+        94.67999267578125,
+        220.9199981689453,
+        125.75999450683594
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p023-figure-1",
+      "pdfPage": 23,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "2c70ecaaf6b27e2f1f22069fc395fde22175a6bcc5cd607d6a73d16215f2837d",
+      "sourceBbox": [
+        90.23999786376953,
+        649.56005859375,
+        289.79998779296875,
+        698.0400390625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p023-figure-2",
+      "pdfPage": 23,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "9263c9203793f9f6d95343a29051a36389ed99743499110f90541026af01f15f",
+      "sourceBbox": [
+        90.23999786376953,
+        698.0400390625,
+        289.79998779296875,
+        746.52001953125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p023-figure-3",
+      "pdfPage": 23,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "d041a32d7e5557b16a9ecbbfe4b9b5edbfee4a4b096c3a241a28eb3e5c3ceaab",
+      "sourceBbox": [
+        302.760009765625,
+        643.0800170898438,
+        502.32000732421875,
+        679.6799926757812
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p023-figure-4",
+      "pdfPage": 23,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "63906fd89a30809a399c674a29b11d8ba56b4d20eb572a4e5b8a0e8d08a83b8d",
+      "sourceBbox": [
+        302.760009765625,
+        679.6799926757812,
+        502.32000732421875,
+        716.2799682617188
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p023-figure-5",
+      "pdfPage": 23,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "11790d718de4b8d22d299f3ef8b0cab053de328fd306dfe27c1547f57d9d48c7",
+      "sourceBbox": [
+        302.760009765625,
+        716.280029296875,
+        502.32000732421875,
+        752.8800048828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p023-figure-6",
+      "pdfPage": 23,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "efca8ae9c557c9b1ee38ed41c5f8baaee142572a278d4de4f841c24dcfdfbf46",
+      "sourceBbox": [
+        194.04000854492188,
+        100.55999755859375,
+        510.36004638671875,
+        162.0
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p023-figure-7",
+      "pdfPage": 23,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "c9e28d1171ad418c1676c5c813da589e9d181f20ba8f516b9cfcb10c560f229e",
+      "sourceBbox": [
+        382.91998291015625,
+        256.20001220703125,
+        510.2399597167969,
+        431.4000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p024-figure-1",
+      "pdfPage": 24,
+      "classification": "source-map",
+      "status": "connected-source-asset",
+      "sourceSha256": "690ce28325c7750a8fb091e3df383bbf09d39338090e98c18af3017bb63e0a53",
+      "sourceBbox": [
+        119.27999877929688,
+        100.92001342773438,
+        260.6400146484375,
+        289.32000732421875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p024-figure-2",
+      "pdfPage": 24,
+      "classification": "source-map",
+      "status": "connected-source-asset",
+      "sourceSha256": "6e8f3f4eedd36d23fec3855fe370ba39ad162d1fbe6376069e75cc7899924191",
+      "sourceBbox": [
+        328.91998291015625,
+        100.67999267578125,
+        470.5199890136719,
+        289.55999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p024-figure-3",
+      "pdfPage": 24,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "1b663dc2e18cb6c4651de76dc45ea81c9b9b548d441c32fef178e5c0a8c75ebe",
+      "sourceBbox": [
+        120.60000610351562,
+        475.44000244140625,
+        189.36001586914062,
+        578.52001953125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p024-figure-4",
+      "pdfPage": 24,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "516c9c79c7eebcddd89cdc8c4cf620375a33df82d4eee3fd87fd1950b2c12757",
+      "sourceBbox": [
+        230.04000854492188,
+        477.72003173828125,
+        347.760009765625,
+        576.3600463867188
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p024-figure-5",
+      "pdfPage": 24,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "d8dd99e52b2ba79ac92f6ecf12bd435f2d44bfa367270198a86cdc3219bbb41c",
+      "sourceBbox": [
+        362.1600036621094,
+        474.5999755859375,
+        417.4800109863281,
+        579.3599853515625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p024-figure-6",
+      "pdfPage": 24,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "b448b25227b8c5186b9d190e2d44bc778666a6610e91bca115915ad303947b64",
+      "sourceBbox": [
+        440.760009765625,
+        475.20001220703125,
+        507.0,
+        578.760009765625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p024-figure-7",
+      "pdfPage": 24,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "2bee761f870cb57d8d0a4c637de02dabfb6aa8efee30d17f7af94504060abc57",
+      "sourceBbox": [
+        94.91999816894531,
+        617.6400146484375,
+        215.1599884033203,
+        731.0399780273438
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p024-figure-8",
+      "pdfPage": 24,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "946950de2563eedff5c9237b66822b06df3d54eda5b35554eaa8a692c5f64f89",
+      "sourceBbox": [
+        230.04000854492188,
+        625.199951171875,
+        349.79998779296875,
+        707.6399536132812
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p024-figure-9",
+      "pdfPage": 24,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "2a020419895584fbdaf954f1352df00584b4492010b36acac5dd17598c0e195b",
+      "sourceBbox": [
+        372.7200012207031,
+        613.6799926757812,
+        491.03997802734375,
+        719.0399780273438
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p025-figure-1",
+      "pdfPage": 25,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "8da1ebb60f806414134a4b697abaf456c7da54d9eed419730b6593a9782d7375",
+      "sourceBbox": [
+        190.9199981689453,
+        101.27998352050781,
+        226.9199981689453,
+        132.47998046875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p026-figure-1",
+      "pdfPage": 26,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "0fb2df0dfaf244f99bf013c2aabdb3f50c2676544dcf231597fe64e7d84f671d",
+      "sourceBbox": [
+        90.23999786376953,
+        320.9999694824219,
+        219.83999633789062,
+        405.719970703125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p026-figure-2",
+      "pdfPage": 26,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "0f69f01302f8123d8f0a0af307e7356b3d73cd1bfec435558df7072b6738fa80",
+      "sourceBbox": [
+        230.04000854492188,
+        324.7200012207031,
+        361.67999267578125,
+        376.32000732421875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p026-figure-3",
+      "pdfPage": 26,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "6600324ab176ca52aca83891e660acd6bd72c45c5218dfb69acc13fcdfcd7e10",
+      "sourceBbox": [
+        230.04000854492188,
+        376.32000732421875,
+        361.67999267578125,
+        402.0
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p026-figure-4",
+      "pdfPage": 26,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "fd9ce133afd18a281639cb8fbcbc904780b654ae53e21e18096d674a62ed2d00",
+      "sourceBbox": [
+        392.03997802734375,
+        311.52001953125,
+        477.239990234375,
+        415.08001708984375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p026-figure-5",
+      "pdfPage": 26,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "9bc7cfb5761c33d35bdf8ad6b6f2e4e6ab62894f778311af8c662ee622028d3b",
+      "sourceBbox": [
+        117.36000061035156,
+        446.7599792480469,
+        192.72000122070312,
+        559.9199829101562
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p026-figure-6",
+      "pdfPage": 26,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "3fdc9fbc2e008953a96ced0d96781f6f167509819bd7d0134d58f13f8fec44ad",
+      "sourceBbox": [
+        240.0,
+        446.8800048828125,
+        349.67999267578125,
+        543.9600219726562
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p026-figure-7",
+      "pdfPage": 26,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "bdece45925d654011f62ae07404209c916479b0800e62857732aaf8c5a1a4610",
+      "sourceBbox": [
+        401.03997802734375,
+        440.75994873046875,
+        468.3599853515625,
+        549.8399658203125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p026-figure-8",
+      "pdfPage": 26,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        191.16000366210938,
+        593.1599731445312,
+        227.16000366210938,
+        624.3599853515625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p031-figure-1",
+      "pdfPage": 31,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "de3e5038895d66f9d0a7b41973c5fe6d1c0c9f4bd4a2222ba29f8dfa672807fd",
+      "sourceBbox": [
+        356.2799987792969,
+        216.24002075195312,
+        510.3599853515625,
+        318.96002197265625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p031-figure-2",
+      "pdfPage": 31,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "ea6accae246c488b6f604cfc2277e1ca27443207c7d397e1d0a412dff99e499b",
+      "sourceBbox": [
+        356.2799987792969,
+        318.9599914550781,
+        510.3599853515625,
+        421.55999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p031-figure-3",
+      "pdfPage": 31,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "7c277a636845c98ddc18f3004c5ca84ca9246e72fbfc3af5d9f3bd41d375f9cb",
+      "sourceBbox": [
+        210.1199951171875,
+        119.27999877929688,
+        510.239990234375,
+        191.04000854492188
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p031-figure-4",
+      "pdfPage": 31,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "990cc054ae11e327e00d9d8a479e0a9ae5730f7a80c1aef6c07d02d3ec46857e",
+      "sourceBbox": [
+        347.4000244140625,
+        530.4000244140625,
+        510.3600158691406,
+        639.0
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p031-figure-5",
+      "pdfPage": 31,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "b24880cb819e90128352f3d9a3cc25d2a3d47adc508d3f7e680efdcd63a29bc0",
+      "sourceBbox": [
+        347.4000244140625,
+        639.0,
+        510.3600158691406,
+        747.5999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p032-figure-1",
+      "pdfPage": 32,
+      "classification": "source-map",
+      "status": "connected-source-asset",
+      "sourceSha256": "5bd109ad76286eb854fec7758f170f27fe73dcfe762e92b06c40a4dee2847b26",
+      "sourceBbox": [
+        384.4800109863281,
+        119.8800048828125,
+        510.3600158691406,
+        289.32000732421875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p033-figure-1",
+      "pdfPage": 33,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "0ab5ab688005d3cf0971287e9c406544e41d08a382662bf2709fa40fa11b31b7",
+      "sourceBbox": [
+        93.12000274658203,
+        123.47999572753906,
+        179.16000366210938,
+        237.0
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p033-figure-2",
+      "pdfPage": 33,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "02687f8c173ec1d7f7a13f1f696fa9d12f38a7119ca73c7ae004879a82b574b4",
+      "sourceBbox": [
+        192.24000549316406,
+        100.68000793457031,
+        324.3599853515625,
+        130.6800079345703
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p033-figure-3",
+      "pdfPage": 33,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "6f24cdef7aaf4ddb50b75e12399e2c3e262f43756473593dd98f4b1afcd32cf9",
+      "sourceBbox": [
+        324.5999755859375,
+        123.8399887084961,
+        406.91998291015625,
+        236.63998413085938
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p033-figure-4",
+      "pdfPage": 33,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "4a7995952b2e832177e3b24bbc54d3dca4197e92b1a184afe3159fc9951cc06b",
+      "sourceBbox": [
+        420.72003173828125,
+        100.68002319335938,
+        495.96002197265625,
+        259.8000183105469
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p033-figure-5",
+      "pdfPage": 33,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "e236b05c3283e634cd3eeaeaa135e3cd1ad83d458e2bf890a6a0025fccda9ae6",
+      "sourceBbox": [
+        193.79998779296875,
+        163.4399871826172,
+        312.719970703125,
+        242.63998413085938
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p033-figure-6",
+      "pdfPage": 33,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "3bdaae2e052d506bd36b1c1c28dc533f686e0f46a44f2638dbcc0701a9ae7241",
+      "sourceBbox": [
+        90.23999786376953,
+        303.96002197265625,
+        184.9199981689453,
+        425.6400146484375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p033-figure-7",
+      "pdfPage": 33,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "f0c688ed4b48f29c49bacaa79cd902e678bca724439b3486782588c1bb81f43e",
+      "sourceBbox": [
+        192.95999145507812,
+        304.9200134277344,
+        288.9599914550781,
+        424.8000183105469
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p033-figure-8",
+      "pdfPage": 33,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "346fbd524bf568548d0baf5ab85d1a401f77d2cf5cdd7f8351fe70df1ed88c36",
+      "sourceBbox": [
+        300.0,
+        291.47998046875,
+        405.47998046875,
+        438.239990234375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p033-figure-9",
+      "pdfPage": 33,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "8061585cf2bf70b06328ac25031137100412b2acaeb7b9f1feb16cdc8bb6e917",
+      "sourceBbox": [
+        404.8800048828125,
+        292.20001220703125,
+        517.3200073242188,
+        437.4000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p033-figure-10",
+      "pdfPage": 33,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        191.63999938964844,
+        480.96002197265625,
+        227.63999938964844,
+        512.1600341796875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p035-figure-1",
+      "pdfPage": 35,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "69c1c4ebb11f5aadef87f5d09725e6df57b73b0aa608ba8a7c2b9d7bf200c2d2",
+      "sourceBbox": [
+        103.44000244140625,
+        523.4400634765625,
+        276.4800109863281,
+        734.1600341796875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p035-figure-2",
+      "pdfPage": 35,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "e5063a15f9776b95f8f2dd92d4ff7f405ebad7bdf9157de8c78affc64fdf9a6e",
+      "sourceBbox": [
+        300.0,
+        549.5999755859375,
+        499.55999755859375,
+        707.8800048828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p035-figure-3",
+      "pdfPage": 35,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "55631ace80faaa69358d5e41d3fd82961c00fd29d23a7d524bdfea0bd84c5d0e",
+      "sourceBbox": [
+        314.760009765625,
+        99.23999786376953,
+        510.2400207519531,
+        168.1199951171875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p036-figure-1",
+      "pdfPage": 36,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "a6e6d07d185c2ee5a219ab5d8eb2f42030478ccaa76ba03f2d638d9f0d72a598",
+      "sourceBbox": [
+        109.08000183105469,
+        281.6400146484375,
+        270.96002197265625,
+        446.6400146484375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p036-figure-2",
+      "pdfPage": 36,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "6e7615f00bc6c927232ec20348764e24e97ce8e25619a85381ca6f4f70ca4c11",
+      "sourceBbox": [
+        332.760009765625,
+        277.4400329589844,
+        466.55999755859375,
+        450.72003173828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p036-figure-3",
+      "pdfPage": 36,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "c1d07ffc1f326861e91430bc10e1b683ce76447848fcab342d03a76b1f5e7ed9",
+      "sourceBbox": [
+        106.08000183105469,
+        488.4000244140625,
+        204.0,
+        652.3200073242188
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p036-figure-4",
+      "pdfPage": 36,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "a69c270342565ca36e251d8f795e2a03c57947b53c10d0ea00876c9d7061bf6c",
+      "sourceBbox": [
+        242.8800048828125,
+        478.5600280761719,
+        347.0400085449219,
+        662.4000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p036-figure-5",
+      "pdfPage": 36,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "9f2167a8e2d0ebc169f24c1afd54e3dd51d4484f64b556a78f061083837448de",
+      "sourceBbox": [
+        384.8399963378906,
+        472.08001708984375,
+        484.55999755859375,
+        668.6400146484375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p037-figure-1",
+      "pdfPage": 37,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "221b0eb58c9256b02fe161868847796e0eb45448a034cf07697928acac6f9e00",
+      "sourceBbox": [
+        184.9199981689453,
+        94.67999267578125,
+        220.9199981689453,
+        125.75999450683594
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p037-figure-2",
+      "pdfPage": 37,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "9ae0e1e46629436c5f50ef1ff87352c48c62b8447d5fcc38256f94b4a400d395",
+      "sourceBbox": [
+        144.24000549316406,
+        442.67999267578125,
+        182.39999389648438,
+        475.67999267578125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p040-figure-1",
+      "pdfPage": 40,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "dfdf1228415328fff3a18565db9413b332112234b2f3ad5e9c3872e29ccbfc36",
+      "sourceBbox": [
+        0.23999999463558197,
+        0.0,
+        595.3200073242188,
+        168.47999572753906
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p040-figure-2",
+      "pdfPage": 40,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "30ca80c3209845f630cbd3f12d11a242960b1213b21fc072fada76b333c0b602",
+      "sourceBbox": [
+        0.23999999463558197,
+        168.47999572753906,
+        595.3200073242188,
+        336.9599914550781
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p040-figure-3",
+      "pdfPage": 40,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "0bb4b9ff853ccc1e9e581d8e48cf630654828e59e411f40eda3f1ab5d5fe2882",
+      "sourceBbox": [
+        0.23999999463558197,
+        336.96002197265625,
+        595.3200073242188,
+        505.44000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p040-figure-4",
+      "pdfPage": 40,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "5c724d470d8900b8a8400298e494f9a22fbb367b20a336a1f0937f1594097dcd",
+      "sourceBbox": [
+        0.23999999463558197,
+        505.44000244140625,
+        595.3200073242188,
+        673.9199829101562
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p040-figure-5",
+      "pdfPage": 40,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "555373b5a65d4b6471cfda5ee8c341d55ae7f8bee8b630bba12d032454bfa204",
+      "sourceBbox": [
+        0.23999999463558197,
+        673.9200439453125,
+        595.3200073242188,
+        841.9200439453125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p041-figure-1",
+      "pdfPage": 41,
+      "classification": "source-map",
+      "status": "connected-source-asset",
+      "sourceSha256": "4394d7676764f0f63b369966e5ed978c7e8c2a31460d78afee58b7c48b327480",
+      "sourceBbox": [
+        390.72003173828125,
+        589.6799926757812,
+        510.36004638671875,
+        749.760009765625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p042-figure-1",
+      "pdfPage": 42,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        188.75999450683594,
+        250.2000274658203,
+        224.75999450683594,
+        281.4000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p043-figure-1",
+      "pdfPage": 43,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "221b0eb58c9256b02fe161868847796e0eb45448a034cf07697928acac6f9e00",
+      "sourceBbox": [
+        191.63999938964844,
+        414.3600158691406,
+        227.63999938964844,
+        445.44000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p044-figure-1",
+      "pdfPage": 44,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        192.1199951171875,
+        517.6799926757812,
+        228.1199951171875,
+        548.8800048828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p045-figure-1",
+      "pdfPage": 45,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "f48f6b668d797cd149d7796b0f919efe67bbab9725aae89b81790c64ff1f8285",
+      "sourceBbox": [
+        192.1199951171875,
+        99.24000549316406,
+        228.1199951171875,
+        130.44000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p046-figure-1",
+      "pdfPage": 46,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "26e94bfae914a720027f8da7fd7b0863011ac537f38f4c22287ae9dfcccde86c",
+      "sourceBbox": [
+        327.4800109863281,
+        349.55999755859375,
+        503.4000244140625,
+        399.1199951171875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p046-figure-2",
+      "pdfPage": 46,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        191.63999938964844,
+        413.6399841308594,
+        227.63999938964844,
+        444.8399963378906
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p047-figure-1",
+      "pdfPage": 47,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "1817ebc1457c75cd51c8845683959f49966d3ba82228ec808b4ccd309098e4e4",
+      "sourceBbox": [
+        356.8800048828125,
+        173.6400146484375,
+        510.3599853515625,
+        275.6400146484375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p047-figure-2",
+      "pdfPage": 47,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "4533803a84c57c5fa9056b403fc34fee7c715f649220d2241fd899ab76b5e515",
+      "sourceBbox": [
+        356.8800048828125,
+        275.6399841308594,
+        510.3599853515625,
+        377.6399841308594
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p047-figure-3",
+      "pdfPage": 47,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        189.72000122070312,
+        446.39996337890625,
+        225.72000122070312,
+        477.5999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p051-figure-1",
+      "pdfPage": 51,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "a278c4420b69eb0d0d0ea94b6e2d09539fe8c2090a965c991bbcff101e96fab9",
+      "sourceBbox": [
+        135.72000122070312,
+        351.4800109863281,
+        306.96002197265625,
+        499.20001220703125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p051-figure-2",
+      "pdfPage": 51,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "2f971fc79c92ef0b393e46c3bd32b11f157ca641b9f9d02019df431c42d820c0",
+      "sourceBbox": [
+        365.0400085449219,
+        352.44000244140625,
+        474.72003173828125,
+        498.239990234375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p051-figure-3",
+      "pdfPage": 51,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "55113f39d3f77cf478454afb757f5a7a8c92a337b2724b996e2c12877a995877",
+      "sourceBbox": [
+        397.44000244140625,
+        535.0799560546875,
+        510.239990234375,
+        685.919921875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p052-figure-1",
+      "pdfPage": 52,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "f48f6b668d797cd149d7796b0f919efe67bbab9725aae89b81790c64ff1f8285",
+      "sourceBbox": [
+        191.63999938964844,
+        103.55999755859375,
+        227.63999938964844,
+        134.75999450683594
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-1",
+      "pdfPage": 54,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "3be85c89a4d5a21c34c4667c4d611b0aa4521fba8cd99903e1b9908196c8eff0",
+      "sourceBbox": [
+        93.0,
+        101.2800064086914,
+        182.16000366210938,
+        219.48001098632812
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-2",
+      "pdfPage": 54,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "dcb757cc8d74d06a89130225728eaffeec352145489da7e09ed77ea616c58d53",
+      "sourceBbox": [
+        198.95999145507812,
+        101.2800064086914,
+        285.9599914550781,
+        219.48001098632812
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-3",
+      "pdfPage": 54,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "edf50da26df15c779941200e1b2d771577d103fc9885629a6fb8efbf962040de",
+      "sourceBbox": [
+        300.0,
+        100.68000793457031,
+        394.67999267578125,
+        220.20001220703125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-4",
+      "pdfPage": 54,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "98c62de261e4dabcb45c1bac8aa2d17276a84993eb1f5dbd2561c498a26f0fad",
+      "sourceBbox": [
+        406.1999816894531,
+        102.83999633789062,
+        499.1999816894531,
+        217.9199981689453
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-5",
+      "pdfPage": 54,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "0c4c62c194909133db02772bdcd85348074742e6b314efb3c8d53cae03c617e7",
+      "sourceBbox": [
+        90.23999786376953,
+        255.83999633789062,
+        183.36000061035156,
+        396.8399963378906
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-6",
+      "pdfPage": 54,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "17341ed880e5f8dcc05c3232922aa4d2c297befe7ee6be1c15e7b4dd0ac71ced",
+      "sourceBbox": [
+        189.1199951171875,
+        272.52001953125,
+        283.67999267578125,
+        380.1600341796875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-7",
+      "pdfPage": 54,
+      "classification": "source-illustration-fragment",
+      "status": "connected-source-asset",
+      "sourceSha256": "304cab8ef2b1e8b7d9586dc49d10e1a781a5e72a2bdb6b1bf48a2333007bd930",
+      "sourceBbox": [
+        288.0,
+        253.20001220703125,
+        383.760009765625,
+        266.52001953125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-8",
+      "pdfPage": 54,
+      "classification": "source-illustration-fragment",
+      "status": "connected-source-asset",
+      "sourceSha256": "f197fd887bb11fbe2700244bf185bc68acb86e3fcf1bfa3e3088f3c7c5e0b3fc",
+      "sourceBbox": [
+        288.0,
+        266.5199890136719,
+        383.760009765625,
+        279.8399963378906
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-9",
+      "pdfPage": 54,
+      "classification": "source-illustration-fragment",
+      "status": "connected-source-asset",
+      "sourceSha256": "433de8ecd9cecfce115497823b7cd4e9bc4afabaaacf23b67182a58bfc88bd71",
+      "sourceBbox": [
+        288.0,
+        279.8399963378906,
+        383.760009765625,
+        293.1600036621094
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-10",
+      "pdfPage": 54,
+      "classification": "source-illustration-fragment",
+      "status": "connected-source-asset",
+      "sourceSha256": "0b624412c660cd4df7889c1f1063ec23ddf88e65d12b3f7cb4cf59e985d730aa",
+      "sourceBbox": [
+        288.0,
+        293.1600036621094,
+        383.760009765625,
+        306.4800109863281
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-11",
+      "pdfPage": 54,
+      "classification": "source-illustration-fragment",
+      "status": "connected-source-asset",
+      "sourceSha256": "5e8f72afc16f93ba2bb5980d420120174a5944d9a7f9657a547888bbd2d339fb",
+      "sourceBbox": [
+        288.0,
+        306.4800109863281,
+        383.760009765625,
+        319.8000183105469
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-12",
+      "pdfPage": 54,
+      "classification": "source-illustration-fragment",
+      "status": "connected-source-asset",
+      "sourceSha256": "0043c125c5f0529af2ed6a4eb7bb566f93b8267901a48b25b2fac93697f50a2a",
+      "sourceBbox": [
+        288.0,
+        319.79998779296875,
+        383.760009765625,
+        333.1199951171875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-13",
+      "pdfPage": 54,
+      "classification": "source-illustration-fragment",
+      "status": "connected-source-asset",
+      "sourceSha256": "1b6e507be392691acc48d55e9fd499c3b5db896d3e87dcaaaffef8628160ecca",
+      "sourceBbox": [
+        288.0,
+        333.1199951171875,
+        383.760009765625,
+        346.44000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-14",
+      "pdfPage": 54,
+      "classification": "source-illustration-fragment",
+      "status": "connected-source-asset",
+      "sourceSha256": "99c81c743f1ce2369e17dfd40187d231e4335d97ad645b77669bf43104673b96",
+      "sourceBbox": [
+        288.0,
+        346.44000244140625,
+        383.760009765625,
+        359.760009765625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-15",
+      "pdfPage": 54,
+      "classification": "source-illustration-fragment",
+      "status": "connected-source-asset",
+      "sourceSha256": "09adfff828493e39ad1750274355d640f2f27f5142f7c1e9395c61c287c162d0",
+      "sourceBbox": [
+        288.0,
+        359.760009765625,
+        383.760009765625,
+        373.08001708984375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-16",
+      "pdfPage": 54,
+      "classification": "source-illustration-fragment",
+      "status": "connected-source-asset",
+      "sourceSha256": "006118a206a5ff00768e55ee1f279d1ac15384e784958d94052bfd9798722bd7",
+      "sourceBbox": [
+        288.0,
+        373.08001708984375,
+        383.760009765625,
+        386.4000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-17",
+      "pdfPage": 54,
+      "classification": "source-illustration-fragment",
+      "status": "connected-source-asset",
+      "sourceSha256": "0081ad46ac842956cc3adb8319dddffb6966dae00681f088d521c66770dc5442",
+      "sourceBbox": [
+        288.0,
+        386.4000244140625,
+        383.760009765625,
+        399.4800109863281
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-18",
+      "pdfPage": 54,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "d417231cf56617d9b18e60c695fe6e0bf1ddde32a484cc53955b9abe92d16664",
+      "sourceBbox": [
+        386.8800048828125,
+        241.19998168945312,
+        502.9200134277344,
+        318.5999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-19",
+      "pdfPage": 54,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "9ab76f0c2828c1ed5bf47e0ddc7d522000dd162282e6117445fa529d04db405e",
+      "sourceBbox": [
+        386.8800048828125,
+        339.719970703125,
+        502.67999267578125,
+        416.87994384765625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-20",
+      "pdfPage": 54,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "552e5bd9b33bc879e9d4d16fc3a8157458697844b0cdb15b50d3faecba3f730c",
+      "sourceBbox": [
+        104.75999450683594,
+        450.7200012207031,
+        171.36000061035156,
+        578.760009765625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-21",
+      "pdfPage": 54,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "4364bbcb179f8f84ea0dd8763ebea05e38cdc526e87eacc6d5fdf7d8f5aeee95",
+      "sourceBbox": [
+        202.32000732421875,
+        450.4800109863281,
+        284.6400146484375,
+        578.8800048828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-22",
+      "pdfPage": 54,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "6ae5283eb5eb4dc3c325576e3ab5fdc0bcf94b631339f0397d9b8f872ca7dce0",
+      "sourceBbox": [
+        311.1600036621094,
+        452.88006591796875,
+        385.32000732421875,
+        576.3600463867188
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-23",
+      "pdfPage": 54,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "28fc0cd3ef918611e7217636ebc83c9ab7f2caf465b997854ec85cb93cb2748d",
+      "sourceBbox": [
+        406.44000244140625,
+        448.56005859375,
+        499.79998779296875,
+        580.800048828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-24",
+      "pdfPage": 54,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "c7c83464b20b94c2b491042562337c98cd751e41f818de8a8d59f0c2b3b4e34c",
+      "sourceBbox": [
+        95.63999938964844,
+        616.9199829101562,
+        214.44000244140625,
+        723.239990234375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-25",
+      "pdfPage": 54,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "704c82fcc888ea1b992983247fa7debf4fd2a11eb96bccd3eb8795d21f15ff1e",
+      "sourceBbox": [
+        235.32000732421875,
+        602.0400390625,
+        293.0400085449219,
+        738.0
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-26",
+      "pdfPage": 54,
+      "classification": "source-illustration-fragment",
+      "status": "connected-source-asset",
+      "sourceSha256": "54b339e1064c3324d284756015211258e38df1bb58d2161737df30045b77ffd3",
+      "sourceBbox": [
+        308.4000244140625,
+        612.1199340820312,
+        376.6800231933594,
+        670.199951171875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-27",
+      "pdfPage": 54,
+      "classification": "source-illustration-fragment",
+      "status": "connected-source-asset",
+      "sourceSha256": "b00f81281c06397a87b0c6c212009bc96a42522187894feece32396b8be9eda4",
+      "sourceBbox": [
+        308.4000244140625,
+        670.199951171875,
+        376.6800231933594,
+        727.919921875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p054-figure-28",
+      "pdfPage": 54,
+      "classification": "source-illustration",
+      "status": "connected-source-asset",
+      "sourceSha256": "20405965a8ec357cbb1f8f39e72c3d8da9da7362fd8a9054b2395470a77da99d",
+      "sourceBbox": [
+        396.3599853515625,
+        605.280029296875,
+        491.03997802734375,
+        734.760009765625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p057-figure-1",
+      "pdfPage": 57,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "dfdf1228415328fff3a18565db9413b332112234b2f3ad5e9c3872e29ccbfc36",
+      "sourceBbox": [
+        0.23999999463558197,
+        0.0,
+        595.3200073242188,
+        168.47999572753906
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p057-figure-2",
+      "pdfPage": 57,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "30ca80c3209845f630cbd3f12d11a242960b1213b21fc072fada76b333c0b602",
+      "sourceBbox": [
+        0.23999999463558197,
+        168.47999572753906,
+        595.3200073242188,
+        336.9599914550781
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p057-figure-3",
+      "pdfPage": 57,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "0bb4b9ff853ccc1e9e581d8e48cf630654828e59e411f40eda3f1ab5d5fe2882",
+      "sourceBbox": [
+        0.23999999463558197,
+        336.96002197265625,
+        595.3200073242188,
+        505.44000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p057-figure-4",
+      "pdfPage": 57,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "5c724d470d8900b8a8400298e494f9a22fbb367b20a336a1f0937f1594097dcd",
+      "sourceBbox": [
+        0.23999999463558197,
+        505.44000244140625,
+        595.3200073242188,
+        673.9199829101562
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p057-figure-5",
+      "pdfPage": 57,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "555373b5a65d4b6471cfda5ee8c341d55ae7f8bee8b630bba12d032454bfa204",
+      "sourceBbox": [
+        0.23999999463558197,
+        673.9200439453125,
+        595.3200073242188,
+        841.9200439453125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p058-figure-1",
+      "pdfPage": 58,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "009881adb585d2b3af1c41ce4d2743c64aa79746c4c898cb79ff76ac7194db5a",
+      "sourceBbox": [
+        85.08000183105469,
+        155.87998962402344,
+        510.239990234375,
+        235.4399871826172
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p058-figure-2",
+      "pdfPage": 58,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "39a143727d8c83eecdb0abaa81a5718becb46e0ad87423d32acf0ae7134c3dc7",
+      "sourceBbox": [
+        90.47999572753906,
+        278.2799987792969,
+        504.8399658203125,
+        347.2799987792969
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p058-figure-3",
+      "pdfPage": 58,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "ab56a348eb3676d39d3a5793664a34c8d3548b36f4101431307f40a54c57b1b8",
+      "sourceBbox": [
+        90.47999572753906,
+        347.280029296875,
+        504.8399658203125,
+        416.280029296875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p058-figure-4",
+      "pdfPage": 58,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "157ebf37db9bfbbf048657de7dd0d123ceea3d15333bfe053ee49d024f7e6622",
+      "sourceBbox": [
+        90.47999572753906,
+        416.27996826171875,
+        504.8399658203125,
+        485.27996826171875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p058-figure-5",
+      "pdfPage": 58,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "f23c14e2d95e9e09c86b7d6b3b13b32dfd5cb93411bbc1706510d36d861e1cbb",
+      "sourceBbox": [
+        391.67999267578125,
+        627.3599853515625,
+        510.239990234375,
+        753.47998046875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p059-figure-1",
+      "pdfPage": 59,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "99d72dd5b7c9b55d177b81732c1b7ee2ab419b01019ecc32d25debc9c9089ff5",
+      "sourceBbox": [
+        429.96002197265625,
+        138.12002563476562,
+        510.2400207519531,
+        284.4000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p059-figure-2",
+      "pdfPage": 59,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "aafa01eaf406f61d92496d5be64a9f604d3e6cdc763929f775e3c1a0e9a2e61d",
+      "sourceBbox": [
+        314.1600036621094,
+        529.5599975585938,
+        349.44000244140625,
+        543.9600219726562
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p059-figure-3",
+      "pdfPage": 59,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "edb8245ae59e0988142f124f177daa3551070882d89a902bf74c84ae16279dfd",
+      "sourceBbox": [
+        297.7200012207031,
+        510.2400207519531,
+        333.0,
+        524.6400146484375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p059-figure-4",
+      "pdfPage": 59,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "01d5592d3ac95dcd05f525214bb3fdea14d308cd2b2c9869cbb1f854d420b32d",
+      "sourceBbox": [
+        270.1199951171875,
+        606.47998046875,
+        305.3999938964844,
+        620.8800048828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p059-figure-5",
+      "pdfPage": 59,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "eb5dde5df426d300d1f76da9f2c3fa370ecf95cf59aaf8aca945129eff46163e",
+      "sourceBbox": [
+        320.6399841308594,
+        683.4000244140625,
+        355.91998291015625,
+        697.800048828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p060-figure-1",
+      "pdfPage": 60,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "7d19b2dc8f27366b6692ded1686e2654d3b71ac41609aff7ee8bbbc0378f88c4",
+      "sourceBbox": [
+        191.16000366210938,
+        96.36000061035156,
+        227.16000366210938,
+        127.44000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p063-figure-1",
+      "pdfPage": 63,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "e3ca2593b2c4b7cd805dbf9fc566bde69afea85b0629032fcdf1d2c409298b51",
+      "sourceBbox": [
+        85.08000183105469,
+        137.75999450683594,
+        510.239990234375,
+        242.51998901367188
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p063-figure-2",
+      "pdfPage": 63,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "15d665b16e2cba4439ac450dfe6b4e84b52b7ce47b56454e1c3ae98d5eae7aea",
+      "sourceBbox": [
+        85.08000183105469,
+        242.52000427246094,
+        510.239990234375,
+        347.1600036621094
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p063-figure-3",
+      "pdfPage": 63,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "b2265b3f83c4a6259d3457ae371fa12439c75d8510b12b40e608dc97ce1c20de",
+      "sourceBbox": [
+        169.20001220703125,
+        369.719970703125,
+        420.4800109863281,
+        726.5999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p064-figure-1",
+      "pdfPage": 64,
+      "classification": "source-map",
+      "status": "connected-source-asset",
+      "sourceSha256": "135134e41667634f96487e48e0b5275efc04b4b8ddd87f13be477bedeb3b0c5d",
+      "sourceBbox": [
+        356.4000244140625,
+        200.04000854492188,
+        510.3600158691406,
+        350.760009765625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p066-figure-1",
+      "pdfPage": 66,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "f48f6b668d797cd149d7796b0f919efe67bbab9725aae89b81790c64ff1f8285",
+      "sourceBbox": [
+        192.1199951171875,
+        95.8800048828125,
+        228.1199951171875,
+        127.08000183105469
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p067-figure-1",
+      "pdfPage": 67,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        193.0800018310547,
+        95.76000213623047,
+        229.0800018310547,
+        126.95999908447266
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p071-figure-1",
+      "pdfPage": 71,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "f8aa2c97b83ae5eeabd157bbc74d8193415a4f2401f4c1514c46bea024bf37de",
+      "sourceBbox": [
+        357.239990234375,
+        407.760009765625,
+        510.239990234375,
+        443.1600036621094
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p071-figure-2",
+      "pdfPage": 71,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "82ff72b76b18a47c5e487c75a80a4d1b6ad408914175326ef7db14bf4d8533d6",
+      "sourceBbox": [
+        357.239990234375,
+        443.1600036621094,
+        510.239990234375,
+        478.44000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p071-figure-3",
+      "pdfPage": 71,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "f414c793dd56dc0a79edccad8e4869a5ae26709b5822363682509aebd4ebe8fe",
+      "sourceBbox": [
+        147.83999633789062,
+        498.239990234375,
+        320.15997314453125,
+        732.47998046875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p071-figure-4",
+      "pdfPage": 71,
+      "classification": "source-map",
+      "status": "connected-source-asset",
+      "sourceSha256": "e847ff9fa843a2a2e9b3a849ab92a7c89b4923e4a8c6ae6a18894493edc0359d",
+      "sourceBbox": [
+        330.3600158691406,
+        496.56005859375,
+        507.1199951171875,
+        734.1600341796875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p074-figure-1",
+      "pdfPage": 74,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        191.63999938964844,
+        102.47999572753906,
+        227.63999938964844,
+        133.67999267578125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p075-figure-1",
+      "pdfPage": 75,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        191.16000366210938,
+        102.47999572753906,
+        227.16000366210938,
+        133.67999267578125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p076-figure-1",
+      "pdfPage": 76,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "f12f01431920cf06dc56962f09a4132558d82f4f8b55c041f39913122feead20",
+      "sourceBbox": [
+        98.16000366210938,
+        611.4000244140625,
+        176.8800048828125,
+        740.52001953125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p076-figure-2",
+      "pdfPage": 76,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "ae12df65abe3ca8e8df0dd4bdd723b93741e6387e8e2780777d29b2056746cba",
+      "sourceBbox": [
+        195.1199951171875,
+        631.4400024414062,
+        289.79998779296875,
+        720.47998046875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p076-figure-3",
+      "pdfPage": 76,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "779d44a33299bf846417cff18789c59eab0974e5ac2c4e471d6673f9705eab40",
+      "sourceBbox": [
+        300.0,
+        644.0399780273438,
+        400.44000244140625,
+        708.0
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p076-figure-4",
+      "pdfPage": 76,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "4c930cf626e6b623060d9c7e1e195020eb97e4af88c5c8632aeb6e2a2dcf50bb",
+      "sourceBbox": [
+        404.8800048828125,
+        616.5599975585938,
+        495.239990234375,
+        735.47998046875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p077-figure-1",
+      "pdfPage": 77,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "701164a42ec7c0c4c8eae4759a2596ab0d596c81dd4fef6bebdc0214ac6d7555",
+      "sourceBbox": [
+        90.23999786376953,
+        379.08001708984375,
+        219.83999633789062,
+        435.4800109863281
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p077-figure-2",
+      "pdfPage": 77,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "b34731510a97ba3f3148c15192a872c16751df34fc23d06c4f46c7720a9010aa",
+      "sourceBbox": [
+        235.67999267578125,
+        360.4800109863281,
+        353.8800048828125,
+        454.08001708984375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p077-figure-3",
+      "pdfPage": 77,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "0ce22e3d33f93fb14210bd7a68e0bb7523f8fd172c2b808126e172a83830b14d",
+      "sourceBbox": [
+        369.8399963378906,
+        361.3199768066406,
+        507.0,
+        453.3599853515625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p077-figure-4",
+      "pdfPage": 77,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "1d75c25d0a076cc2f4b1fd639b9cd228309fa20699bcd390f9b72fcf0b37b924",
+      "sourceBbox": [
+        99.24000549316406,
+        475.44000244140625,
+        210.72000122070312,
+        592.7999877929688
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p077-figure-5",
+      "pdfPage": 77,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "d274f6ae3d5b515316c8bc5b9c876b7c2acbf0351e07c88dd73f6c263c0421b8",
+      "sourceBbox": [
+        251.04000854492188,
+        476.63995361328125,
+        338.6400146484375,
+        591.8399658203125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p077-figure-6",
+      "pdfPage": 77,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "8ac98fabb265497b514555628de52e861e38da01dcbc5a9cdc86eb5b1c1ff3ec",
+      "sourceBbox": [
+        375.1199951171875,
+        475.320068359375,
+        494.1600036621094,
+        592.800048828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p077-figure-7",
+      "pdfPage": 77,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "b91e178d514ced4e7b1fd8386f00431ac5979bf5da36f5762643275d4150a737",
+      "sourceBbox": [
+        120.24000549316406,
+        619.9200439453125,
+        189.8400115966797,
+        725.1600341796875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p077-figure-8",
+      "pdfPage": 77,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "adfe483f821061398dc00191f74bcf41154f3ead70ddac657628b96824e6af5a",
+      "sourceBbox": [
+        258.0,
+        619.9199829101562,
+        331.79998779296875,
+        725.0399780273438
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p077-figure-9",
+      "pdfPage": 77,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "df774fc888d41b78908d600304e3bc7b9daccc859e67994f89ca6f4fdf576319",
+      "sourceBbox": [
+        395.6400146484375,
+        614.1599731445312,
+        473.8800048828125,
+        730.9199829101562
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p079-figure-1",
+      "pdfPage": 79,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "1ed5dc75d3c8916ceb3a590aa15506ec0b41b650b90485d97decd4e9d0361894",
+      "sourceBbox": [
+        99.95999908447266,
+        225.11997985839844,
+        210.1199951171875,
+        389.27996826171875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p079-figure-2",
+      "pdfPage": 79,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "eab04acacc076c279bedf0bdd10e3dd459bbc97dcec031d267b4538c23f8d9dd",
+      "sourceBbox": [
+        230.04000854492188,
+        231.1199951171875,
+        361.79998779296875,
+        273.8399963378906
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p079-figure-3",
+      "pdfPage": 79,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "6d309413396ef39c64310c7c3a3f4d6eac89b055eabba9f7d39fc974479d6a2d",
+      "sourceBbox": [
+        381.9599914550781,
+        220.07998657226562,
+        487.44000244140625,
+        394.1999816894531
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p079-figure-4",
+      "pdfPage": 79,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "a55bf98d4967b2f7011a150fcf3696db40f2a58600eb735ea7dce5c1094be811",
+      "sourceBbox": [
+        230.04000854492188,
+        322.44000244140625,
+        366.96002197265625,
+        377.760009765625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p079-figure-5",
+      "pdfPage": 79,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "7b4c9fb7e4c4596885405c89fc2aba1c49b4a76f70d36d89d89adfcde5566e4a",
+      "sourceBbox": [
+        90.23999786376953,
+        412.67999267578125,
+        219.83999633789062,
+        492.8399963378906
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p079-figure-6",
+      "pdfPage": 79,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "5da5d4ee3909a9788224f8f410cf9d41a4b016f13a2d50e22b4929cb77393c2f",
+      "sourceBbox": [
+        239.40000915527344,
+        420.7200012207031,
+        350.2799987792969,
+        575.8800048828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p079-figure-7",
+      "pdfPage": 79,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "340077908c42938806c482af669611e4e948f398df54a4b039596ed802689171",
+      "sourceBbox": [
+        369.8399963378906,
+        416.4000244140625,
+        499.44000244140625,
+        463.20001220703125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p079-figure-8",
+      "pdfPage": 79,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "d7f424a40deb5f525fca65212ac0ea3d03fae64dc0d03c28f33ed94ea2591eac",
+      "sourceBbox": [
+        369.8399963378906,
+        463.20001220703125,
+        499.44000244140625,
+        510.0
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p079-figure-9",
+      "pdfPage": 79,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "14901730df4dbc80084ce805d385b320682b6a840e2ad4ae877d0e9a8a5fc121",
+      "sourceBbox": [
+        369.8399963378906,
+        510.00006103515625,
+        499.44000244140625,
+        556.800048828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p079-figure-10",
+      "pdfPage": 79,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "00b5f84aeb85c7f9cfd3566ac08c99c8a0a8b46cb2517c002684418a959717f8",
+      "sourceBbox": [
+        369.8399963378906,
+        556.7999877929688,
+        499.44000244140625,
+        580.2000122070312
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p079-figure-11",
+      "pdfPage": 79,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "db7ee714be1f4d618b82a7abae85ff1e027c626a6b250db7ec3ff45c79d4ef9f",
+      "sourceBbox": [
+        90.23999786376953,
+        508.44000244140625,
+        219.83999633789062,
+        583.9199829101562
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p079-figure-12",
+      "pdfPage": 79,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "e98020af7d679d2b7b08b42a4a328bc32c10f5cfcd9a57393f5d598ca31ba63a",
+      "sourceBbox": [
+        90.23999786376953,
+        610.43994140625,
+        219.83999633789062,
+        720.5999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p079-figure-13",
+      "pdfPage": 79,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "b2ea62e1a7652a1461d434f28847bab438157fe6d7f4d5a8dc0de16b2c7694d1",
+      "sourceBbox": [
+        242.51998901367188,
+        602.6400146484375,
+        347.15997314453125,
+        728.4000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p079-figure-14",
+      "pdfPage": 79,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "e179b52fa6af1f869d51916ca80b4d033bb037de2533f466e98a30d317df4e5b",
+      "sourceBbox": [
+        369.8399963378906,
+        614.0400390625,
+        499.44000244140625,
+        716.8800048828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p085-figure-1",
+      "pdfPage": 85,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "dfdf1228415328fff3a18565db9413b332112234b2f3ad5e9c3872e29ccbfc36",
+      "sourceBbox": [
+        0.0,
+        0.0,
+        595.3200073242188,
+        168.47999572753906
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p085-figure-2",
+      "pdfPage": 85,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "30ca80c3209845f630cbd3f12d11a242960b1213b21fc072fada76b333c0b602",
+      "sourceBbox": [
+        0.0,
+        168.47999572753906,
+        595.3200073242188,
+        336.9599914550781
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p085-figure-3",
+      "pdfPage": 85,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "0bb4b9ff853ccc1e9e581d8e48cf630654828e59e411f40eda3f1ab5d5fe2882",
+      "sourceBbox": [
+        0.0,
+        336.96002197265625,
+        595.3200073242188,
+        505.44000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p085-figure-4",
+      "pdfPage": 85,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "5c724d470d8900b8a8400298e494f9a22fbb367b20a336a1f0937f1594097dcd",
+      "sourceBbox": [
+        0.0,
+        505.44000244140625,
+        595.3200073242188,
+        673.9199829101562
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p085-figure-5",
+      "pdfPage": 85,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "555373b5a65d4b6471cfda5ee8c341d55ae7f8bee8b630bba12d032454bfa204",
+      "sourceBbox": [
+        0.0,
+        673.9200439453125,
+        595.3200073242188,
+        841.9200439453125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p086-figure-1",
+      "pdfPage": 86,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "846e48df3a0c04b4be5ae131d790d8b7c21d0331cb37778a7c80ea752aa2d03a",
+      "sourceBbox": [
+        399.4800109863281,
+        134.51998901367188,
+        510.239990234375,
+        175.91998291015625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p086-figure-2",
+      "pdfPage": 86,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "6c859cb7ffbdf956294b4a764d29640d408bbc263726dc609164eddb14c73b13",
+      "sourceBbox": [
+        399.4800109863281,
+        175.92001342773438,
+        510.239990234375,
+        217.20001220703125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p086-figure-3",
+      "pdfPage": 86,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "6acf794873827dccd0fa5280f7b8dd649bd22137501ea591ace05748ae655a80",
+      "sourceBbox": [
+        399.4800109863281,
+        374.6399841308594,
+        435.0,
+        391.91998291015625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p086-figure-4",
+      "pdfPage": 86,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "751ab7adf19bb0acfb5be3bc3e2bf69579b81c1ecd0640839f72d26c22a08c82",
+      "sourceBbox": [
+        467.5199890136719,
+        249.0,
+        510.239990234375,
+        271.44000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p086-figure-5",
+      "pdfPage": 86,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "54b8fc04432cefcaa59b5fa0e3e9d0a24657f41a69497ce2cfab00bd1a4a11fd",
+      "sourceBbox": [
+        432.72003173828125,
+        316.3200378417969,
+        510.24005126953125,
+        428.0400390625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p086-figure-6",
+      "pdfPage": 86,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "a1ef40b7c6f651e003be8f73497b276e5d5dbff5d8b13c21eb3b1447c87f7895",
+      "sourceBbox": [
+        373.08001708984375,
+        236.0399932861328,
+        461.52001953125,
+        331.55999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p086-figure-7",
+      "pdfPage": 86,
+      "classification": "decorative-callout-icon",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        184.9199981689453,
+        438.9599914550781,
+        220.9199981689453,
+        470.1600036621094
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p088-figure-1",
+      "pdfPage": 88,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "bc56b44ec868762edcb3bd1d6d9004bb4554ab635076554a2b36d5cf7934cf7f",
+      "sourceBbox": [
+        191.63999938964844,
+        492.9600524902344,
+        227.63999938964844,
+        524.0400390625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p089-figure-1",
+      "pdfPage": 89,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "f48f6b668d797cd149d7796b0f919efe67bbab9725aae89b81790c64ff1f8285",
+      "sourceBbox": [
+        184.9199981689453,
+        100.20001220703125,
+        220.9199981689453,
+        131.40000915527344
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p090-figure-1",
+      "pdfPage": 90,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "221b0eb58c9256b02fe161868847796e0eb45448a034cf07697928acac6f9e00",
+      "sourceBbox": [
+        184.9199981689453,
+        281.760009765625,
+        220.9199981689453,
+        312.8399963378906
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p094-figure-1",
+      "pdfPage": 94,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "09f20de49ee0fb91724b831877206538faf65bfe116e3e29c9ff5b213b633974",
+      "sourceBbox": [
+        184.9199981689453,
+        333.5999755859375,
+        220.9199981689453,
+        364.79998779296875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p095-figure-1",
+      "pdfPage": 95,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        184.9199981689453,
+        101.8800048828125,
+        220.9199981689453,
+        133.0800018310547
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p097-figure-1",
+      "pdfPage": 97,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "f48f6b668d797cd149d7796b0f919efe67bbab9725aae89b81790c64ff1f8285",
+      "sourceBbox": [
+        190.6800079345703,
+        100.20001220703125,
+        226.6800079345703,
+        131.40000915527344
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p103-figure-1",
+      "pdfPage": 103,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "37a35756c7b3d1ba606b4560eca757353a257481db9c3f2601e7776b4cb4d779",
+      "sourceBbox": [
+        91.08000183105469,
+        150.48001098632812,
+        218.8800048828125,
+        246.36001586914062
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p103-figure-2",
+      "pdfPage": 103,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "fc4f19baaf8d02e58bb0e72a19d0921b9e760fcaab026ec70709c679746f66ff",
+      "sourceBbox": [
+        230.04000854492188,
+        152.16000366210938,
+        361.44000244140625,
+        244.67999267578125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p103-figure-3",
+      "pdfPage": 103,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "1821c012b286457baea5a1e52f9f437d788eeeb433bcbac324e4a209764cfd12",
+      "sourceBbox": [
+        369.8399963378906,
+        100.67997741699219,
+        500.15997314453125,
+        296.27996826171875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p103-figure-4",
+      "pdfPage": 103,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "c581cb5661df58e04db42dcc45af1edb63578b79b38df4b08752506e47987d8e",
+      "sourceBbox": [
+        90.23999786376953,
+        339.3600158691406,
+        222.95999145507812,
+        424.32000732421875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p103-figure-5",
+      "pdfPage": 103,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "ef85d82c42b948146fdaa59bc439588630539169e87e5dc19a73c13db7ad11e0",
+      "sourceBbox": [
+        230.04000854492188,
+        337.8000183105469,
+        359.6400146484375,
+        425.760009765625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p103-figure-6",
+      "pdfPage": 103,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "167a2b5d4bb9d4419f5bc3083d564fee8179dc4a008f3c98c2fd7904407648a1",
+      "sourceBbox": [
+        369.8399963378906,
+        338.6399841308594,
+        499.91998291015625,
+        424.91998291015625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p103-figure-7",
+      "pdfPage": 103,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "a45ec0a70a79e070e278b013fcc445fbd0cf87e740c49c12a676a56eac52265f",
+      "sourceBbox": [
+        90.23999786376953,
+        478.44000244140625,
+        190.55999755859375,
+        601.9199829101562
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p103-figure-8",
+      "pdfPage": 103,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "0d18620dca4c608d39409a56b336acd65a66c006d32ca1ff2f186bddd218acc2",
+      "sourceBbox": [
+        195.1199951171875,
+        477.72003173828125,
+        291.7200012207031,
+        602.6400146484375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p103-figure-9",
+      "pdfPage": 103,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "05e4d349bfa882c43697e8ec6047daded51fefedc5dfb8febdfe39c07644d6c8",
+      "sourceBbox": [
+        300.0,
+        477.96002197265625,
+        394.67999267578125,
+        602.52001953125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p103-figure-10",
+      "pdfPage": 103,
+      "classification": "source-photo-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "4da4ff74f30a75623f68ef9ae0b69875d458eb45e2fde13dbaca6346d5101bdf",
+      "sourceBbox": [
+        407.27996826171875,
+        474.96002197265625,
+        497.15997314453125,
+        605.52001953125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p105-figure-1",
+      "pdfPage": 105,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "dfdf1228415328fff3a18565db9413b332112234b2f3ad5e9c3872e29ccbfc36",
+      "sourceBbox": [
+        0.23999999463558197,
+        0.0,
+        595.3200073242188,
+        168.47999572753906
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p105-figure-2",
+      "pdfPage": 105,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "30ca80c3209845f630cbd3f12d11a242960b1213b21fc072fada76b333c0b602",
+      "sourceBbox": [
+        0.23999999463558197,
+        168.47999572753906,
+        595.3200073242188,
+        336.9599914550781
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p105-figure-3",
+      "pdfPage": 105,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "0bb4b9ff853ccc1e9e581d8e48cf630654828e59e411f40eda3f1ab5d5fe2882",
+      "sourceBbox": [
+        0.23999999463558197,
+        336.96002197265625,
+        595.3200073242188,
+        505.44000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p105-figure-4",
+      "pdfPage": 105,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "5c724d470d8900b8a8400298e494f9a22fbb367b20a336a1f0937f1594097dcd",
+      "sourceBbox": [
+        0.23999999463558197,
+        505.44000244140625,
+        595.3200073242188,
+        673.9199829101562
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p105-figure-5",
+      "pdfPage": 105,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "555373b5a65d4b6471cfda5ee8c341d55ae7f8bee8b630bba12d032454bfa204",
+      "sourceBbox": [
+        0.23999999463558197,
+        673.9200439453125,
+        595.3200073242188,
+        841.9200439453125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p106-figure-1",
+      "pdfPage": 106,
+      "classification": "source-photo",
+      "status": "connected-source-asset",
+      "sourceSha256": "0fd42b6ec5923ea6bb2ae0f2aeaea750bbb7af83a8022f6df3c1a953be12f991",
+      "sourceBbox": [
+        384.1199951171875,
+        251.16000366210938,
+        505.0799865722656,
+        339.8399963378906
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p106-figure-2",
+      "pdfPage": 106,
+      "classification": "source-photo",
+      "status": "connected-source-asset",
+      "sourceSha256": "2ca9903d0596959831441e1ae53376cb8d312b53112ba42d34e2192dc6510924",
+      "sourceBbox": [
+        345.3600158691406,
+        609.9600830078125,
+        504.96002197265625,
+        661.4400634765625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p106-figure-3",
+      "pdfPage": 106,
+      "classification": "source-poster",
+      "status": "connected-source-asset",
+      "sourceSha256": "fc0ebe89f0f508ef66b27a18c92ec52a5445e69f8f7328023bff79e679f32965",
+      "sourceBbox": [
+        450.8399963378906,
+        672.1199340820312,
+        510.3599853515625,
+        752.6399536132812
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p106-figure-4",
+      "pdfPage": 106,
+      "classification": "unclassified-source-image",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "6419779c5fdc2a4b1f2b78ed3c2f9fe5ee3f9f8836231ad06c93f290627a4bc2",
+      "sourceBbox": [
+        258.0,
+        135.239990234375,
+        510.3599853515625,
+        209.27999877929688
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p108-figure-1",
+      "pdfPage": 108,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "bc56b44ec868762edcb3bd1d6d9004bb4554ab635076554a2b36d5cf7934cf7f",
+      "sourceBbox": [
+        189.72000122070312,
+        448.6800231933594,
+        225.72000122070312,
+        479.760009765625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p109-figure-1",
+      "pdfPage": 109,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "f48f6b668d797cd149d7796b0f919efe67bbab9725aae89b81790c64ff1f8285",
+      "sourceBbox": [
+        192.59999084472656,
+        103.55999755859375,
+        228.59999084472656,
+        134.75999450683594
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p110-figure-1",
+      "pdfPage": 110,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "f48f6b668d797cd149d7796b0f919efe67bbab9725aae89b81790c64ff1f8285",
+      "sourceBbox": [
+        188.75999450683594,
+        103.55999755859375,
+        224.75999450683594,
+        134.75999450683594
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p114-figure-1",
+      "pdfPage": 114,
+      "classification": "source-map-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "926c551c13aeb89de86c2a5835a5b3a6c947a6b96b278c6be58ea07cb15418ae",
+      "sourceBbox": [
+        110.63999938964844,
+        99.24002075195312,
+        484.79998779296875,
+        299.52001953125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p114-figure-2",
+      "pdfPage": 114,
+      "classification": "source-map-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "6d386b49f365dd0cc97be0d0fb072154f4c17a22dc3f2a3f599d9bd3649ff4ae",
+      "sourceBbox": [
+        85.08000183105469,
+        577.56005859375,
+        361.44000244140625,
+        755.1600341796875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p115-figure-1",
+      "pdfPage": 115,
+      "classification": "fragmented-source-map-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "34e33e1299d2e48e7d70f7de983da556b8438f1eead2402838a64f3df2327520",
+      "sourceBbox": [
+        90.23999786376953,
+        616.2000122070312,
+        297.7200012207031,
+        646.7999877929688
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p115-figure-2",
+      "pdfPage": 115,
+      "classification": "fragmented-source-map-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "73e3cd47c7a64a423bc60eac89fe52b5484982f77279275f34d16d3bfbfa4c25",
+      "sourceBbox": [
+        90.23999786376953,
+        646.800048828125,
+        297.7200012207031,
+        677.4000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p115-figure-3",
+      "pdfPage": 115,
+      "classification": "fragmented-source-map-with-native-caption",
+      "status": "connected-source-asset",
+      "sourceSha256": "fe8696c41a3b335248deb0f78443240565e6cc989610153b656ea32543e033b6",
+      "sourceBbox": [
+        90.23999786376953,
+        677.4000244140625,
+        297.7200012207031,
+        708.0
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p115-figure-4",
+      "pdfPage": 115,
+      "classification": "source-map",
+      "status": "connected-source-asset",
+      "sourceSha256": "ec5c3ea6446bf433ee3e62162048e9f9f100ebe6ba8647f16cc4fca811071a0e",
+      "sourceBbox": [
+        300.0,
+        588.5999755859375,
+        499.55999755859375,
+        735.5999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p116-figure-1",
+      "pdfPage": 116,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        189.36000061035156,
+        101.8800048828125,
+        225.36000061035156,
+        133.0800018310547
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p117-figure-1",
+      "pdfPage": 117,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "ba36914c59fe681735300a383713635aea4021919558dea4298957e875860a7c",
+      "sourceBbox": [
+        190.44000244140625,
+        102.59999084472656,
+        226.44000244140625,
+        133.79998779296875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p123-figure-1",
+      "pdfPage": 123,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "dfdf1228415328fff3a18565db9413b332112234b2f3ad5e9c3872e29ccbfc36",
+      "sourceBbox": [
+        0.0,
+        0.0,
+        595.3200073242188,
+        168.47999572753906
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p123-figure-2",
+      "pdfPage": 123,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "30ca80c3209845f630cbd3f12d11a242960b1213b21fc072fada76b333c0b602",
+      "sourceBbox": [
+        0.0,
+        168.47999572753906,
+        595.3200073242188,
+        336.9599914550781
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p123-figure-3",
+      "pdfPage": 123,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "0bb4b9ff853ccc1e9e581d8e48cf630654828e59e411f40eda3f1ab5d5fe2882",
+      "sourceBbox": [
+        0.0,
+        336.96002197265625,
+        595.3200073242188,
+        505.44000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p123-figure-4",
+      "pdfPage": 123,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "5c724d470d8900b8a8400298e494f9a22fbb367b20a336a1f0937f1594097dcd",
+      "sourceBbox": [
+        0.0,
+        505.44000244140625,
+        595.3200073242188,
+        673.9199829101562
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p123-figure-5",
+      "pdfPage": 123,
+      "classification": "fragmented-cover-raster",
+      "status": "excluded-page-raster",
+      "sourceSha256": "555373b5a65d4b6471cfda5ee8c341d55ae7f8bee8b630bba12d032454bfa204",
+      "sourceBbox": [
+        0.0,
+        673.9200439453125,
+        595.3200073242188,
+        841.9200439453125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p123-figure-6",
+      "pdfPage": 123,
+      "classification": "source-cover-timeline",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "902b064f5752e55468e2c574383fd77ed8370805bddc93c1d68604ae0cfe9f4c",
+      "sourceBbox": [
+        85.08000183105469,
+        195.24002075195312,
+        510.239990234375,
+        249.48001098632812
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p124-figure-1",
+      "pdfPage": 124,
+      "classification": "source-figure-with-raster-label",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "7ca3f6a43793aabdd0a5d0d2ac821a690ebf1e2ba7768c193bae9490d945b3bf",
+      "sourceBbox": [
+        336.3600158691406,
+        304.91998291015625,
+        369.72003173828125,
+        327.47998046875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p124-figure-2",
+      "pdfPage": 124,
+      "classification": "source-figure-with-raster-label",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "2c1ccf2b1147095d11b054ef9a8b868c80939062d2cdaa4c51c961842a868435",
+      "sourceBbox": [
+        349.44000244140625,
+        461.5199890136719,
+        400.44000244140625,
+        473.8799743652344
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p124-figure-3",
+      "pdfPage": 124,
+      "classification": "source-figure-with-raster-label",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "565b9ccf18b7822b4e490de46ae6651b5ad90632b712143e9293b80b4a208636",
+      "sourceBbox": [
+        345.0,
+        245.4000244140625,
+        394.55999755859375,
+        267.84002685546875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p124-figure-4",
+      "pdfPage": 124,
+      "classification": "source-figure-with-raster-label",
+      "status": "connected-source-asset",
+      "sourceSha256": "1170b6b99833028c7cc92519f3e38595838fb12d0a4e08506a8a1c7f612bc8fd",
+      "sourceBbox": [
+        400.32000732421875,
+        417.5999755859375,
+        510.239990234375,
+        505.5599670410156
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p124-figure-5",
+      "pdfPage": 124,
+      "classification": "source-figure-with-raster-label",
+      "status": "connected-source-asset",
+      "sourceSha256": "8246b525959da1887aa0c5d0b16c9d832ddeadf4545b4a5bdb2791b9bf547376",
+      "sourceBbox": [
+        394.55999755859375,
+        235.79998779296875,
+        510.239990234375,
+        307.79998779296875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p124-figure-6",
+      "pdfPage": 124,
+      "classification": "source-figure-with-raster-label",
+      "status": "connected-source-asset",
+      "sourceSha256": "df525db36880f7c11298f3e5ff65302addf1de39a9a8f6ebf2e9cd1ed8ea4d9a",
+      "sourceBbox": [
+        374.8800048828125,
+        307.79998779296875,
+        510.239990234375,
+        391.55999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p125-figure-1",
+      "pdfPage": 125,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        190.20001220703125,
+        97.20001220703125,
+        226.20001220703125,
+        128.40000915527344
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p126-figure-1",
+      "pdfPage": 126,
+      "classification": "source-map",
+      "status": "connected-source-asset",
+      "sourceSha256": "d07050f331725cd2d28f0bcf25d147db658ae6d4f715db9c07a572e428c1ac48",
+      "sourceBbox": [
+        90.23999786376953,
+        619.9199829101562,
+        228.3599853515625,
+        723.8399658203125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p126-figure-2",
+      "pdfPage": 126,
+      "classification": "source-map",
+      "status": "connected-source-asset",
+      "sourceSha256": "69d6cfb63395f908ee7fdc35fdddc49c31a9319e09168107b3edfaa0cc139a6a",
+      "sourceBbox": [
+        237.72000122070312,
+        629.8800659179688,
+        501.8399963378906,
+        714.0000610351562
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p126-figure-3",
+      "pdfPage": 126,
+      "classification": "source-figure",
+      "status": "connected-source-asset",
+      "sourceSha256": "68ceb7e1d577ce842e00f2e64bb0d208085068e6d1196045aa69f864994fd364",
+      "sourceBbox": [
+        378.0,
+        501.84002685546875,
+        508.20001220703125,
+        590.1600341796875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p127-figure-1",
+      "pdfPage": 127,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        192.59999084472656,
+        95.76000213623047,
+        228.59999084472656,
+        126.95999908447266
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p128-figure-1",
+      "pdfPage": 128,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "acf35523510a826eed7d80ab2b3f2ec31da05bb155e8075d1b8446ab5b908817",
+      "sourceBbox": [
+        94.31999969482422,
+        613.4400024414062,
+        180.72000122070312,
+        730.4400024414062
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p128-figure-2",
+      "pdfPage": 128,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "a0efc1a33fa9692936bbf97af85d2f6909f0052752d4f5640603dd4b669a0442",
+      "sourceBbox": [
+        195.1199951171875,
+        640.56005859375,
+        295.91998291015625,
+        703.4400634765625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p128-figure-3",
+      "pdfPage": 128,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "df9777e4b3d488c027f264109bd06485620c74c924a6480763fc37b8fcff41e5",
+      "sourceBbox": [
+        300.0,
+        640.679931640625,
+        394.67999267578125,
+        703.199951171875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p128-figure-4",
+      "pdfPage": 128,
+      "classification": "unclassified-source-image",
+      "status": "connected-source-asset",
+      "sourceSha256": "d99078344b60986b630cb1c23a726a1e9f2934a53c0937524fe533cd55125f7a",
+      "sourceBbox": [
+        404.8800048828125,
+        635.3999633789062,
+        507.8399963378906,
+        708.5999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p129-figure-1",
+      "pdfPage": 129,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "7d19b2dc8f27366b6692ded1686e2654d3b71ac41609aff7ee8bbbc0378f88c4",
+      "sourceBbox": [
+        191.63999938964844,
+        96.36000061035156,
+        227.63999938964844,
+        127.44000244140625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p130-figure-1",
+      "pdfPage": 130,
+      "classification": "source-figure-with-raster-label",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "e8061fb199b9050c3706f4750c4c1e80399fa7284803ce9296700d7b38d9efcf",
+      "sourceBbox": [
+        317.8800048828125,
+        499.9200134277344,
+        363.9599914550781,
+        514.4400024414062
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p130-figure-2",
+      "pdfPage": 130,
+      "classification": "source-figure-with-raster-label",
+      "status": "semantic-transcription-reviewed",
+      "sourceSha256": "8d3f0d8ca476bca1d5f4ddb2361c2cf5f2320d967716adeb7b2efec434d1bf79",
+      "sourceBbox": [
+        386.8800048828125,
+        343.67999267578125,
+        431.760009765625,
+        365.8800048828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p130-figure-3",
+      "pdfPage": 130,
+      "classification": "source-figure-with-raster-label",
+      "status": "connected-source-asset",
+      "sourceSha256": "9c25521029fef4de9fd21abbc8548a0f570701d7f1a302debc6965ea31704c12",
+      "sourceBbox": [
+        365.6399841308594,
+        428.0400085449219,
+        510.3599853515625,
+        518.8800048828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p130-figure-4",
+      "pdfPage": 130,
+      "classification": "source-figure-with-raster-label",
+      "status": "connected-source-asset",
+      "sourceSha256": "fb50a6d150ea1e63d72ed8bc989adde50627dd10e5b5b57445ef80987363d6dc",
+      "sourceBbox": [
+        431.760009765625,
+        253.9199981689453,
+        510.239990234375,
+        379.55999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p130-figure-5",
+      "pdfPage": 130,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "cf03bee2dcf0ff92301e451282e1d15d26bf61ce68e8bbe506994b04f8c356af",
+      "sourceBbox": [
+        193.55999755859375,
+        555.1199340820312,
+        229.55999755859375,
+        586.3199462890625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p131-figure-1",
+      "pdfPage": 131,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "ba36914c59fe681735300a383713635aea4021919558dea4298957e875860a7c",
+      "sourceBbox": [
+        190.44000244140625,
+        97.80000305175781,
+        226.44000244140625,
+        129.0
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p132-figure-1",
+      "pdfPage": 132,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "221b0eb58c9256b02fe161868847796e0eb45448a034cf07697928acac6f9e00",
+      "sourceBbox": [
+        190.6800079345703,
+        509.2799987792969,
+        226.6800079345703,
+        540.3599853515625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p133-figure-1",
+      "pdfPage": 133,
+      "classification": "decorative-callout-character",
+      "status": "excluded-decorative",
+      "sourceSha256": "ba36914c59fe681735300a383713635aea4021919558dea4298957e875860a7c",
+      "sourceBbox": [
+        191.8800048828125,
+        96.35999298095703,
+        227.8800048828125,
+        127.55998992919922
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p137-figure-1",
+      "pdfPage": 137,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "611b4f46b54a418c139592c62a9024ae16abee01902c37a38ae0b3204def0ece",
+      "sourceBbox": [
+        91.19999694824219,
+        192.12001037597656,
+        143.75999450683594,
+        254.04000854492188
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p137-figure-2",
+      "pdfPage": 137,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "6f829177a4d9305cfd5de362d37b7b12ff39f96dc336c94623851e4884e597e5",
+      "sourceBbox": [
+        305.760009765625,
+        192.5999755859375,
+        355.9200134277344,
+        252.47998046875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p137-figure-3",
+      "pdfPage": 137,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "b31d00ef281b3aa1b8853c01537f724028f6a34f90389927d85139fe4492ab54",
+      "sourceBbox": [
+        87.95999908447266,
+        273.8399963378906,
+        147.1199951171875,
+        328.32000732421875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p137-figure-4",
+      "pdfPage": 137,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "b2a8f139838ee7d583c9875c2405f10f6adb6fe72643ae1f5e4232041f189a86",
+      "sourceBbox": [
+        302.8800048828125,
+        274.20001220703125,
+        358.79998779296875,
+        326.8800048828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p137-figure-5",
+      "pdfPage": 137,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "8f256a91badb817d2fdebfb79c078a44003fdf9a6b6ac545fa543c2ea34f79f2",
+      "sourceBbox": [
+        94.91999816894531,
+        348.1199951171875,
+        140.0399932861328,
+        404.760009765625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p137-figure-6",
+      "pdfPage": 137,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "842609806e912a5dcd6dac1e9c97fcf4d6c2d65006562b075739e996134325a1",
+      "sourceBbox": [
+        303.0,
+        348.6000061035156,
+        358.55999755859375,
+        403.08001708984375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p137-figure-7",
+      "pdfPage": 137,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "318c0fe6eaf3a9bb672e68f9dddcda087de7d1e198dc9c27dbdff32d87965d62",
+      "sourceBbox": [
+        94.55999755859375,
+        425.4000244140625,
+        140.51998901367188,
+        490.32000732421875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p137-figure-8",
+      "pdfPage": 137,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "57292c18208d76df54e6e3fe1e2a241ea61e1f5e0b3ddef4866b70ec8ce40e24",
+      "sourceBbox": [
+        305.1600036621094,
+        424.55999755859375,
+        356.3999938964844,
+        490.08001708984375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p137-figure-9",
+      "pdfPage": 137,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "d56c7b33e62f385489294660903de3642ffe521655a401d7bbfc47eddd0e41a3",
+      "sourceBbox": [
+        95.04000091552734,
+        510.8399658203125,
+        139.8000030517578,
+        576.5999755859375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p137-figure-10",
+      "pdfPage": 137,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "852830584f12c9f86750ce773d331a50ab6ed606fc705225d88c1883dcb72676",
+      "sourceBbox": [
+        300.3600158691406,
+        515.0399780273438,
+        361.32000732421875,
+        571.4400024414062
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p137-figure-11",
+      "pdfPage": 137,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "cf7ae36df699dbc6773e06143d0f1b438600dbe1530766c914571bb2e80ca0fb",
+      "sourceBbox": [
+        87.95999908447266,
+        597.7200317382812,
+        147.1199951171875,
+        656.1600341796875
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p137-figure-12",
+      "pdfPage": 137,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "c6489a44a446787875f3f7b279132c297907417449b5cfbe62468ea59d4debeb",
+      "sourceBbox": [
+        304.32000732421875,
+        596.4000244140625,
+        357.239990234375,
+        656.52001953125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p137-figure-13",
+      "pdfPage": 137,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "8122167765deb260eba6190c4ceb8fc853c57ee0d3bb3ed40057a5aae7bdb3bd",
+      "sourceBbox": [
+        94.68000030517578,
+        677.4000244140625,
+        140.16000366210938,
+        737.8800048828125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p137-figure-14",
+      "pdfPage": 137,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "556f030a96b7b0cd0a1a8c937ce779ffbf634c5fdbc57d7e86495efb0915aaec",
+      "sourceBbox": [
+        305.2799987792969,
+        678.239990234375,
+        356.2799987792969,
+        735.9599609375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-1",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "845b62959c27b0e2b036fa6560388dcce54180de217935f0985e1f866aab553a",
+      "sourceBbox": [
+        90.95999908447266,
+        121.31999206542969,
+        144.0,
+        178.3199920654297
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-2",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "ee740c83776dedd4972aa6ff268ed3d4f2ee42c1530ed2fe5e85e78ec4541a71",
+      "sourceBbox": [
+        309.1199951171875,
+        121.79999542236328,
+        352.55999755859375,
+        176.75999450683594
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-3",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "ec06c1ac5cb73dde76756329444987a971e598bd6c7819652141aee871f3fa47",
+      "sourceBbox": [
+        94.44000244140625,
+        198.4800262451172,
+        140.39999389648438,
+        259.6800231933594
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-4",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "95b4fc53447e3eed9cd06474684c3b24fdd3c49c4fb5081f9295cea9feba5227",
+      "sourceBbox": [
+        310.20001220703125,
+        198.00001525878906,
+        351.3600158691406,
+        259.20001220703125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-5",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "25e179a1f5275fd0d9eeadde05716741065799c468708e716f23669ba2cce799",
+      "sourceBbox": [
+        94.31999969482422,
+        281.8800048828125,
+        140.51998901367188,
+        339.7200012207031
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-6",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "30547f8a1a4c4fc25d462fcf6deea73e3c6af2f71ffd650a05e5cf878120a5b4",
+      "sourceBbox": [
+        308.5199890136719,
+        280.0799865722656,
+        353.15997314453125,
+        340.67999267578125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-7",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "5cc1673e04ae715959f4ca06b5aa4ea32604f7e67fb6f74f616b831e7779159d",
+      "sourceBbox": [
+        94.44000244140625,
+        361.32000732421875,
+        140.39999389648438,
+        416.52001953125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-8",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "37f24ddbf06680672016c406168a5c94c865069e0a694bcba064cbbfa4834495",
+      "sourceBbox": [
+        300.3600158691406,
+        363.9599609375,
+        361.32000732421875,
+        413.03997802734375
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-9",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "52b52796409a016b68e3078b2b19bcd6036d3b1746bdcd6c5d9f89bdd4fa5712",
+      "sourceBbox": [
+        96.95999908447266,
+        436.32000732421875,
+        138.1199951171875,
+        497.52001953125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-10",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "eb81d25ebba2ea0e33d4b869a06528e0dc1d3b75e62665c08c8c230003a5b082",
+      "sourceBbox": [
+        305.0400085449219,
+        437.4000244140625,
+        356.6400146484375,
+        495.48004150390625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-11",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "61a940564b28614141189b5bc6a09671b6cdb6810ea836081aa53e993f035794",
+      "sourceBbox": [
+        87.95999908447266,
+        517.4400024414062,
+        147.1199951171875,
+        572.760009765625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-12",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "626d8520a04d06e43217e82137729db255e7de3d248d2ebd6c643c75628e54d7",
+      "sourceBbox": [
+        309.4800109863281,
+        517.3200073242188,
+        352.08001708984375,
+        571.6799926757812
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-13",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "b346dcb606c8f53b336526e42f640c1c13023e186bb146c6aaa06508a75dbad8",
+      "sourceBbox": [
+        89.27999877929688,
+        592.56005859375,
+        145.67999267578125,
+        654.7200317382812
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-14",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "a129601d0ff25ccc24bca264769dc06e97e3fd59869f415fdb387fd2a46c0398",
+      "sourceBbox": [
+        300.3600158691406,
+        594.239990234375,
+        361.32000732421875,
+        651.8399658203125
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-15",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "9284b976a975676eb2219fc668c859592ec1e7449011462f2fcfc5592103c27c",
+      "sourceBbox": [
+        94.68000030517578,
+        675.0,
+        140.39999389648438,
+        738.9600219726562
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p138-figure-16",
+      "pdfPage": 138,
+      "classification": "source-portrait",
+      "status": "connected-source-asset",
+      "sourceSha256": "ef1f751a1c08a530efc81c5cf983871277652584578f2113999eb60db36fb236",
+      "sourceBbox": [
+        306.239990234375,
+        674.3999633789062,
+        355.44000244140625,
+        738.3599853515625
+      ]
+    },
+    {
+      "sourceHashMatched": true,
+      "id": "p141-figure-1",
+      "pdfPage": 141,
+      "classification": "source-map-composite",
+      "status": "connected-source-asset",
+      "sourceSha256": "c46f4baa6d7893b26ef24175ec974b494094c6928000060fef83a62e3ac6020a",
+      "sourceBbox": [
+        85.08000183105469,
+        99.239990234375,
+        525.8400268554688,
+        722.0400390625
+      ]
+    }
+  ]
+}
