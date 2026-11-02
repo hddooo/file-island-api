@@ -25,12 +25,12 @@ jobs:
       - name: Verify image and functional qualification contracts
         run: node --test scripts/image-build-contract.test.cjs scripts/functional-evidence.test.cjs scripts/functional-api-tests.test.cjs scripts/functional-core-ui.test.cjs scripts/prepare-functional-plan.test.cjs
       - run: npm run typecheck
-      - name: Unit tests independent of private frontend fixtures
+      - name: Unit tests independent of private frontend and textbook fixtures
         shell: bash
         run: |
           set -euo pipefail
           npx --no-install tsc -p tsconfig.json
-          mapfile -t tests < <(find dist/test/unit -name '*.test.js' ! -name 'catalog.test.js' ! -name 'quality-revision.test.js' | sort)
+          mapfile -t tests < <(find dist/test/unit -name '*.test.js' ! -name 'catalog.test.js' ! -name 'quality-revision.test.js' ! -name 'source-answer-normalization.test.js' ! -name 'source-blank-progress.test.js' ! -name 'source-blank-workspace.test.js' | sort)
           test "${#tests[@]}" -gt 0
           node --test --test-concurrency=1 "${tests[@]}"
       - run: npm run build
@@ -39,7 +39,7 @@ jobs:
         shell: bash
         run: |
           printf '%s\n' 'This CI uses no application secrets or production database.' >> "$GITHUB_STEP_SUMMARY"
-          printf '%s\n' 'catalog.test.js and quality-revision.test.js require private FE fixtures and are not run. PostgreSQL integration and optional local-original fixtures are not covered.' >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' 'Hosted CI excludes catalog.test.js, quality-revision.test.js, source-answer-normalization.test.js, source-blank-progress.test.js and source-blank-workspace.test.js because their private FE/textbook fixtures are unavailable. Test sources remain unchanged. Full private qualification still runs all 64 unit files and rejects skipped/incomplete results. PostgreSQL integration and optional local-original fixtures are not covered here.' >> "$GITHUB_STEP_SUMMARY"
       - name: Existing lint gate (runs after tests to preserve test evidence)
         if: always()
         run: npm run lint
