@@ -1,3 +1,4 @@
+import {redactEvidence} from '../common/question-provenance';
 import {Injectable} from '@nestjs/common';
 import {DbService} from '../db/db.service';
 import {AppError} from '../common/app-error';
@@ -52,6 +53,27 @@ export const RECORD_EVENTS=`
  CROSS JOIN LATERAL (SELECT value item FROM jsonb_array_elements(r.content->'items') WHERE value->>'id'=a.item_id) i
  WHERE a.user_id=$1
 `;
+/** A finished match is one activity even when no answers were submitted.
+ * Legacy matches without endedAt use created_at because no completion timestamp exists. */
+export const RECORD_ACTIVITIES=`
+ parents AS (
+ SELECT 'battle:'||m.id::text key,m.subject,'battle'::text source,
+ CASE WHEN m.state->>'endedAt' ~ '^\\d{10,16}$' THEN to_timestamp((m.state->>'endedAt')::double precision/1000) ELSE m.created_at END at,
+ jsonb_build_object('matchId',m.id,'origin','battle','timeUnknown',NOT coalesce(m.state->>'endedAt' ~ '^\\d{10,16}$',false)${battleFields('m',"(CASE WHEN m.challenger=$1 THEN 'left' ELSE 'right' END)")}) detail
+ FROM hanq.battle_matches m WHERE (m.challenger=$1 OR m.opponent=$1) AND m.status IN('finished','void')
+ UNION ALL
+ SELECT 'practice-battle:'||m.id::text,m.subject,'battle'::text,
+ CASE WHEN m.state->>'endedAt' ~ '^\\d{10,16}$' THEN to_timestamp((m.state->>'endedAt')::double precision/1000) ELSE m.created_at END,
+ jsonb_build_object('matchId',m.id,'origin','battle-practice','timeUnknown',NOT coalesce(m.state->>'endedAt' ~ '^\\d{10,16}$',false)${battleFields('m',"'left'")})
+ FROM hanq.battle_practice_matches m WHERE m.owner_id=$1 AND m.status IN('finished','void')
+ ), activities AS (
+ SELECT e.key,e.subject,e.source,e.at,e.recorded_at,e.detail,NULL::jsonb children FROM events e WHERE e.source<>'battle'
+ UNION ALL
+ SELECT p.key,p.subject,p.source,p.at,p.at,p.detail,
+ coalesce((SELECT jsonb_agg(jsonb_build_object('key',e.key,'subject',e.subject,'source',e.source,'at',e.at,'detail',e.detail) ORDER BY (e.detail->>'round')::int,e.key)
+ FROM events e WHERE e.source='battle' AND e.key LIKE p.key||':%' AND e.recorded_at<=$4::timestamptz),'[]'::jsonb)
+ FROM parents p
+ )`;
 export function recordQuery(query:{subject?:unknown;source?:unknown;page?:unknown;snapshot?:unknown}){
  if(Object.values(query).some(v=>v!==undefined&&typeof v!=='string'&&typeof v!=='number'))throw new AppError(400,'invalid_records_query','기록 필터를 확인해 주세요.');const subject=query.subject??'all',source=query.source??'all',page=Number(query.page??1);
  if(!['all','history','toeic'].includes(String(subject))||!['all','battle','review','unknown'].includes(String(source))||!Number.isSafeInteger(page)||page<1||page>1000000)throw new AppError(400,'invalid_records_query','기록 필터와 페이지를 확인해 주세요.');
@@ -62,11 +84,11 @@ export class MyRecordsService{
  constructor(private readonly db:DbService){}
  async list(owner:string,query:{subject?:unknown;source?:unknown;page?:unknown;snapshot?:unknown}){const filter=recordQuery(query);return this.db.tx(async q=>{
   await q.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
-  const base=`WITH events AS (${RECORD_EVENTS}), filtered AS (SELECT * FROM events WHERE ($2='all' OR subject=$2) AND ($3='all' OR source=$3) AND recorded_at<=$4::timestamptz)`;
+  const base=`WITH events AS (${RECORD_EVENTS}), ${RECORD_ACTIVITIES}, filtered AS (SELECT * FROM activities WHERE ($2='all' OR subject=$2) AND ($3='all' OR source=$3) AND recorded_at<=$4::timestamptz)`;
   const params=[owner,filter.subject,filter.source,filter.snapshot];
-  const total=Number((await q.query<{total:string}>(base+' SELECT count(*)::text total FROM filtered',params)).rows[0].total),pages=Math.max(1,Math.ceil(total/20)),page=Math.min(filter.page,pages);
-  const rows=(await q.query(base+' SELECT * FROM filtered ORDER BY at DESC,key DESC LIMIT 20 OFFSET $5',[...params,(page-1)*20])).rows;
-  for(const row of rows){if(row.detail?.battle)row.detail.battle.opponent=recordNickname(row.detail.battle.opponent);}
-  return{items:rows,total,page,pages,snapshot:filter.snapshot,timeZone:'Asia/Seoul'};
+  const total=Number((await q.query<{total:string}>(base+' SELECT count(*)::text total FROM filtered',params)).rows[0].total),pages=Math.max(1,Math.ceil(total/10)),page=Math.min(filter.page,pages);
+  const rows=(await q.query(base+' SELECT * FROM filtered ORDER BY at DESC,key DESC LIMIT 10 OFFSET $5',[...params,(page-1)*10])).rows;
+  for(const row of rows){row.detail=redactEvidence(row.detail);if(row.detail?.battle)row.detail.battle.opponent=recordNickname(row.detail.battle.opponent);for(const child of row.children||[]){child.detail=redactEvidence(child.detail);if(child.detail?.battle)child.detail.battle.opponent=recordNickname(child.detail.battle.opponent);}}
+  return{items:rows,total,page,pages,pageSize:10,snapshot:filter.snapshot,timeZone:'Asia/Seoul'};
  });}
 }

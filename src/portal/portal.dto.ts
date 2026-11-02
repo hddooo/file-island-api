@@ -6,3 +6,4 @@ export class InquiryDto{@IsUUID() requestId:string;@IsString() @MinLength(1) @Ma
 export class MessageDto{@IsUUID() requestId:string;@IsString() @MinLength(1) @MaxLength(4000) body:string;}
 export class AdminMemberDto{@IsString() @MinLength(1) @MaxLength(80) displayName:string;}
 export class AdminXpDto{@IsUUID() requestId:string;@IsInt() @Min(-1000000) @Max(1000000) delta:number;@IsInt() @Min(0) @Max(Number.MAX_SAFE_INTEGER) expectedBalance:number;@IsString() @MinLength(1) @MaxLength(300) reason:string;}
+export class AdminPartnerXpDto extends AdminXpDto{@IsInt() @Min(0) @Max(Number.MAX_SAFE_INTEGER) expectedPartnerXp:number;}
