@@ -19,3 +19,7 @@ The original TOEIC fixture is absent from the checked Windows workspace and must
 The current FE source is `2f745855e618f790617ecf3b64068afd4315b49d`: the reviewed Node list now retains all original45 paths and adds all current CI-referenced plain `test-*.cjs` files, for 46 distinct tracked files. Browser QA and syntax-only commands remain separate. `cicd-frontend-inventory-evidence.json` in the local handoff records the exact additions; no old path was removed.
 
 The deployment list is expanded to all22 scripts test files after overlaying the reviewed LF controller on canonical deployment source4b105f4, preserving ACL, native install, management, interlock, watchdog, current-release and workflow tests. A fixed scripts wrapper also retains the existing root recovery test. No old guard assertion or installer module is removed.
+
+## Parent-requested narrow auth composition
+
+This separate local composition applies only auth92429f9 (baseaa84) on textbookab5bffe, with exact3-file auth blob equality and unchanged textbook product blobs. It does not select another broad API branch. The additional Nest capability test makes the exact inventory67 unit/40 integration; the earlier textbook-only66/40 proof is preserved separately. No remember flag, TTL, cookie, CSRF, SQL, infrastructure or runtime is activated. Operating rememberEnabled remains false, so code-only deployment does not enable the remember UI. Parent owns remote merge and deployment.

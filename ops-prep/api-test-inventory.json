@@ -1,6 +1,7 @@
 {
   "version": 1,
   "sourceBaseCommit": "ab5bffed546f288870f7362627cd18cd4a820f63",
+  "additionalSourceCommit": "92429f9f115ab2bb22b58a5a16210996d3cd7655",
   "suites": {
     "unit": [
       {
@@ -157,6 +158,11 @@
         "path": "test/unit/practice-growth.test.ts",
         "gitBlob": "f38e934d3c8b210852c3870144b0cee829dc4082",
         "sha256": "d7eed82880263079afeb0033ef91c17d141551eac0f62fa6d141c76f4a1d467e"
+      },
+      {
+        "path": "test/unit/premium-auth-capability.test.ts",
+        "gitBlob": "250b2537c9c4306e858b955d2cc75574aa1ecbe2",
+        "sha256": "36f813c15b99a2420c6907246d5fc8b795723c9a8f421ccc8c5235ff4351734b"
       },
       {
         "path": "test/unit/quality-revision.test.ts",

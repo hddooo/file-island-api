@@ -39,7 +39,7 @@ jobs:
         shell: bash
         run: |
           printf '%s\n' 'This CI uses no application secrets or production database.' >> "$GITHUB_STEP_SUMMARY"
-          printf '%s\n' 'Hosted CI excludes catalog.test.js, quality-revision.test.js, source-answer-normalization.test.js, source-blank-progress.test.js and source-blank-workspace.test.js because their private FE/textbook fixtures are unavailable. Test sources remain unchanged. Full private qualification still runs all 66 unit files and rejects skipped/incomplete results. PostgreSQL integration and optional local-original fixtures are not covered here.' >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' 'Hosted CI excludes catalog.test.js, quality-revision.test.js, source-answer-normalization.test.js, source-blank-progress.test.js and source-blank-workspace.test.js because their private FE/textbook fixtures are unavailable. Test sources remain unchanged. Full private qualification still runs all 67 unit files and rejects skipped/incomplete results. PostgreSQL integration and optional local-original fixtures are not covered here.' >> "$GITHUB_STEP_SUMMARY"
       - name: Existing lint gate (runs after tests to preserve test evidence)
         if: always()
         run: npm run lint

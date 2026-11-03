@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),path=require('node:path'),crypto=require('node:crypto');
 const C=require('./image-build-contract.cjs');
-const FILE='ops-prep/api-test-inventory.json',COUNTS={unit:66,integration:40};
+const FILE='ops-prep/api-test-inventory.json',COUNTS={unit:67,integration:40};
 const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
 function validate(inventory,actual){
  assert.equal(inventory?.version,1);assert(/^[a-f0-9]{40}$/.test(inventory.sourceBaseCommit||''));
@@ -25,4 +25,4 @@ function verify(root,commit){
  return validate(inventory,actual);
 }
 module.exports={FILE,COUNTS,validate,verify};
-if(require.main===module){try{const root=path.resolve(__dirname,'..'),commit=C.git(root,['rev-parse','HEAD']).trim();verify(root,commit);console.log(JSON.stringify({sourceCommit:commit,unitFiles:66,integrationFiles:40,gitBlobBytesVerified:true,productionQualified:false}));}catch{console.error('Exact committed API66/40 test inventory verification failed');process.exitCode=1;}}
+if(require.main===module){try{const root=path.resolve(__dirname,'..'),commit=C.git(root,['rev-parse','HEAD']).trim();verify(root,commit);console.log(JSON.stringify({sourceCommit:commit,unitFiles:67,integrationFiles:40,gitBlobBytesVerified:true,productionQualified:false}));}catch{console.error('Exact committed API67/40 test inventory verification failed');process.exitCode=1;}}

@@ -6,6 +6,8 @@ Cookie routes (signup, signin, refresh, logout) also require an allow-listed `Or
 Unknown body fields are rejected (400). Someone else's object id answers 404, exactly like a missing one.
 
 ## Auth
+Public `GET /premium/plan` reports `auth.rememberMe: { available, maxDays: 90 }` from the current server feature setting. A false value keeps persistent login unavailable; reading this metadata never enables it or changes any deadline. Sign-in opts in only with the existing boolean `rememberMe: true`, and existing ordinary sessions retain their original policy.
+
 | Method | Path | Notes |
 | --- | --- | --- |
 | POST | `/auth/signup` | `{email, password, displayName?}` → 201 `{accessToken, accessTokenExpiresAt, tokenType, user}` + cookie. 409 `email_taken`, 400 `weak_password`/`invalid_email`. |
