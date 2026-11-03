@@ -1,6 +1,10 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const C=require('./functional-evidence.cjs');
+test('Windows system BuildKit discovery path survives the isolated producer environment without host secrets',()=>{
+ const {filterEnvironment}=require('./run-functional-evidence.cjs');
+ assert.deepEqual(filterEnvironment({PATH:'synthetic-bin',ProgramFiles:'C:\\SyntheticPrograms',GITHUB_RUN_ID:'123',HANQ_TEST_DATABASE_URL:'synthetic-private',DOCKER_CONFIG:'synthetic-private',APPDATA:'synthetic-user',JWT_SECRET:'synthetic-private'}),{PATH:'synthetic-bin',ProgramFiles:'C:\\SyntheticPrograms',GITHUB_RUN_ID:'123'});
+});
 function cleanupOwnedDirectory(dir){const base=path.resolve(os.tmpdir());const resolved=path.resolve(dir);assert(resolved.startsWith(base+path.sep));assert(/^functional-(process|failed)-test-/.test(path.basename(resolved)));fs.rmSync(resolved,{recursive:true,force:true});}
 // These identities/counts are explicitly synthetic validator fixtures, never uploaded as release evidence.
 const sha='a'.repeat(40),hex='b'.repeat(64),image='sha256:'+hex;
