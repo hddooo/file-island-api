@@ -5,7 +5,8 @@ const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),
 const {Pool}=require('pg'),{loadConfig}=require('/app/dist/src/config/config.js'),{createApp}=require('/app/dist/src/bootstrap.js'),{migrate}=require('/app/dist/src/db/migrator.js'),{loadFrontCatalog}=require('/app/dist/src/questions/catalog-loader.js'),{seedQuestions}=require('/app/dist/src/questions/question-seeder.js');
 const origin='http://127.0.0.1:8790',root='/run/frontend',url=new URL(process.env.HANQ_TEST_DATABASE_URL);
 assert.equal(process.env.NODE_ENV,'test');assert.equal(url.hostname,'127.0.0.1');assert.equal(url.pathname,'/hanq_core_ui_test');
-let now=Date.parse('2026-10-08T03:00:00Z');const clock={now:()=>new Date(now)},key=()=>crypto.randomBytes(32).toString('hex');
+// Anchor to browser wall time so real cookie expiry remains valid; subsequent time is fully controlled.
+let now=Date.now();const clock={now:()=>new Date(now)},key=()=>crypto.randomBytes(32).toString('hex');
 function semanticHash(){const rows=[],hash=x=>crypto.createHash('sha256').update(x).digest('hex'),base='/app/private-textbook-semantic-data';function walk(relative){for(const name of fs.readdirSync(path.join(base,relative)).sort((a,b)=>a.localeCompare(b,'en'))){const file=path.join(base,relative,name),s=fs.lstatSync(file);assert(!s.isSymbolicLink());if(s.isDirectory())walk(path.join(relative,name));else{assert(s.isFile());rows.push({path:path.join(relative,name).split(path.sep).join('/'),size:s.size,sha256:hash(fs.readFileSync(file))});}}}walk('');assert.equal(rows.length,298);return hash(JSON.stringify(rows));}
 async function main(){
  assert.equal(semanticHash(),process.env.HANQ_QUAL_SEMANTIC_SHA256,'Readonly semantic identity changed');
