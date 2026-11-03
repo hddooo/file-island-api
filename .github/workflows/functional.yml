@@ -1,26 +1,30 @@
-# INACTIVE: rename/enable only after the reviewed execution recipe, six harnesses,
-# exact input hashes, original local fixture, API runner authorization and v2 controller approval exist.
+# LOCAL REVIEW PATCH ONLY. No runner registration or permission change is performed.
+# Merge/activation requires approved API runner scope, exact inputs and controller review.
 name: Functional six-suite qualification (execution receipts, no deployment)
 on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: api-functional-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   qualify:
-    # Proposed NEW API-repository execution scope; no runner is registered by this file.
+    if: github.repository == 'hddooo/file-island-api' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, Windows, X64, hanq-api-qualification]
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - name: Validate producer contract
-        run: node --test scripts/functional-evidence.test.cjs
+      - name: Validate producer, inventory and harness contracts
+        run: node --test scripts/api-test-inventory.test.cjs scripts/functional-evidence.test.cjs scripts/functional-api-tests.test.cjs scripts/functional-core-ui.test.cjs scripts/prepare-functional-plan.test.cjs
+      - name: Verify exact committed API66/40 test inventory
+        run: node scripts/api-test-inventory.cjs
       - name: Execute reviewed six-suite recipe
         shell: pwsh
-        # These are non-secret, pre-reviewed local configuration FILE PATHS.
-        # Plan contains runtime bindings plus a definition matching an API Git blob.
-        # Roots contain separate exact clean API/FE/deploy checkouts and input paths.
+        # Non-secret, pre-reviewed local FILE PATHS. Keep input roots outside the
+        # Actions checkout so checkout cleanup cannot erase prepared local inputs.
         env:
           HANQ_FUNCTIONAL_PLAN_FILE: ${{ vars.HANQ_FUNCTIONAL_PLAN_FILE }}
           HANQ_FUNCTIONAL_ROOTS_FILE: ${{ vars.HANQ_FUNCTIONAL_ROOTS_FILE }}
