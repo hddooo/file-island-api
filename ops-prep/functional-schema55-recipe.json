@@ -57,7 +57,9 @@
         "restore-and-upgrade": "restore-and-upgrade",
         "idempotent-migrations": "idempotent-migrations",
         "legacy-xp-preserved": "legacy-xp-preserved",
-        "rollback-schema-compatible": "rollback-schema-compatible"
+        "rollback-schema-compatible": "rollback-schema-compatible",
+        "production-bootstrap55-rollback": "production-bootstrap55-rollback",
+        "default54-bootstrap-rejects55": "default54-bootstrap-rejects55"
       }
     },
     {

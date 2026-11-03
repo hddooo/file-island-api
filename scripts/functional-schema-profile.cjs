@@ -10,7 +10,7 @@ function name(value=SCHEMA54){assert([SCHEMA54,SCHEMA55].includes(value),'Explic
 function buildProfile(value){return name(value)===SCHEMA55?M.SCHEMA55_IMAGE_ONLY:M.SCHEMA54;}
 function counts(value){return name(value)===SCHEMA55?{unit:72,integration:43}:{unit:67,integration:40};}
 function selectedCounts(value){const c=counts(value);return {...c,unit:c.unit-5};}
-function cases(suite,base,value){return suite==='api-integration'&&name(value)===SCHEMA55?[...base,...GROWTH_CASES]:base;}
+function cases(suite,base,value){if(name(value)!==SCHEMA55)return base;if(suite==='api-integration')return [...base,...GROWTH_CASES];if(suite==='migration-compatibility')return [...base,'production-bootstrap55-rollback','default54-bootstrap-rejects55'];return base;}
 function manifest(value,profile){return M.validateManifest(value,buildProfile(profile));}
 function producerProfile(value,env){const p=name(value);if(env.GITHUB_ACTIONS==='true'||env.HANQ_FUNCTIONAL_IMAGE_ID)assert.equal(p,name(env.HANQ_FUNCTIONAL_QUALIFICATION_PROFILE),'Functional profile differs from producer binding');return p;}
 function migrationPlan(value,profile){const p=name(profile),target=manifest(value,p),baseline=p===SCHEMA55?M.validateManifest({migrations:target.rows.filter(r=>r.version!==M.EXTRA_056.version),privilegesSha256:target.privilegesSha256}):target;return {qualificationProfile:p,baselineRows:baseline.rows,targetRows:target.rows,baselineSha256:baseline.manifestSha256,targetSha256:target.manifestSha256,expectedNew:p===SCHEMA55?[M.EXTRA_056.version]:[],baselineCount:54,targetCount:p===SCHEMA55?55:54};}
