@@ -18,7 +18,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Validate producer, inventory and harness contracts
-        run: node --test scripts/api-test-inventory.test.cjs scripts/functional-evidence.test.cjs scripts/functional-api-tests.test.cjs scripts/functional-core-ui.test.cjs scripts/prepare-functional-plan.test.cjs
+        run: node --test scripts/api-test-inventory.test.cjs scripts/functional-evidence.test.cjs scripts/functional-api-tests.test.cjs scripts/functional-api-fixture.test.cjs scripts/functional-core-ui.test.cjs scripts/prepare-functional-plan.test.cjs
       - name: Verify exact committed API66/40 test inventory
         run: node scripts/api-test-inventory.cjs
       - name: Execute reviewed six-suite recipe
