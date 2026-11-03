@@ -7,9 +7,8 @@ const PG17='sha256:b8faeff7712663c2773a190181e1246e37e364b887611c04658c28b44e240
 const digest=/^sha256:[a-f0-9]{64}$/;
 function config(input,env=process.env){
  if(env.GITHUB_ACTIONS==='true'||env.HANQ_FUNCTIONAL_IMAGE_ID){assert.equal(input.sourceCommit,env.HANQ_FUNCTIONAL_API_COMMIT,'Migration source differs from producer binding');assert.equal(input.candidateImage,env.HANQ_FUNCTIONAL_IMAGE_ID,'Migration tested another candidate image');}
- const qualificationProfile=P.producerProfile(input.qualificationProfile,env);
-
  assert.equal(input.postgresImage,PG17,'reviewed existing PostgreSQL17 image required');
+ const qualificationProfile=P.producerProfile(input.qualificationProfile,env);
  for(const field of ['baselineImage','candidateImage'])assert(digest.test(input[field]),'immutable image required');
  assert(/^[a-f0-9]{40}$/.test(input.sourceCommit));assert(path.isAbsolute(input.manifestFile));
  const m=JSON.parse(fs.readFileSync(input.manifestFile,'utf8'));
