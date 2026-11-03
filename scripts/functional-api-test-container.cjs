@@ -10,6 +10,10 @@ const REQUIRED_CASES={
  'server-hatch-clock':['coin-eggs.test.js'],
  'xp-preservation':['coin-eggs.test.js'],
 };
+const GROWTH_CASES={'admin-partner-xp':['admin-partner-xp.test.js'],'hall-public-profile':['hall-public-profile.test.js'],'growth-xp-preservation':['qualification-api-cases.test.js']};
+function profile(value='schema54'){assert(['schema54','schema55-qualification'].includes(value),'Explicit functional profile required');return value;}
+function inventoryCounts(value){return profile(value)==='schema55-qualification'?{unit:72,integration:43}:{unit:67,integration:40};}
+function requiredCases(value){return profile(value)==='schema55-qualification'?{...REQUIRED_CASES,...GROWTH_CASES}:REQUIRED_CASES;}
 function files(root){return fs.readdirSync(root,{withFileTypes:true}).flatMap(item=>{const file=path.join(root,item.name);assert(!fs.lstatSync(file).isSymbolicLink(),'Symlink test input');return item.isDirectory()?files(file):item.name.endsWith('.test.js')?[file]:[];}).sort();}
 function countsFromTap(text){const result={};for(const m of text.matchAll(/^# (tests|pass|fail|skipped|cancelled|todo) (\d+)\r?$/gm))result[m[1]]=Number(m[2]);assert(['tests','pass','fail','skipped','cancelled','todo'].every(k=>Number.isInteger(result[k])),'Missing complete TAP counts');return result;}
 function passed(row){const c=row?.counts;return !!c&&['tests','pass','fail','skipped','cancelled','todo'].every(k=>Number.isInteger(c[k])&&c[k]>=0)&&row.exitCode===0&&!row.signal&&c.tests>0&&c.pass===c.tests&&c.fail===0&&c.skipped===0&&c.cancelled===0&&c.todo===0;}
@@ -33,13 +37,14 @@ async function main(){
  const mode=process.argv[2];assert(['unit','integration'].includes(mode));assert.equal(process.env.NODE_ENV,'test');
  const source=process.env.HANQ_QUAL_SOURCE_COMMIT;assert(/^[a-f0-9]{40}$/.test(source||''));
  if(mode==='integration'){const u=new URL(process.env.HANQ_TEST_DATABASE_URL);assert.equal(u.hostname,'127.0.0.1');assert(u.pathname.endsWith('_test'));}
- const completeInventory=files('/app/dist/test/'+mode);assert.equal(completeInventory.length,mode==='unit'?67:40,'Unexpected complete source test inventory');const excludedFiles=mode==='unit'?CI_UNIT_EXCLUSIONS:[];const inventory=completeInventory.filter(file=>!excludedFiles.includes(path.basename(file)));assert.equal(inventory.length,mode==='unit'?62:40,'Unexpected exact CI test inventory');
+ const qualificationProfile=profile(process.env.HANQ_QUAL_QUALIFICATION_PROFILE),counts=inventoryCounts(qualificationProfile);
+ const completeInventory=files('/app/dist/test/'+mode);assert.equal(completeInventory.length,counts[mode],'Unexpected complete source test inventory');const excludedFiles=mode==='unit'?CI_UNIT_EXCLUSIONS:[];const inventory=completeInventory.filter(file=>!excludedFiles.includes(path.basename(file)));assert.equal(inventory.length,counts[mode]-excludedFiles.length,'Unexpected exact CI test inventory');
  const semantic=semanticIdentity('/app/private-textbook-semantic-data'),results=[];assert.equal(semantic.sha256,process.env.HANQ_QUAL_SEMANTIC_SHA256,'Semantic identity mismatch');
  for(const file of inventory){const context=mode==='integration'&&path.basename(file)==='textbook-revision-routing.test.js'?await prepareRevisionContext(file):null;try{const child=cp.spawnSync(process.execPath,['--test','--test-concurrency=1','--test-reporter=tap',context?.file||file],{encoding:'utf8',timeout:240000,maxBuffer:64*1024*1024});const text=(child.stdout||'')+'\n'+(child.stderr||'');let counts;try{counts=countsFromTap(text);}catch{counts={tests:0,pass:0,fail:1,skipped:0,cancelled:0,todo:0};}results.push({file:path.basename(file),counts,exitCode:child.status,signal:child.signal||null,rawTapSha256:sha(text),...(context?{fixtureIsolation:context.proof}:{})});}finally{context?.cleanup();}}
- const caseResults=mode==='integration'?Object.entries(REQUIRED_CASES).map(([title,requiredFiles])=>({title,files:requiredFiles,passed:requiredFiles.every(file=>results.some(r=>r.file===file&&passed(r)))})):[];
+ const caseResults=mode==='integration'?Object.entries(requiredCases(qualificationProfile)).map(([title,requiredFiles])=>({title,files:requiredFiles,passed:requiredFiles.every(file=>results.some(r=>r.file===file&&passed(r)))})):[];
  assert.deepEqual(semanticIdentity('/app/private-textbook-semantic-data'),semantic,'Semantic input changed during tests');
- const result={version:1,suite:'api-'+mode,sourceCommit:source,files:results,caseResults,semantic,originalFixture:null,excludedFiles,privateTapExported:false,passed:results.every(passed)&&caseResults.every(x=>x.passed)};
+ const result={version:1,suite:'api-'+mode,sourceCommit:source,...(qualificationProfile==='schema55-qualification'?{qualificationProfile}:{}),files:results,caseResults,semantic,originalFixture:null,excludedFiles,privateTapExported:false,passed:results.every(passed)&&caseResults.every(x=>x.passed)};
  process.stdout.write(JSON.stringify(result));if(!result.passed)process.exitCode=1;
 }
 if(require.main===module)main().catch(()=>{process.stdout.write(JSON.stringify({version:1,passed:false,error:'API test container preflight or execution failed; private details withheld'}));process.exitCode=1;});
-module.exports={CI_UNIT_EXCLUSIONS,REQUIRED_CASES,countsFromTap,passed,treeIdentity,prepareRevisionContext};
+module.exports={CI_UNIT_EXCLUSIONS,REQUIRED_CASES,GROWTH_CASES,profile,inventoryCounts,requiredCases,countsFromTap,passed,treeIdentity,prepareRevisionContext};

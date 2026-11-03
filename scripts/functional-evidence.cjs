@@ -1,6 +1,7 @@
 'use strict';
 // Produces execution evidence, never deployment approval or authenticated provenance.
 const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+const P=require('./functional-schema-profile.cjs');
 const REPOSITORY='hddooo/file-island-api',WORKFLOW='.github/workflows/functional.yml';
 const SUITES=['api-unit','api-integration','migration-compatibility','fe-unit','core-ui','deploy-controller'];
 const CASES={
@@ -13,17 +14,21 @@ const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
 const must=(x,message)=>assert(x,'Functional evidence: '+message);
 function manifestHash(rows){return hash(JSON.stringify([...rows].map(({version,checksum})=>({version,checksum})).sort((a,b)=>a.version.localeCompare(b.version))));}
 function validateBindings(b){
+ const profile=P.name(b.qualificationProfile);
  for(const field of ['apiCommit','frontendCommit','deployCommit'])must(sha.test(b[field]),'exact '+field+' required');
  for(const field of ['imageId','imageConfigDigest'])must(digest.test(b[field]),field+' missing');
  for(const field of ['archiveSha256','composeSha256','bootstrapSha256','controllerSha256'])must(hex.test(b[field]),field+' missing');
  must(b.databaseTarget==='hanq_final_20261028','wrong intended deployment target');
- must(Array.isArray(b.migrations)&&b.migrations.length===54,'schema54 required');
- const names=b.migrations.map(x=>x.version);must(new Set(names).size===54&&names.every(x=>/^\d{3}_[a-z0-9_]+\.sql$/.test(x)),'invalid migration inventory');
- must(names.some(x=>/^055_/.test(x))&&!names.some(x=>/^(047|056)_/.test(x)),'unexpected migration boundary');
+ if(profile===P.SCHEMA55)P.manifest({migrations:b.migrations,privilegesSha256:b.privilegesSha256},profile);
+ const count=profile===P.SCHEMA55?55:54;
+ must(Array.isArray(b.migrations)&&b.migrations.length===count,'schema54 required unless explicit reviewed schema55 qualification');
+ const names=b.migrations.map(x=>x.version);must(new Set(names).size===count&&names.every(x=>/^\d{3}_[a-z0-9_]+\.sql$/.test(x)),'invalid migration inventory');
+ must(names.some(x=>/^055_/.test(x))&&!names.some(x=>new RegExp(profile===P.SCHEMA55?'^047_':'^(047|056)_').test(x)),'unexpected migration boundary');
  must(b.migrations.every(x=>hex.test(x.checksum)),'migration checksum missing');
  const fields=['apiCommit','frontendCommit','deployCommit','imageId','imageConfigDigest','archiveSha256','composeSha256','bootstrapSha256','controllerSha256','databaseTarget'];
- return {...Object.fromEntries(fields.map(key=>[key,b[key]])),migrations:b.migrations.map(({version,checksum})=>({version,checksum})),migrationManifestSha256:manifestHash(b.migrations)};
+ return {...Object.fromEntries(fields.map(key=>[key,b[key]])),...(profile===P.SCHEMA55?{qualificationProfile:profile,privilegesSha256:b.privilegesSha256}:{}),migrations:b.migrations.map(({version,checksum})=>({version,checksum})),migrationManifestSha256:manifestHash(b.migrations)};
 }
+function requiredCases(suite,b){return P.cases(suite,CASES[suite]||[],b.qualificationProfile);}
 function identity(env,apiCommit){
  must(env.GITHUB_ACTIONS==='true','functional artifacts require the trusted Actions workflow; local output stays diagnostic');
  must(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_SHA===apiCommit,'repository/source mismatch');
@@ -65,7 +70,7 @@ function validateSuite(receipt,b){
  must(Array.isArray(receipt.executions)&&receipt.executions.length>0,'real executions required');
  must(receipt.executions.every(x=>x.exitCode===0&&hex.test(x.rawOutputSha256)&&hex.test(x.scriptSha256)&&Number.isSafeInteger(x.tests)&&x.tests>0&&x.passed===x.tests&&['failed','skipped','cancelled','todo'].every(f=>x[f]===0)),'invalid process execution');
  must(receipt.executions.reduce((n,x)=>n+x.tests,0)===receipt.tests,'execution/suite count mismatch');
- const required=CASES[receipt.name]||[];must(Array.isArray(receipt.caseIds)&&new Set(receipt.caseIds).size===receipt.caseIds.length,'duplicate/invalid cases');
+ const required=requiredCases(receipt.name,b);must(Array.isArray(receipt.caseIds)&&new Set(receipt.caseIds).size===receipt.caseIds.length,'duplicate/invalid cases');
  must(required.every(x=>receipt.caseIds.includes(x))&&receipt.tests>=required.length,'required functional case missing');
  must(receipt.caseProofs&&required.every(id=>receipt.caseProofs[id]?.executionIndex>=0&&receipt.caseProofs[id].executionIndex<receipt.executions.length&&hex.test(receipt.caseProofs[id].testTitleSha256)),'case execution proof missing');
  if(['api-integration','migration-compatibility','core-ui'].includes(receipt.name))must(receipt.imageId===b.imageId,'tested another image');
@@ -75,7 +80,7 @@ function validateSuite(receipt,b){
 }
 function suiteFromExecutions(name,b,steps,caseTitles){
  must(SUITES.includes(name)&&steps.length>0,'suite/steps missing');const caseProofs={};
- for(const id of CASES[name]||[]){const title=caseTitles?.[id];must(typeof title==='string'&&title.length>0,'reviewed exact title missing for '+id);const indexes=steps.flatMap((x,i)=>x.passedTitles.includes(title)?[i]:[]);must(indexes.length===1,'required case did not pass exactly once: '+id);caseProofs[id]={executionIndex:indexes[0],testTitleSha256:hash(title)};}
+ for(const id of requiredCases(name,b)){const title=caseTitles?.[id];must(typeof title==='string'&&title.length>0,'reviewed exact title missing for '+id);const indexes=steps.flatMap((x,i)=>x.passedTitles.includes(title)?[i]:[]);must(indexes.length===1,'required case did not pass exactly once: '+id);caseProofs[id]={executionIndex:indexes[0],testTitleSha256:hash(title)};}
  const executions=steps.map(step=>{const copy={...step};delete copy.passedTitles;return copy;});
  const receipt={name,status:'completed',conclusion:'success',sourceCommit:sourceFor(name,b),tests:steps.reduce((n,x)=>n+x.tests,0),passed:steps.reduce((n,x)=>n+x.passed,0),failed:0,skipped:0,cancelled:0,todo:0,caseIds:Object.keys(caseProofs),caseProofs,executions};
  if(['api-integration','migration-compatibility','core-ui'].includes(name))receipt.imageId=b.imageId;
@@ -85,6 +90,7 @@ function suiteFromExecutions(name,b,steps,caseTitles){
 }
 function compose(bindings,receipts,env){
  const b=validateBindings(bindings),producer=identity(env,b.apiCommit);
+ P.producerProfile(b.qualificationProfile,env);
  must(Array.isArray(receipts)&&receipts.length===SUITES.length&&new Set(receipts.map(x=>x.name)).size===SUITES.length,'exactly six suites required');
  const suites=SUITES.map(name=>validateSuite(receipts.find(x=>x.name===name),b));
  return {version:2,kind:'functional-execution-evidence',...b,buildRunId:producer.runId,producer,executionPhase:'completed',workflowStatus:'in_progress',workflowConclusion:null,fork:false,productionWrites:false,productionQualified:false,authenticated:false,suites,completionRequirement:'Deployment requires independently authenticated completed/success current run AND exact attempt, plus authenticated artifact bytes. This receipt does not claim final workflow status.'};
@@ -97,22 +103,25 @@ function verifyInputBytes(b,roots){
   must(hash(fs.readFileSync(input[name]))===b[key],name+' byte hash mismatch');
  }
  const controller=path.join(roots.deploy,'scripts/deploy.cjs');must(hash(fs.readFileSync(controller))===b.controllerSha256,'controller bundle byte hash mismatch');
- const source=require('./image-build-contract.cjs').sourceManifest(roots.api,b.apiCommit);must(source.manifestSha256===b.migrationManifestSha256,'schema54 differs from committed Git LF bytes');
+ const source=require('./image-build-contract.cjs').sourceManifest(roots.api,b.apiCommit,P.buildProfile(b.qualificationProfile));must(source.manifestSha256===b.migrationManifestSha256,'Schema differs from committed Git LF bytes');
  const image=JSON.parse(fs.readFileSync(input.imageReceipt,'utf8'));
- must(image.migrationProfile===undefined||image.migrationProfile==='schema54','schema55 image-only receipt is ineligible for schema54 functional qualification');
+ if(P.name(b.qualificationProfile)===P.SCHEMA54)must(image.migrationProfile===undefined||image.migrationProfile==='schema54','schema55 image-only receipt is ineligible for schema54 functional qualification');
+ else must(image.migrationProfile==='schema55-image-only'&&image.productionQualified===false&&image.operationalMigrationAllowed===false,'Schema55 image inventory never supplies functional or operating permission');
  require('./image-build-contract.cjs').validateSourceReceipt(b.apiCommit,source,image);
  must(image.kind==='api-image-build-only'&&image.repository===REPOSITORY&&image.sourceCommit===b.apiCommit&&image.imageId===b.imageId&&image.imageConfigDigest===b.imageConfigDigest&&image.archiveSha256===b.archiveSha256&&image.migrationManifestSha256===b.migrationManifestSha256,'image build/source/input receipt mismatch');
 }
 function executePlan(plan,roots,env){
  const b=validateBindings(plan.bindings);must(plan.version===1&&Array.isArray(plan.suites)&&plan.suites.length===6,'invalid execution plan');
+ P.producerProfile(b.qualificationProfile,env);
  for(const key of ['api','frontend','deploy']){must(typeof roots[key]==='string','checkout path missing');must(git(roots[key],['rev-parse','HEAD'])===b[key==='api'?'apiCommit':key==='frontend'?'frontendCommit':'deployCommit'],'checkout HEAD mismatch');must(!git(roots[key],['status','--porcelain','--untracked-files=no']),'modified tracked checkout');}
  must(typeof plan.definitionPath==='string'&&/^ops-prep\/[a-z0-9-]+\.json$/.test(plan.definitionPath),'committed execution definition required');
  const definition=JSON.parse(git(roots.api,['show',b.apiCommit+':'+plan.definitionPath]));must(JSON.stringify(definition)===JSON.stringify({version:plan.version,suites:plan.suites}),'execution definition differs from reviewed API Git blob');
  verifyInputBytes(b,roots);
  const runtimeEnv={...env};for(const key of ['api','frontend','deploy']){runtimeEnv['HANQ_FUNCTIONAL_'+key.toUpperCase()+'_ROOT']=path.resolve(roots[key]);runtimeEnv['HANQ_FUNCTIONAL_'+key.toUpperCase()+'_COMMIT']=b[key==='api'?'apiCommit':key==='frontend'?'frontendCommit':'deployCommit'];}
  runtimeEnv.HANQ_FUNCTIONAL_IMAGE_ID=b.imageId;
+ runtimeEnv.HANQ_FUNCTIONAL_QUALIFICATION_PROFILE=P.name(b.qualificationProfile);
  const receipts=plan.suites.map(suite=>{must(SUITES.includes(suite.name)&&Array.isArray(suite.steps),'invalid suite plan');const key=suite.name==='fe-unit'?'frontend':suite.name==='deploy-controller'?'deploy':'api';
   const results=suite.steps.map(step=>{const checkout=step.checkout||key;must(['api','frontend','deploy'].includes(checkout),'invalid script checkout');must(git(roots[checkout],['ls-files','--error-unmatch','--',step.script])===step.script,'untracked executable');return executeStep(step,roots[checkout],runtimeEnv);});return suiteFromExecutions(suite.name,b,results,suite.caseTitles);});
  return compose(b,receipts,env);
 }
-module.exports={REPOSITORY,WORKFLOW,SUITES,CASES,hash,manifestHash,validateBindings,identity,parseTap,executeStep,suiteFromExecutions,validateSuite,compose,verifyInputBytes,executePlan};
+module.exports={REPOSITORY,WORKFLOW,SUITES,CASES,requiredCases,hash,manifestHash,validateBindings,identity,parseTap,executeStep,suiteFromExecutions,validateSuite,compose,verifyInputBytes,executePlan};

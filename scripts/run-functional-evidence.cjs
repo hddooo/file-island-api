@@ -4,7 +4,7 @@ const C=require('./functional-evidence.cjs');
 // Docker's Windows CLI discovers its system BuildKit plugin under ProgramFiles.
 // Keep this OS installation path while still excluding arbitrary host/secret configuration.
 function filterEnvironment(env){
- const allowed=/^(?:PATH|Path|PATHEXT|SystemRoot|SYSTEMROOT|ProgramFiles|PROGRAMFILES|TEMP|TMP|HOME|USERPROFILE|CI|GITHUB_ACTIONS|GITHUB_REPOSITORY|GITHUB_SHA|GITHUB_REF|GITHUB_EVENT_NAME|GITHUB_WORKFLOW_REF|GITHUB_RUN_ID|GITHUB_RUN_ATTEMPT)$/;
+ const allowed=/^(?:PATH|Path|PATHEXT|SystemRoot|SYSTEMROOT|ProgramFiles|PROGRAMFILES|TEMP|TMP|HOME|USERPROFILE|CI|GITHUB_ACTIONS|GITHUB_REPOSITORY|GITHUB_SHA|GITHUB_REF|GITHUB_EVENT_NAME|GITHUB_WORKFLOW_REF|GITHUB_RUN_ID|GITHUB_RUN_ATTEMPT|HANQ_FUNCTIONAL_QUALIFICATION_PROFILE)$/;
  return Object.fromEntries(Object.entries(env).filter(([key])=>allowed.test(key)));
 }
 // No shell, environment dump, token lookup, Docker access, installation or deployment here.

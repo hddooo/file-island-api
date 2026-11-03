@@ -11,7 +11,7 @@ function semanticHash(){const rows=[],hash=x=>crypto.createHash('sha256').update
 async function main(){
  assert.equal(semanticHash(),process.env.HANQ_QUAL_SEMANTIC_SHA256,'Readonly semantic identity changed');
  const pool=new Pool({connectionString:url.href,ssl:false,max:4}),manifest=JSON.parse(fs.readFileSync('/run/migration-manifest.json','utf8'));
- const result=await migrate(pool,'/app/migrations');assert.equal(result.applied.length,54);assert.deepEqual((await pool.query('SELECT version,checksum FROM hanq.schema_migrations ORDER BY version')).rows,manifest.migrations);
+ const profile=process.env.HANQ_QUAL_QUALIFICATION_PROFILE??'schema54';assert(['schema54','schema55-qualification'].includes(profile));const count=profile==='schema55-qualification'?55:54;assert.equal(manifest.migrations.length,count);const result=await migrate(pool,'/app/migrations');assert.equal(result.applied.length,count);assert.deepEqual((await pool.query('SELECT version,checksum FROM hanq.schema_migrations ORDER BY version')).rows,manifest.migrations);
  await seedQuestions(pool,loadFrontCatalog(root),clock.now());
  const config=loadConfig({NODE_ENV:'test',HANQ_TEST_DATABASE_URL:url.href,HANQ_DB_SSL_MODE:'disable',HANQ_JWT_ISSUER:'hanq-core-ui-test',HANQ_JWT_ACCESS_SECRET:key(),HANQ_JWT_REFRESH_SECRET:key(),HANQ_CORS_ORIGINS:origin,HANQ_COOKIE_SAMESITE:'lax',HANQ_COOKIE_SECURE:'false',HANQ_PAYMENT_PROVIDER:'test',HANQ_CBT_PUBLIC_ASSET_BASE_URL:'off',HANQ_RATE_LIMIT_PER_MINUTE:'100000',HANQ_AUTH_RATE_LIMIT_PER_MINUTE:'100000',HANQ_LOGIN_FAILURES_PER_15MIN:'1000'});
  const app=await createApp(config,clock);await app.init();const realApi=app.getHttpAdapter().getInstance();

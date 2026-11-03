@@ -2,16 +2,20 @@
 // Creates its own network-isolated synthetic PostgreSQL cluster. Never accepts a database URL.
 const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto'),assert=require('node:assert/strict');
 const C=require('./functional-evidence.cjs');
+const P=require('./functional-schema-profile.cjs');
 const PG17='sha256:b8faeff7712663c2773a190181e1246e37e364b887611c04658c28b44e2408fe';
 const digest=/^sha256:[a-f0-9]{64}$/;
 function config(input,env=process.env){
  if(env.GITHUB_ACTIONS==='true'||env.HANQ_FUNCTIONAL_IMAGE_ID){assert.equal(input.sourceCommit,env.HANQ_FUNCTIONAL_API_COMMIT,'Migration source differs from producer binding');assert.equal(input.candidateImage,env.HANQ_FUNCTIONAL_IMAGE_ID,'Migration tested another candidate image');}
+ const qualificationProfile=P.producerProfile(input.qualificationProfile,env);
 
  assert.equal(input.postgresImage,PG17,'reviewed existing PostgreSQL17 image required');
  for(const field of ['baselineImage','candidateImage'])assert(digest.test(input[field]),'immutable image required');
  assert(/^[a-f0-9]{40}$/.test(input.sourceCommit));assert(path.isAbsolute(input.manifestFile));
- const m=JSON.parse(fs.readFileSync(input.manifestFile,'utf8'));assert.equal(m.migrations.length,54);assert(m.migrations.some(x=>/^055_/.test(x.version)));assert(!m.migrations.some(x=>/^(047|056)_/.test(x.version)));
- return {...input,manifestSha256:C.manifestHash(m.migrations)};
+ const m=JSON.parse(fs.readFileSync(input.manifestFile,'utf8'));
+ if(qualificationProfile===P.SCHEMA55){assert.equal(input.baselineImage,'sha256:5ffd2cc49f557fab789dd8f5092350ff27c8396ccfee0dda1c29c774e0a347b6','Reviewed schema54 baseline image required');const plan=P.migrationPlan(m,qualificationProfile);return {...input,qualificationProfile,manifestSha256:plan.targetSha256,baselineManifestSha256:plan.baselineSha256,expectedApplied:1,targetCount:55};}
+ assert.equal(m.migrations.length,54);assert(m.migrations.some(x=>/^055_/.test(x.version)));assert(!m.migrations.some(x=>/^(047|056)_/.test(x.version)));
+ return {...input,qualificationProfile,manifestSha256:C.manifestHash(m.migrations),baselineManifestSha256:C.manifestHash(m.migrations),expectedApplied:0,targetCount:54};
 }
 function docker(args,options={}){
  const result=cp.spawnSync('docker',args,{encoding:'utf8',windowsHide:true,timeout:240000,maxBuffer:2*1024*1024,...options});
@@ -29,16 +33,17 @@ async function prepare(input){
  assert.equal(docker(['inspect',name,'--format','{{.Id}} {{.HostConfig.NetworkMode}}']),containerId+' none');
  docker(['exec','-i',name,'psql','-X','-w','-U','postgres','-d','postgres','-q','-v','ON_ERROR_STOP=1'],{input:'CREATE ROLE '+role+' LOGIN;\nCREATE DATABASE '+baseline+' OWNER '+role+';\nCREATE DATABASE '+restored+' OWNER '+role+';\n'});
  function phase(image,database,mode){
-  assert(/_test$/.test(database));const result=docker(['run','--rm','--pull','never','--network','container:'+name,'--read-only','--cap-drop','ALL','--security-opt','no-new-privileges','--user','node','--tmpfs','/tmp:rw,noexec,nosuid,size=64m','--mount','type=bind,source='+path.join(__dirname,'functional-migration-container.cjs')+',target=/run/compatibility.cjs,readonly','--mount','type=bind,source='+cfg.manifestFile+',target=/run/manifest.json,readonly','--env','NODE_ENV=test','--env','NODE_PATH=/app/node_modules','--env','HANQ_TEST_DATABASE_URL=postgresql://'+role+'@127.0.0.1:5432/'+database,'--entrypoint','node',image,'/run/compatibility.cjs',mode]);return JSON.parse(result);
+  const supportMounts=['functional-schema-profile.cjs','migration-build-profile.cjs'].flatMap(file=>['--mount','type=bind,source='+path.join(__dirname,file)+',target=/run/'+file+',readonly']);
+  assert(/_test$/.test(database));const result=docker(['run','--rm','--pull','never','--network','container:'+name,'--read-only','--cap-drop','ALL','--security-opt','no-new-privileges','--user','node','--tmpfs','/tmp:rw,noexec,nosuid,size=64m','--mount','type=bind,source='+path.join(__dirname,'functional-migration-container.cjs')+',target=/run/compatibility.cjs,readonly','--mount','type=bind,source='+cfg.manifestFile+',target=/run/manifest.json,readonly',...supportMounts,'--env','NODE_ENV=test','--env','HANQ_QUAL_QUALIFICATION_PROFILE='+cfg.qualificationProfile,'--env','NODE_PATH=/app/node_modules','--env','HANQ_TEST_DATABASE_URL=postgresql://'+role+'@127.0.0.1:5432/'+database,'--entrypoint','node',image,'/run/compatibility.cjs',mode]);return JSON.parse(result);
  }
  return {cfg,name,volume,containerId,baseline,restored,phase};
 }
 function register(input){
  const {before,test,after}=require('node:test');let s,beforeResult,candidateResult;
  before(async()=>{s=await prepare(input);});
- test('baseline-checksums',()=>{beforeResult=s.phase(s.cfg.baselineImage,s.baseline,'baseline');assert.equal(beforeResult.applied,54);assert.equal(beforeResult.schemaSha256,s.cfg.manifestSha256);});
+ test('baseline-checksums',()=>{beforeResult=s.phase(s.cfg.baselineImage,s.baseline,'baseline');assert.equal(beforeResult.applied,54);assert.equal(beforeResult.schemaSha256,s.cfg.baselineManifestSha256);});
  test('restore-and-upgrade',()=>{assert(beforeResult);const dump='/tmp/owned-synthetic-baseline.dump';docker(['exec',s.name,'pg_dump','-w','-U','postgres','-d',s.baseline,'--format=custom','--file',dump]);docker(['exec',s.name,'pg_restore','-w','-U','postgres','-d',s.restored,'--exit-on-error',dump]);candidateResult=s.phase(s.cfg.candidateImage,s.restored,'candidate');assert.equal(candidateResult.snapshotSha256,beforeResult.snapshotSha256);});
- test('idempotent-migrations',()=>{assert(candidateResult);assert.equal(candidateResult.applied,0);assert.equal(candidateResult.alreadyApplied,54);assert.equal(candidateResult.rerunApplied,0);});
+ test('idempotent-migrations',()=>{assert(candidateResult);assert.equal(candidateResult.applied,s.cfg.expectedApplied);assert.equal(candidateResult.alreadyApplied,54);assert.equal(candidateResult.rerunApplied,0);assert.equal(candidateResult.schemaSha256,s.cfg.manifestSha256);});
  test('legacy-xp-preserved',()=>{assert.equal(candidateResult.syntheticUsers,1);assert.equal(candidateResult.syntheticXp,1000);assert.equal(candidateResult.snapshotSha256,beforeResult.snapshotSha256);});
  test('rollback-schema-compatible',()=>{const result=s.phase(s.cfg.baselineImage,s.restored,'rollback-probe');assert.equal(result.healthStatus,200);assert.equal(result.snapshotSha256,beforeResult.snapshotSha256);assert.equal(result.dataUnchanged,true);});
  // Preserve isolated resources for diagnosis; no prune/deletion of existing resources.

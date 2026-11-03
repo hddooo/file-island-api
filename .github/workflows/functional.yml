@@ -3,6 +3,13 @@
 name: Functional six-suite qualification (execution receipts, no deployment)
 on:
   workflow_dispatch:
+    inputs:
+      qualification_profile:
+        type: choice
+        required: true
+        default: schema54
+        options: [schema54, schema55-qualification]
+        description: Explicit reviewed schema contract; image-only55 is never qualification
 permissions:
   contents: read
 concurrency:
@@ -10,6 +17,9 @@ concurrency:
   cancel-in-progress: false
 jobs:
   qualify:
+    env:
+      HANQ_FUNCTIONAL_QUALIFICATION_PROFILE: ${{ inputs.qualification_profile }}
+      SOURCE_CONTRACT_MIGRATION_PROFILE: ${{ inputs.qualification_profile == 'schema55-qualification' && 'schema55-image-only' || 'schema54' }}
     if: github.repository == 'hddooo/file-island-api' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, Windows, X64, hanq-api-qualification]
     timeout-minutes: 60
@@ -18,9 +28,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Validate producer, inventory and harness contracts
-        run: node --test scripts/api-test-inventory.test.cjs scripts/functional-evidence.test.cjs scripts/functional-api-tests.test.cjs scripts/functional-api-fixture.test.cjs scripts/functional-core-ui.test.cjs scripts/prepare-functional-plan.test.cjs
-      - name: Verify exact committed API67/40 test inventory
-        run: node scripts/api-test-inventory.cjs
+        run: node --test scripts/api-test-inventory.test.cjs scripts/functional-evidence.test.cjs scripts/functional-api-tests.test.cjs scripts/functional-api-fixture.test.cjs scripts/functional-core-ui.test.cjs scripts/prepare-functional-plan.test.cjs scripts/functional-schema-profile.test.cjs
+      - name: Verify exact committed test inventory for the explicit qualification profile
+        run: node scripts/api-test-inventory.cjs --qualification-profile ${{ inputs.qualification_profile }}
       - name: Execute reviewed six-suite recipe
         shell: pwsh
         # Non-secret, pre-reviewed local FILE PATHS. Keep input roots outside the
