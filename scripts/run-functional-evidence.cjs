@@ -15,7 +15,7 @@ if(require.main===module){try{
  // Inherit only ordinary process necessities and non-secret test fixture/configuration names.
  // Test harnesses generate synthetic database/JWT credentials in memory; production variables are never inherited.
  const env=filterEnvironment(process.env);
- const evidence=C.executePlan(plan,roots,env);fs.writeFileSync(path.resolve(outputFile),JSON.stringify(evidence,null,2)+'\n',{flag:'wx'});
+ const evidence=C.executePlan(plan,roots,env,event=>console.log(JSON.stringify({kind:'functional-stage',...event})));fs.writeFileSync(path.resolve(outputFile),JSON.stringify(evidence,null,2)+'\n',{flag:'wx'});
  console.log(JSON.stringify({output:path.basename(outputFile),sourceCommit:evidence.apiCommit,executionPhase:evidence.executionPhase,workflowStatus:evidence.workflowStatus,authenticated:false,productionQualified:false,artifactName:'hanq-release-evidence-'+evidence.apiCommit+'-'+evidence.producer.runId+'-'+evidence.producer.runAttempt}));
 }catch{console.error('Functional evidence rejected: incomplete, failed or mismatched execution/binding. No evidence or deployment was produced.');process.exitCode=1;}}
 module.exports={filterEnvironment};

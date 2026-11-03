@@ -12,6 +12,9 @@ const CASES={
 const sha=/^[a-f0-9]{40}$/,hex=/^[a-f0-9]{64}$/,digest=/^sha256:[a-f0-9]{64}$/;
 const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
 const must=(x,message)=>assert(x,'Functional evidence: '+message);
+const FAILURE_KINDS=['process-error','process-signal','child-exit','configuration-rejected','source-rejected','module-not-found','docker-failed','assertion-failed','tap-invalid','contract-rejected'];
+function safeFailure(error){const f=error?.functionalFailure;if(!f||!FAILURE_KINDS.includes(f.kind))return {kind:'contract-rejected'};return {kind:f.kind,...(Number.isInteger(f.exitCode)?{exitCode:f.exitCode}:{}),...(hex.test(f.rawOutputSha256||'')?{rawOutputSha256:f.rawOutputSha256}:{})};}
+function executionFailure(error,result,raw){let kind='tap-invalid';if(result.error)kind='process-error';else if(result.signal)kind='process-signal';else if(result.status!==0){kind='child-exit';if(raw.includes('MODULE_NOT_FOUND'))kind='module-not-found';else if(/(?:Migration harness rejected its configuration|Invalid (?:core UI|functional API) configuration)/.test(raw))kind='configuration-rejected';else if(raw.includes('Tracked Node test list/source verification failed'))kind='source-rejected';else if(/(?:Isolated migration Docker|Core UI docker|Functional API docker)/.test(raw))kind='docker-failed';else if(raw.includes('ERR_ASSERTION'))kind='assertion-failed';}error.functionalFailure={kind,exitCode:result.status,rawOutputSha256:hash(raw)};return error;}
 function manifestHash(rows){return hash(JSON.stringify([...rows].map(({version,checksum})=>({version,checksum})).sort((a,b)=>a.version.localeCompare(b.version))));}
 function validateBindings(b){
  const profile=P.name(b.qualificationProfile);
@@ -57,8 +60,7 @@ function executeStep(step,cwd,env={}){
  const script=path.resolve(cwd,step.script);must(script.startsWith(path.resolve(cwd)+path.sep),'script escapes checkout');
  const startedAt=new Date().toISOString(),result=cp.spawnSync(process.execPath,['--test-reporter=tap',script,...step.args],{cwd,env,encoding:'utf8',shell:false,windowsHide:true,timeout:step.timeoutMs,maxBuffer:64*1024*1024});
  const raw=(result.stdout||'')+'\n'+(result.stderr||'');
- must(!result.error&&!result.signal,'test process errored, timed out or was killed');
- const parsed=parseTap(raw,result.status);
+ let parsed;try{must(!result.error&&!result.signal,'test process errored, timed out or was killed');parsed=parseTap(raw,result.status);}catch(error){throw executionFailure(error,result,raw);}
  return {...parsed,startedAt,finishedAt:new Date().toISOString(),exitCode:result.status,rawOutputSha256:hash(raw),scriptSha256:hash(fs.readFileSync(script)),rawOutputExported:false};
 }
 function sourceFor(name,b){return name==='fe-unit'?b.frontendCommit:name==='deploy-controller'?b.deployCommit:b.apiCommit;}
@@ -110,7 +112,7 @@ function verifyInputBytes(b,roots){
  require('./image-build-contract.cjs').validateSourceReceipt(b.apiCommit,source,image);
  must(image.kind==='api-image-build-only'&&image.repository===REPOSITORY&&image.sourceCommit===b.apiCommit&&image.imageId===b.imageId&&image.imageConfigDigest===b.imageConfigDigest&&image.archiveSha256===b.archiveSha256&&image.migrationManifestSha256===b.migrationManifestSha256,'image build/source/input receipt mismatch');
 }
-function executePlan(plan,roots,env){
+function executePlan(plan,roots,env,observe=()=>{}){
  const b=validateBindings(plan.bindings);must(plan.version===1&&Array.isArray(plan.suites)&&plan.suites.length===6,'invalid execution plan');
  P.producerProfile(b.qualificationProfile,env);
  for(const key of ['api','frontend','deploy']){must(typeof roots[key]==='string','checkout path missing');must(git(roots[key],['rev-parse','HEAD'])===b[key==='api'?'apiCommit':key==='frontend'?'frontendCommit':'deployCommit'],'checkout HEAD mismatch');must(!git(roots[key],['status','--porcelain','--untracked-files=no']),'modified tracked checkout');}
@@ -120,8 +122,9 @@ function executePlan(plan,roots,env){
  const runtimeEnv={...env};for(const key of ['api','frontend','deploy']){runtimeEnv['HANQ_FUNCTIONAL_'+key.toUpperCase()+'_ROOT']=path.resolve(roots[key]);runtimeEnv['HANQ_FUNCTIONAL_'+key.toUpperCase()+'_COMMIT']=b[key==='api'?'apiCommit':key==='frontend'?'frontendCommit':'deployCommit'];}
  runtimeEnv.HANQ_FUNCTIONAL_IMAGE_ID=b.imageId;
  runtimeEnv.HANQ_FUNCTIONAL_QUALIFICATION_PROFILE=P.name(b.qualificationProfile);
- const receipts=plan.suites.map(suite=>{must(SUITES.includes(suite.name)&&Array.isArray(suite.steps),'invalid suite plan');const key=suite.name==='fe-unit'?'frontend':suite.name==='deploy-controller'?'deploy':'api';
-  const results=suite.steps.map(step=>{const checkout=step.checkout||key;must(['api','frontend','deploy'].includes(checkout),'invalid script checkout');must(git(roots[checkout],['ls-files','--error-unmatch','--',step.script])===step.script,'untracked executable');return executeStep(step,roots[checkout],runtimeEnv);});return suiteFromExecutions(suite.name,b,results,suite.caseTitles);});
+ const receipts=plan.suites.map(suite=>{must(SUITES.includes(suite.name)&&Array.isArray(suite.steps),'invalid suite plan');const key=suite.name==='fe-unit'?'frontend':suite.name==='deploy-controller'?'deploy':'api';let stage='step-source',stepIndex=0;
+  observe({suite:suite.name,phase:'starting'});
+  try{const results=suite.steps.map((step,index)=>{stepIndex=index;stage='step-source';const checkout=step.checkout||key;must(['api','frontend','deploy'].includes(checkout),'invalid script checkout');must(git(roots[checkout],['ls-files','--error-unmatch','--',step.script])===step.script,'untracked executable');stage='step-execution';observe({suite:suite.name,phase:'executing',stepIndex});return executeStep(step,roots[checkout],runtimeEnv);});stage='suite-contract';const receipt=suiteFromExecutions(suite.name,b,results,suite.caseTitles);observe({suite:suite.name,phase:'passed',tests:receipt.tests});return receipt;}catch(error){observe({suite:suite.name,phase:'failed',stage,stepIndex,failure:safeFailure(error)});throw error;}});
  return compose(b,receipts,env);
 }
-module.exports={REPOSITORY,WORKFLOW,SUITES,CASES,requiredCases,hash,manifestHash,validateBindings,identity,parseTap,executeStep,suiteFromExecutions,validateSuite,compose,verifyInputBytes,executePlan};
+module.exports={REPOSITORY,WORKFLOW,SUITES,CASES,requiredCases,hash,manifestHash,validateBindings,identity,parseTap,executeStep,suiteFromExecutions,validateSuite,compose,verifyInputBytes,executePlan,safeFailure};
