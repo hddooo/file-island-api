@@ -58,3 +58,21 @@ test('reviewed source unit blob/hash pins reject baseline substitution and all e
  const R=require('./run-ci-unit.cjs'),profile=M.validateName(process.env.SOURCE_CONTRACT_MIGRATION_PROFILE??M.SCHEMA54),rows=R.expectedRows(profile);assert.equal(R.verifyCommitted(root,head,profile),true);assert.equal(rows.length,profile===M.SCHEMA54?67:72);
  for(const mutate of [r=>r.pop(),r=>r.push(r[0]),r=>r[0].gitBlob='a'.repeat(40),r=>r[0].sha256='b'.repeat(64),r=>r[0].path='test/unit/unreviewed.test.ts']){const changed=JSON.parse(JSON.stringify(rows));mutate(changed);assert.throws(()=>R.validateRows(changed,profile));}
 });
+function unitRunnerProbe(child){
+ const R=require('./run-ci-unit.cjs'),profile=M.validateName(process.env.SOURCE_CONTRACT_MIGRATION_PROFILE??M.SCHEMA54),all=R.expectedRows(profile).map(x=>path.basename(x.path).replace(/\.ts$/,'.js')),out=[],errors=[];let calls=0;
+ const code=R.runUnits({env:{...process.env,SOURCE_CONTRACT_MIGRATION_PROFILE:profile},listCompiled:()=>all,spawn:(binary,args,options)=>{calls++;assert.equal(binary,process.execPath);assert(args.includes('--test-reporter=tap'));assert.equal(args.filter(x=>x.endsWith('.test.js')).length,profile===M.SCHEMA54?62:67);assert.equal(options.encoding,'utf8');return child;},writeOut:x=>out.push(x),writeError:x=>errors.push(x)});
+ assert.equal(calls,1,'Real committed Git and inventory gates must reach the injected child');return {code,out:out.join(''),errors:errors.join('')};
+}
+const completeUnitTap='TAP version 13\nok 1 - synthetic unit\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n';
+test('actual source-unit runner seam accepts real Node TAP after real Git and inventory verification',()=>{
+ const cp=require('node:child_process'),dir=fs.mkdtempSync(path.join(os.tmpdir(),'file-island-unit-tap-'));try{
+  const file=path.join(dir,'synthetic.test.cjs');fs.writeFileSync(file,"require('node:test').test('synthetic real Node unit',()=>{});\n");const env={...process.env};delete env.NODE_TEST_CONTEXT;const child=cp.spawnSync(process.execPath,['--test','--test-reporter=tap',file],{env,encoding:'utf8',timeout:10000});assert.equal(child.status,0);const probe=unitRunnerProbe(child);assert.equal(probe.code,0);assert.equal(probe.out,child.stdout);
+ }finally{assert(path.basename(dir).startsWith('file-island-unit-tap-'));fs.rmSync(dir,{recursive:true,force:true});}
+});
+test('actual source-unit runner rejects empty, truncated, duplicate, failed, mismatched, skipped and interrupted child output',()=>{
+ const invalid=[{stdout:''},{stdout:completeUnitTap.replace('# todo 0\n','')},{stdout:completeUnitTap+'# tests 1\n'},{stdout:completeUnitTap.replace('ok 1','not ok 1')},{stdout:completeUnitTap.replace('# tests 1','# tests 2')},{stdout:completeUnitTap.replace('# skipped 0','# skipped 1')},{stdout:completeUnitTap.replace('synthetic unit','synthetic unit # SKIP optional')},{stdout:completeUnitTap.replace('# cancelled 0','# cancelled 1')},{stdout:completeUnitTap.replace('# todo 0','# todo 1')},{stdout:completeUnitTap.replace('# tests 1','# tests 0').replace('# pass 1','# pass 0')},{stdout:completeUnitTap,status:1},{stdout:completeUnitTap,signal:'SIGTERM'},{stdout:completeUnitTap,error:Error('synthetic spawn error')},{stdout:completeUnitTap+'Bail out!\n'}];
+ for(const change of invalid){const probe=unitRunnerProbe({status:0,stdout:completeUnitTap,stderr:'',signal:null,...change});assert.equal(probe.code,1);assert(probe.errors.includes('strict TAP completion gate'));}
+});
+test('strict runner preserves original child stdout and stderr while rejecting hidden stderr failure',()=>{
+ const stderr='synthetic child diagnostic\nnot ok 9 - synthetic hidden failure\n',probe=unitRunnerProbe({status:0,stdout:completeUnitTap,stderr,signal:null});assert.equal(probe.code,1);assert.equal(probe.out,completeUnitTap);assert(probe.errors.startsWith(stderr));
+});

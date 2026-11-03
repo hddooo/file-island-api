@@ -2,6 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),assert=require('node:assert/strict');
 const {CI_UNIT_EXCLUSIONS}=require('./functional-api-test-container.cjs');
 const M=require('./migration-build-profile.cjs'),inventory=require('../ops-prep/api-test-inventory.json');
+const {parseTap}=require('./functional-evidence.cjs');
 const GROWTH_UNIT=['admin-xp-floor.test.js','admin-xp-idempotency.test.js','growth-public-profile.test.js','my-records-activities.test.js','record-evidence-redaction.test.js'];
 const crypto=require('node:crypto'),pins=require('../ops-prep/source-ci-schema55-unit-pins.json');
 const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
@@ -20,6 +21,11 @@ function validateFiles(all,profile=M.SCHEMA54){
  const expected=expectedRows(profile).map(x=>path.basename(x.path).replace(/\.ts$/,'.js')).sort();assert.deepEqual([...all].sort(),expected,'Exact source unit filenames required');
  for(const name of CI_UNIT_EXCLUSIONS)assert(expected.includes(name));const files=expected.filter(x=>!CI_UNIT_EXCLUSIONS.includes(x));assert.equal(files.length,profile===M.SCHEMA54?62:67);return files;
 }
-function main(){const root=path.resolve(__dirname,'..'),profile=M.validateName(process.env.SOURCE_CONTRACT_MIGRATION_PROFILE??M.SCHEMA54),commit=cp.execFileSync('git',['-C',root,'rev-parse','HEAD'],{encoding:'utf8'}).trim();verifyCommitted(root,commit,profile);const dir=path.join(root,'dist/test/unit'),all=fs.readdirSync(dir).filter(x=>x.endsWith('.test.js')),files=validateFiles(all,profile);const r=cp.spawnSync(process.execPath,['--test','--test-concurrency=1',...files.map(x=>path.join(dir,x))],{cwd:root,stdio:'inherit',windowsHide:true});process.exitCode=r.status===0?0:1;}
-if(require.main===module)main();
-module.exports={GROWTH_UNIT,expectedRows,validateRows,verifyCommitted,validateFiles};
+function runUnits({env=process.env,spawn=cp.spawnSync,listCompiled=dir=>fs.readdirSync(dir),writeOut=text=>process.stdout.write(text),writeError=text=>process.stderr.write(text)}={}){
+ const root=path.resolve(__dirname,'..'),profile=M.validateName(env.SOURCE_CONTRACT_MIGRATION_PROFILE??M.SCHEMA54),commit=cp.execFileSync('git',['-C',root,'rev-parse','HEAD'],{encoding:'utf8'}).trim();verifyCommitted(root,commit,profile);
+ const dir=path.join(root,'dist/test/unit'),files=validateFiles(listCompiled(dir).filter(x=>x.endsWith('.test.js')),profile),r=spawn(process.execPath,['--test','--test-concurrency=1','--test-reporter=tap',...files.map(x=>path.join(dir,x))],{cwd:root,env,encoding:'utf8',timeout:900000,maxBuffer:64*1024*1024,windowsHide:true});
+ const stdout=r.stdout||'',stderr=r.stderr||'';if(stdout)writeOut(stdout);if(stderr)writeError(stderr);
+ try{assert(!r.error&&!r.signal,'Unit child errored, timed out or was killed');parseTap(stdout+'\n'+stderr,r.status);return 0;}catch{writeError('Source CI unit child failed strict TAP completion gate\n');return 1;}
+}
+if(require.main===module)process.exitCode=runUnits();
+module.exports={GROWTH_UNIT,expectedRows,validateRows,verifyCommitted,validateFiles,runUnits};
