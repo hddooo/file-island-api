@@ -1,5 +1,29 @@
 # File Island 저장소 이관 기록
 
+## 명시적 schema55 image-only profile 로컬 준비 (2026-11-03)
+
+기본값은 `schema54`이며 이미지 helper의 `--migration-profile schema55-image-only`
+선택만 정확54 baseline, 고정056 한 개, 고정 privileges와 고정55 canonical hash를
+허용합니다. 기대값은 후보 SQL에서 새로 만들지 않습니다. source inventory는 실제
+full commit의 Git bytes로 검사하며 작업 중 파일을 committed source로 표시하지 않습니다.
+
+이는 이미지 제작 inventory 계약일 뿐 운영 migration, 배포 또는 six-suite 자격이
+아닙니다. 기존 functional/migration 경로는54로 유지하고55 image-only 영수증을
+거절합니다. production/deployment/migration 플래그는 false, 이미지 receipt의 여섯
+suite는 not_run/unverified를 유지합니다. source/run/attempt/archive 검증은 그대로입니다.
+
+계약 테스트의54 positive fixture는 현재 checkout의 고정 baseline bytes로 만든
+명시적 임시 Git fixture입니다. 실제 HEAD 검사는 별도로 수행하며 profile 선택으로
+54 source를55 source처럼 relabel할 수 없습니다. 이미지 workflow 입력과 source CI
+테스트 목록만 추가했으며 기존 main-only/manual/read-only 권한과 job 경로는 보존합니다.
+통합 source CI는 `SOURCE_CONTRACT_MIGRATION_PROFILE=schema55-image-only`를 명시하며
+SQL 개수나056 존재로 선택하지 않습니다. builder/manual image 기본값은54입니다.
+Growth의 추가5 unit 파일을 포함한 정확72개 중 기존 private fixture 제외5개를 뺀67개를
+source CI에서 실행합니다. baseline67 경로는 모두 유지하며, fe005의 추가5개와
+기존 Hall test 수정1개의 정확 blob/hash를 별도 고정합니다. source와 working test
+bytes도 대조합니다. 기존54 functional67/40 inventory와 자격은 변경하지 않습니다.
+로컬 준비 결과와 실제 commit/CI/build/운영 적용 상태는 별도로 기록합니다.
+
 ## API image producer와 CD 인계 구현 (2026-11-02)
 
 기존 baseline 테스트 CI와 원본 held/Dockerfile/producer/SQL은 유지합니다. 새 수동 `.github/workflows/image.yml`과 `scripts/build-file-island-image.cjs`는 main의 정확한 새 API Git SHA에 묶인 **이미지 build 증거만** 만듭니다. Git blob으로 별도 LF context를 작성하고 기존 비활성 runtime-mount Dockerfile 후보를 명시적으로 선택합니다. 비공개 자료·비밀 파일·host credential은 context에 넣지 않습니다. 원본 Dockerfile은 교체하지 않습니다.

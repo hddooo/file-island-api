@@ -10,6 +10,8 @@ concurrency:
   cancel-in-progress: true
 jobs:
   independent:
+    env:
+      SOURCE_CONTRACT_MIGRATION_PROFILE: schema55-image-only
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -23,7 +25,7 @@ jobs:
           cache-dependency-path: package-lock.json
       - run: npm ci --no-fund
       - name: Verify image and functional qualification contracts
-        run: node --test scripts/api-test-inventory.test.cjs scripts/image-build-contract.test.cjs scripts/functional-evidence.test.cjs scripts/functional-api-tests.test.cjs scripts/functional-api-fixture.test.cjs scripts/functional-core-ui.test.cjs scripts/prepare-functional-plan.test.cjs
+        run: node --test scripts/api-test-inventory.test.cjs scripts/image-build-contract.test.cjs scripts/migration-build-profile.test.cjs scripts/functional-evidence.test.cjs scripts/functional-api-tests.test.cjs scripts/functional-api-fixture.test.cjs scripts/functional-core-ui.test.cjs scripts/prepare-functional-plan.test.cjs
       - run: npm run typecheck
       - name: Unit tests independent of private frontend and textbook fixtures
         shell: bash
@@ -37,7 +39,7 @@ jobs:
         shell: bash
         run: |
           printf '%s\n' 'This CI uses no application secrets or production database.' >> "$GITHUB_STEP_SUMMARY"
-          printf '%s\n' 'Hosted CI excludes catalog.test.js, quality-revision.test.js, source-answer-normalization.test.js, source-blank-progress.test.js and source-blank-workspace.test.js because their private FE/textbook fixtures are unavailable. Test sources remain unchanged. Both CI producers run exactly62 of67 source unit files and reject skipped/incomplete results. Three optional original-only TOEIC cases are outside CI in test/local-original. PostgreSQL integration is covered by the separate functional producer.' >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' 'Hosted CI excludes catalog.test.js, quality-revision.test.js, source-answer-normalization.test.js, source-blank-progress.test.js and source-blank-workspace.test.js because their private FE/textbook fixtures are unavailable. Test sources remain unchanged. The explicit schema55-image-only source CI runs exactly67 of72 unit files and rejects skipped/incomplete results; the existing schema54 functional producer retains its separate67/40 inventory and cannot qualify55. Three optional original-only TOEIC cases are outside CI in test/local-original. PostgreSQL integration is covered by the separate functional producer.' >> "$GITHUB_STEP_SUMMARY"
       - name: Existing lint gate (runs after tests to preserve test evidence)
         if: always()
         run: npm run lint

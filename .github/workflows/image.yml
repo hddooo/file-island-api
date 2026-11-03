@@ -1,6 +1,12 @@
 name: API image build only (not deployment qualification)
 on:
   workflow_dispatch:
+    inputs:
+      migration_profile:
+        type: choice
+        default: schema54
+        options: [schema54, schema55-image-only]
+        description: Exact image inventory only; never deployment or migration qualification
 permissions:
   contents: read
 concurrency:
@@ -19,9 +25,13 @@ jobs:
         with:
           node-version: '24'
       - name: Validate image build contract
-        run: node --test scripts/image-build-contract.test.cjs
+        env:
+          SOURCE_CONTRACT_MIGRATION_PROFILE: ${{ inputs.migration_profile }}
+        run: node --test scripts/image-build-contract.test.cjs scripts/migration-build-profile.test.cjs
       - name: Build LF image and run isolated native-module smoke
-        run: node scripts/build-file-island-image.cjs --build
+        env:
+          MIGRATION_PROFILE: ${{ inputs.migration_profile }}
+        run: node scripts/build-file-island-image.cjs --build --migration-profile "$MIGRATION_PROFILE"
       - name: Retain image build evidence (not a functional qualification receipt)
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:

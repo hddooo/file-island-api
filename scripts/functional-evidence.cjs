@@ -99,6 +99,8 @@ function verifyInputBytes(b,roots){
  const controller=path.join(roots.deploy,'scripts/deploy.cjs');must(hash(fs.readFileSync(controller))===b.controllerSha256,'controller bundle byte hash mismatch');
  const source=require('./image-build-contract.cjs').sourceManifest(roots.api,b.apiCommit);must(source.manifestSha256===b.migrationManifestSha256,'schema54 differs from committed Git LF bytes');
  const image=JSON.parse(fs.readFileSync(input.imageReceipt,'utf8'));
+ must(image.migrationProfile===undefined||image.migrationProfile==='schema54','schema55 image-only receipt is ineligible for schema54 functional qualification');
+ require('./image-build-contract.cjs').validateSourceReceipt(b.apiCommit,source,image);
  must(image.kind==='api-image-build-only'&&image.repository===REPOSITORY&&image.sourceCommit===b.apiCommit&&image.imageId===b.imageId&&image.imageConfigDigest===b.imageConfigDigest&&image.archiveSha256===b.archiveSha256&&image.migrationManifestSha256===b.migrationManifestSha256,'image build/source/input receipt mismatch');
 }
 function executePlan(plan,roots,env){
