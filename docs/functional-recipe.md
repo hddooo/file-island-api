@@ -10,7 +10,7 @@ Original round-with-checks.prepared.json is not a CI input. All67 unit source fi
 
 The existing semantic298 input stays readonly, with aggregate3837183b92605f8ffeb1eeba490f0b599c9c78569c31d8d6311a32d2439b0846 checked before/after execution. It is not copied into images. Only the synthetic revision HTTP test gets a temporary synthetic default144 context; candidate application, SQL and test byte identities are checked. No real147/raw revision root is activated.
 
-The FE list contains46 tracked Node scripts, retaining all45 original paths. The deploy list contains22 files retaining native ACL/install/management/interlock/watchdog/current-release/workflow coverage and the legacy root recovery test. The reviewed LF controller bundle is1c760553e2654dc723340103008cec4f61afda8cc3f690b642442ed41957a47d.
+The FE list contains46 tracked Node scripts, retaining all45 original paths. The deploy list contains22 files retaining native ACL/install/management/interlock/watchdog/current-release/workflow coverage and the legacy root recovery test. The reviewed LF controller bundle is827cc3771494682555dfb2776d1557f1ca15c2ccbc09bab4848f75869ebe8143.
 
 Core UI uses exact committed FE assets, actual candidate API and an owned network-none PG17 namespace without host ports. The official Playwright1.64.1 amd64 image and exact FE lock are pinned in the handoff. Chromium/WebKit run as existing non-root pwuser with unchanged read-only/cap-drop/no-new-privileges settings. The synthetic clock starts at browser wall time to keep real cookie expiry valid, then uses the existing bounded clock control. No application TTL/cookie/CSRF policy changes.
 

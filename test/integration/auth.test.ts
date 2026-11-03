@@ -204,3 +204,34 @@ describe('auth: signup / signin / cookies / CSRF / rotation / logout', () => {
     assert.deepEqual(nf.body, { error: { code: 'not_found', message: 'Not found' } });
   });
 });
+
+describe('approved opt-in90 release: real schema54 sessions with unchanged default policy', () => {
+  let pool: Pool, enabled: TestApp, disabled: TestApp;
+  const day = 86400_000;
+  const cookieHeader = (res: {headers: Record<string, unknown>}) => ([] as string[]).concat(res.headers['set-cookie'] as unknown as string[]).find(c => c.startsWith('hanq_rt=')) || '';
+  const expiry = (res: {headers: Record<string, unknown>}) => Date.parse(/Expires=([^;]+)/i.exec(cookieHeader(res))?.[1] || '');
+  before(async () => { pool = await freshDatabase(testConfig()); disabled = await startApp(); enabled = await startApp({HANQ_REMEMBER_ENABLED:'true',HANQ_COOKIE_SECURE:'true'}); });
+  after(async () => { await enabled.close(); await disabled.close(); await pool.end(); });
+  it('disabled policy is honestly unavailable and rejects opt-in before issuing a family', async () => {
+    const user = await signup(disabled);
+    const res = await request(disabled.server).post('/api/v1/auth/signin').set(csrf).send({email:user.email,password:PASSWORD,rememberMe:true});
+    assert.equal(res.status,503);assert.equal(res.body.error.code,'remember_unavailable');assert.equal(refreshCookie(res),null);
+    const plan = await request(disabled.server).get('/api/v1/premium/plan');assert.equal(plan.status,200);assert.equal(plan.body.auth.rememberMe.available,false);
+  });
+  it('enabled policy leaves omitted/false signins at access7d refresh14d family30d and preserves cookie/CSRF guards', async () => {
+    const baseline=testConfig();assert.equal(enabled.config.jwt.accessTtlSec,baseline.jwt.accessTtlSec);assert.equal(enabled.config.jwt.refreshTtlSec,baseline.jwt.refreshTtlSec);assert.equal(enabled.config.jwt.sessionMaxSec,baseline.jwt.sessionMaxSec);
+    assert.equal(enabled.config.jwt.accessTtlSec,604800);assert.equal(enabled.config.jwt.refreshTtlSec,1209600);assert.equal(enabled.config.jwt.sessionMaxSec,2592000);
+    const user=await signup(enabled);
+    for(const extra of [{},{rememberMe:false}]){const r=await request(enabled.server).post('/api/v1/auth/signin').set(csrf).send({email:user.email,password:PASSWORD,...extra});assert.equal(r.status,200);assert.equal(r.body.retentionMode,'legacy');assert.equal(Date.parse(r.body.accessTokenExpiresAt)-enabled.clock.now().getTime(),7*day);assert.equal(expiry(r)-enabled.clock.now().getTime(),14*day);assert.equal(Date.parse(r.body.sessionExpiresAt)-enabled.clock.now().getTime(),30*day);const raw=cookieHeader(r);for(const pattern of [/HttpOnly/i,/;\s*Secure/i,/SameSite=Lax/i,/Path=\/api\/v1\/auth/i])assert.equal(pattern.test(raw),true);}
+    const body={email:user.email,password:PASSWORD,rememberMe:true};assert.equal((await request(enabled.server).post('/api/v1/auth/signin').send(body)).status,403);assert.equal((await request(enabled.server).post('/api/v1/auth/signin').set({Origin:'https://untrusted.invalid','X-HanQ-CSRF':'1'}).send(body)).status,403);
+    const rows=await pool.query<{seconds:number}>('SELECT extract(epoch FROM expires_at-created_at)::int seconds FROM hanq.session_families WHERE user_id=$1',[user.userId]);assert(rows.rows.every(x=>x.seconds===2592000));
+  });
+  it('explicit opt-in persists an absolute90d family and15min access; rotation at day89 never extends the cap', async () => {
+    const original=enabled.clock.now().getTime();try{const user=await signup(enabled),r=await request(enabled.server).post('/api/v1/auth/signin').set(csrf).send({email:user.email,password:PASSWORD,rememberMe:true});assert.equal(r.status,200);assert.equal(r.body.retentionMode,'remember-90d');assert.equal(Date.parse(r.body.accessTokenExpiresAt)-original,900000);assert.equal(Date.parse(r.body.sessionExpiresAt)-original,90*day);assert.equal(expiry(r)-original,90*day);
+      const plan=await request(enabled.server).get('/api/v1/premium/plan');assert.equal(plan.body.auth.rememberMe.available,true);assert.equal(plan.body.auth.rememberMe.maxDays,90);
+      enabled.clock.advance(89*day);const rotated=await request(enabled.server).post('/api/v1/auth/refresh').set(csrf).set('Cookie',refreshCookie(r)!);assert.equal(rotated.status,200);assert.equal(rotated.body.sessionExpiresAt,r.body.sessionExpiresAt);assert.equal(expiry(rotated),expiry(r));assert.equal(Date.parse(rotated.body.accessTokenExpiresAt)-enabled.clock.now().getTime(),900000);
+      const rows=await pool.query<{seconds:number}>('SELECT extract(epoch FROM expires_at-created_at)::int seconds FROM hanq.session_families WHERE user_id=$1 AND retention_mode=$2',[user.userId,'remember-90d']);assert.equal(rows.rows.length,1);assert.equal(rows.rows[0].seconds,7776000);
+      enabled.clock.advance(day+1);assert.equal((await request(enabled.server).post('/api/v1/auth/refresh').set(csrf).set('Cookie',refreshCookie(rotated)!)).status,401);
+    }finally{enabled.clock.t=original;}
+  });
+});

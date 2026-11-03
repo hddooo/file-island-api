@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_pro
 const C=require('./functional-evidence.cjs'),I=require('./image-build-contract.cjs');
 const PG='sha256:b8faeff7712663c2773a190181e1246e37e364b887611c04658c28b44e2408fe';
 const BASELINE='sha256:5ffd2cc49f557fab789dd8f5092350ff27c8396ccfee0dda1c29c774e0a347b6';
-const CONTROLLER='1c760553e2654dc723340103008cec4f61afda8cc3f690b642442ed41957a47d';
+const CONTROLLER='827cc3771494682555dfb2776d1557f1ca15c2ccbc09bab4848f75869ebe8143';
 const SEMANTIC='3837183b92605f8ffeb1eeba490f0b599c9c78569c31d8d6311a32d2439b0846';
 const DEFINITION='ops-prep/functional-recipe.json';
 const SHA=/^[a-f0-9]{40}$/,DIGEST=/^sha256:[a-f0-9]{64}$/;
