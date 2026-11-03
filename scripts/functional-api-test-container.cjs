@@ -1,5 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),cp=require('node:child_process'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+// Exact existing hosted-CI exclusions approved for unavailable private FE/textbook data.
+const CI_UNIT_EXCLUSIONS=Object.freeze(["catalog.test.js","quality-revision.test.js","source-answer-normalization.test.js","source-blank-progress.test.js","source-blank-workspace.test.js"]);
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex');
 const REQUIRED_CASES={
  'auth-session':['auth.test.js'],
@@ -31,14 +33,13 @@ async function main(){
  const mode=process.argv[2];assert(['unit','integration'].includes(mode));assert.equal(process.env.NODE_ENV,'test');
  const source=process.env.HANQ_QUAL_SOURCE_COMMIT;assert(/^[a-f0-9]{40}$/.test(source||''));
  if(mode==='integration'){const u=new URL(process.env.HANQ_TEST_DATABASE_URL);assert.equal(u.hostname,'127.0.0.1');assert(u.pathname.endsWith('_test'));}
- const original='/run/toeic-fixture/round-with-checks.prepared.json';if(mode==='unit')assert(fs.statSync(original).isFile(),'Original TOEIC fixture is required; no optional skip qualification');const originalHash=mode==='unit'?sha(fs.readFileSync(original)):null;
- const inventory=files('/app/dist/test/'+mode);assert.equal(inventory.length,mode==='unit'?67:40,'Unexpected complete API test inventory');
+ const completeInventory=files('/app/dist/test/'+mode);assert.equal(completeInventory.length,mode==='unit'?67:40,'Unexpected complete source test inventory');const excludedFiles=mode==='unit'?CI_UNIT_EXCLUSIONS:[];const inventory=completeInventory.filter(file=>!excludedFiles.includes(path.basename(file)));assert.equal(inventory.length,mode==='unit'?62:40,'Unexpected exact CI test inventory');
  const semantic=semanticIdentity('/app/private-textbook-semantic-data'),results=[];assert.equal(semantic.sha256,process.env.HANQ_QUAL_SEMANTIC_SHA256,'Semantic identity mismatch');
  for(const file of inventory){const context=mode==='integration'&&path.basename(file)==='textbook-revision-routing.test.js'?await prepareRevisionContext(file):null;try{const child=cp.spawnSync(process.execPath,['--test','--test-concurrency=1','--test-reporter=tap',context?.file||file],{encoding:'utf8',timeout:240000,maxBuffer:64*1024*1024});const text=(child.stdout||'')+'\n'+(child.stderr||'');let counts;try{counts=countsFromTap(text);}catch{counts={tests:0,pass:0,fail:1,skipped:0,cancelled:0,todo:0};}results.push({file:path.basename(file),counts,exitCode:child.status,signal:child.signal||null,rawTapSha256:sha(text),...(context?{fixtureIsolation:context.proof}:{})});}finally{context?.cleanup();}}
  const caseResults=mode==='integration'?Object.entries(REQUIRED_CASES).map(([title,requiredFiles])=>({title,files:requiredFiles,passed:requiredFiles.every(file=>results.some(r=>r.file===file&&passed(r)))})):[];
- assert.deepEqual(semanticIdentity('/app/private-textbook-semantic-data'),semantic,'Semantic input changed during tests');if(mode==='unit')assert.equal(sha(fs.readFileSync(original)),originalHash,'Original fixture changed during tests');
- const result={version:1,suite:'api-'+mode,sourceCommit:source,files:results,caseResults,semantic,originalFixture:mode==='unit'?{sha256:originalHash}:null,privateTapExported:false,passed:results.every(passed)&&caseResults.every(x=>x.passed)};
+ assert.deepEqual(semanticIdentity('/app/private-textbook-semantic-data'),semantic,'Semantic input changed during tests');
+ const result={version:1,suite:'api-'+mode,sourceCommit:source,files:results,caseResults,semantic,originalFixture:null,excludedFiles,privateTapExported:false,passed:results.every(passed)&&caseResults.every(x=>x.passed)};
  process.stdout.write(JSON.stringify(result));if(!result.passed)process.exitCode=1;
 }
 if(require.main===module)main().catch(()=>{process.stdout.write(JSON.stringify({version:1,passed:false,error:'API test container preflight or execution failed; private details withheld'}));process.exitCode=1;});
-module.exports={REQUIRED_CASES,countsFromTap,passed,treeIdentity,prepareRevisionContext};
+module.exports={CI_UNIT_EXCLUSIONS,REQUIRED_CASES,countsFromTap,passed,treeIdentity,prepareRevisionContext};

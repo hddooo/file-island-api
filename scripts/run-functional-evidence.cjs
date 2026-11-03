@@ -8,7 +8,7 @@ if(require.main===module){try{
  const plan=JSON.parse(fs.readFileSync(planFile,'utf8')),roots=JSON.parse(fs.readFileSync(rootsFile,'utf8'));
  // Inherit only ordinary process necessities and non-secret test fixture/configuration names.
  // Test harnesses generate synthetic database/JWT credentials in memory; production variables are never inherited.
- const allowed=/^(?:PATH|Path|PATHEXT|SystemRoot|SYSTEMROOT|TEMP|TMP|HOME|USERPROFILE|CI|GITHUB_ACTIONS|GITHUB_REPOSITORY|GITHUB_SHA|GITHUB_REF|GITHUB_EVENT_NAME|GITHUB_WORKFLOW_REF|GITHUB_RUN_ID|GITHUB_RUN_ATTEMPT|HANQ_TOEIC_FIXTURE_DIR)$/;
+ const allowed=/^(?:PATH|Path|PATHEXT|SystemRoot|SYSTEMROOT|TEMP|TMP|HOME|USERPROFILE|CI|GITHUB_ACTIONS|GITHUB_REPOSITORY|GITHUB_SHA|GITHUB_REF|GITHUB_EVENT_NAME|GITHUB_WORKFLOW_REF|GITHUB_RUN_ID|GITHUB_RUN_ATTEMPT)$/;
  const env=Object.fromEntries(Object.entries(process.env).filter(([key])=>allowed.test(key)));
  const evidence=C.executePlan(plan,roots,env);fs.writeFileSync(path.resolve(outputFile),JSON.stringify(evidence,null,2)+'\n',{flag:'wx'});
  console.log(JSON.stringify({output:path.basename(outputFile),sourceCommit:evidence.apiCommit,executionPhase:evidence.executionPhase,workflowStatus:evidence.workflowStatus,authenticated:false,productionQualified:false,artifactName:'hanq-release-evidence-'+evidence.apiCommit+'-'+evidence.producer.runId+'-'+evidence.producer.runAttempt}));

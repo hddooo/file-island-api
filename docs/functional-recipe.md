@@ -23,3 +23,5 @@ The deployment list is expanded to all22 scripts test files after overlaying the
 ## Parent-requested narrow auth composition
 
 This separate local composition applies only auth92429f9 (baseaa84) on textbookab5bffe, with exact3-file auth blob equality and unchanged textbook product blobs. It does not select another broad API branch. The additional Nest capability test makes the exact inventory67 unit/40 integration; the earlier textbook-only66/40 proof is preserved separately. No remember flag, TTL, cookie, CSRF, SQL, infrastructure or runtime is activated. Operating rememberEnabled remains false, so code-only deployment does not enable the remember UI. Parent owns remote merge and deployment.
+
+Private-material CI boundary: preserve all67 unit source files, run exactly62 using the same five existing hosted-CI exclusions, and retain the three original-only TOEIC cases under test/local-original outside CI. No original TOEIC fixture, fixture mount or fixture variable is required by either CI producer. Public evidence invariants remain in the original unit files. Failure/skip, six-suite provenance and runtime trust/security guards remain strict.

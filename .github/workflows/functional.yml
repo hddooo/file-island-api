@@ -28,10 +28,9 @@ jobs:
         env:
           HANQ_FUNCTIONAL_PLAN_FILE: ${{ vars.HANQ_FUNCTIONAL_PLAN_FILE }}
           HANQ_FUNCTIONAL_ROOTS_FILE: ${{ vars.HANQ_FUNCTIONAL_ROOTS_FILE }}
-          HANQ_TOEIC_FIXTURE_DIR: ${{ vars.HANQ_TOEIC_FIXTURE_DIR }}
         run: |
           $ErrorActionPreference='Stop'
-          if (!$env:HANQ_FUNCTIONAL_PLAN_FILE -or !$env:HANQ_FUNCTIONAL_ROOTS_FILE -or !$env:HANQ_TOEIC_FIXTURE_DIR) { throw 'Reviewed execution inputs and original local fixture required' }
+          if (!$env:HANQ_FUNCTIONAL_PLAN_FILE -or !$env:HANQ_FUNCTIONAL_ROOTS_FILE) { throw 'Reviewed execution inputs required' }
           node scripts/run-functional-evidence.cjs $env:HANQ_FUNCTIONAL_PLAN_FILE $env:HANQ_FUNCTIONAL_ROOTS_FILE release-evidence.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Retain exact execution evidence only

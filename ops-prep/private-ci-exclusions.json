@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "sourceUnitFiles": 67,
+  "ciUnitFiles": 62,
+  "excludedUnitFiles": [
+    "catalog.test.js",
+    "quality-revision.test.js",
+    "source-answer-normalization.test.js",
+    "source-blank-progress.test.js",
+    "source-blank-workspace.test.js"
+  ],
+  "priorScope": ".github/workflows/ci.yml on aa84c4a8af0414464acdbfdbe62cd50241a65ef2",
+  "originalOnlyCasesMoved": [
+    "test/local-original/toeic-lc-evidence.test.ts",
+    "test/local-original/toeic-part7-evidence.test.ts",
+    "test/local-original/toeic-part7-translations.test.ts"
+  ],
+  "originalFixtureRequiredByCi": false,
+  "noSkippedCiResultAccepted": true,
+  "productionTrustGuardChanged": false
+}
