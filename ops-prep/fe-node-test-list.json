@@ -32,6 +32,7 @@
   "scripts/test-rainbow-station.cjs",
   "scripts/test-remember-session.cjs",
   "scripts/test-review-completion-cards.cjs",
+  "scripts/test-static-site-build.cjs",
   "scripts/test-subject-player-menu.cjs",
   "scripts/test-toeic-partial-readiness.cjs",
   "scripts/test-toeic-practice-client.cjs",
