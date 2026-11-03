@@ -1,7 +1,7 @@
 import {Body,Controller,Get,Param,ParseUUIDPipe,Patch,Post,Query,UseGuards} from '@nestjs/common';
 import {CurrentAuth,JwtAuthGuard,type AuthContext} from '../auth/guards';
 import {PortalService} from './portal.service';
-import {AdminXpDto,AdminMemberDto,InquiryDto,MessageDto,PageQuery,LoginAnalyticsQuery} from './portal.dto';
+import {AdminXpDto,AdminPartnerXpDto,AdminMemberDto,InquiryDto,MessageDto,PageQuery,LoginAnalyticsQuery} from './portal.dto';
 @Controller('api/v1') @UseGuards(JwtAuthGuard) export class PortalController{
  constructor(private readonly portal:PortalService){}
  @Get('ops') status(@CurrentAuth()a:AuthContext){return this.portal.status(a.userId);}
@@ -9,6 +9,8 @@ import {AdminXpDto,AdminMemberDto,InquiryDto,MessageDto,PageQuery,LoginAnalytics
  @Get('ops/members') members(@CurrentAuth()a:AuthContext,@Query()q:PageQuery){return this.portal.members(a.userId,q);}
  @Get('ops/members/:id') member(@CurrentAuth()a:AuthContext,@Param('id',ParseUUIDPipe)id:string,@Query()q:PageQuery){return this.portal.member(a.userId,id,q);}
  @Post('ops/members/:id/xp') adjustXp(@CurrentAuth()a:AuthContext,@Param('id',ParseUUIDPipe)id:string,@Body()d:AdminXpDto){return this.portal.adjustXp(a.userId,id,d);}
+ @Get('ops/members/:id/partners') memberPartners(@CurrentAuth()a:AuthContext,@Param('id',ParseUUIDPipe)id:string){return this.portal.memberPartners(a.userId,id);}
+ @Post('ops/members/:id/partners/:partnerId/xp') adjustPartnerXp(@CurrentAuth()a:AuthContext,@Param('id',ParseUUIDPipe)id:string,@Param('partnerId',ParseUUIDPipe)partnerId:string,@Body()d:AdminPartnerXpDto){return this.portal.adjustPartnerXp(a.userId,id,partnerId,d);}
  @Patch('ops/members/:id') edit(@CurrentAuth()a:AuthContext,@Param('id',ParseUUIDPipe)id:string,@Body()d:AdminMemberDto){return this.portal.edit(a.userId,id,d.displayName);}
  @Get('ops/inquiries') inbox(@CurrentAuth()a:AuthContext,@Query()q:PageQuery){return this.portal.list(a.userId,q,true);}
  @Get('ops/inquiries/:id') adminDetail(@CurrentAuth()a:AuthContext,@Param('id',ParseUUIDPipe)id:string){return this.portal.detail(a.userId,id,true);}

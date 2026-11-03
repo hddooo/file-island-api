@@ -218,6 +218,10 @@
     {
       "version": "055_coin_eggs_timed_hatch.sql",
       "checksum": "c92d72d0220f6b12478dfc0a6298d6df42641bc28fcbedc60abcd2ddf8a5558e"
+    },
+    {
+      "version": "056_admin_partner_xp.sql",
+      "checksum": "13eeb81ff165a6ad1ad03aa2c1793ede79e020cdd5cc5383917fe740cd6796ab"
     }
   ],
   "privilegesSha256": "9fc57d632355720757da4ec9ba9a44fcb59bae296b295fb561e0a494039960c0"
