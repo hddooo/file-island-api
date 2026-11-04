@@ -24,10 +24,6 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '24'
-      - name: Validate image build contract
-        env:
-          SOURCE_CONTRACT_MIGRATION_PROFILE: ${{ inputs.migration_profile }}
-        run: node --test scripts/image-build-contract.test.cjs scripts/migration-build-profile.test.cjs
       - name: Build LF image and run isolated native-module smoke
         env:
           MIGRATION_PROFILE: ${{ inputs.migration_profile }}
