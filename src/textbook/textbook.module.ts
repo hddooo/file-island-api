@@ -9,5 +9,8 @@ import { JoseonScriptService } from './joseon-script.service';
 import { GoryeoScriptController } from './goryeo-script.controller';
 import { GoryeoScriptService } from './goryeo-script.service';
 
-@Module({ controllers: [TextbookController, JoseonScriptController, GoryeoScriptController], providers: [TextbookMemberGuard, TextbookService, SourceBlankProgressService, JoseonScriptService, ScriptHeadersGuard, GoryeoScriptService] })
+import { OpeningScriptController } from './opening-script.controller';
+import { OpeningScriptService } from './opening-script.service';
+
+@Module({ controllers: [TextbookController, JoseonScriptController, GoryeoScriptController, OpeningScriptController], providers: [TextbookMemberGuard, TextbookService, SourceBlankProgressService, JoseonScriptService, ScriptHeadersGuard, GoryeoScriptService, OpeningScriptService] })
 export class TextbookModule {}

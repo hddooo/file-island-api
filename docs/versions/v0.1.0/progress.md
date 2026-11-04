@@ -170,3 +170,8 @@ Implemented an additive exact-source GET bundle/PNG controller on deployed-snaps
 ## 2026-11-04 Goryeo Script local transport
 
 Dedicated immutable Goryeo GET transport implemented from ee9487e; see [contract and future rollout](../../goryeo-script-transport.md). Existing Joseon/auth/progress sources are preserved; only TextbookModule registration changes. Local tests and actual-source verification are separate from publication/deployment. No push, migration or runtime change performed. Windows link-creation limitations remain explicitly documented.
+
+
+## 2026-11-04 Opening Script local transport
+
+Opening-only immutable transport prepared from 83db3a9 with the supplied hanq-opening-local/1 handoff. See [contract and release gates](../../opening-script-transport.md). Existing Joseon/Goryeo/auth/progress implementations remain unchanged; only TextbookModule registration changes. Final independent FE audit and adapter/index integration remain gates. No push, deployment, original-data changes or migration performed.
