@@ -24,6 +24,7 @@ hanq-private-data/
 .env.*
 !.env.example
 private-data/
+private-script-data/
 hanq-private-data/
 private-textbook-semantic-data/
 assets/home-server/
