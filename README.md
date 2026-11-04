@@ -111,3 +111,5 @@ only an isolated loopback `*_test` database via `test/helpers/db.ts`).
 ## 운영 원칙
 
 기존 Node/Render 및 Supabase 설정을 사용한다. 마이그레이션·seed·설정·유료 자원 변경은 문서 정리의 일부가 아니다. 가입/세션/채점·정산을 검사할 때 실제 사용자 데이터 대신 격리 환경을 사용한다. 신규 결제 제공자·환불·다중 인스턴스 지원을 이 문서가 활성화하지 않는다. 현재 기능 상태·검증 한계·다음 업무는 위 버전 문서를 따른다.
+
+Goryeo Script local implementation: [private transport contract and future rollout](docs/goryeo-script-transport.md).

@@ -165,3 +165,8 @@ QA launcher는 독립 임시 port와240초 한계를 사용한다. embedded-post
 # 2026-11-04 Joseon Script private transport backport
 
 Implemented an additive exact-source GET bundle/PNG controller on deployed-snapshot baseline `96c6b7a`; existing JWT/live-session and textbook membership guards are unchanged. Source inputs remain outside Git/build/static roots. See [contract and rollout evidence](../../joseon-script-transport.md). Final isolated typecheck/lint/build passed; unit suite: 301 passed, 3 optional-fixture skips, 0 failures. Original bundle and all 38 PNG HTTP hashes matched locally. Deployment/private runtime mount and real-account verification remain pending; no schema, progress or canonical quiz identity changes.
+
+
+## 2026-11-04 Goryeo Script local transport
+
+Dedicated immutable Goryeo GET transport implemented from ee9487e; see [contract and future rollout](../../goryeo-script-transport.md). Existing Joseon/auth/progress sources are preserved; only TextbookModule registration changes. Local tests and actual-source verification are separate from publication/deployment. No push, migration or runtime change performed. Windows link-creation limitations remain explicitly documented.
