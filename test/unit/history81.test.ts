@@ -55,6 +55,30 @@ test('same mutation retry is idempotent; conflicting retry and concurrent stale 
  await assert.rejects(f.api.save('a',HISTORY81_PDF,'goryeo',{...b,status:'paused'}),{code:'source_progress_conflict'});
  const races=await Promise.allSettled([f.api.save('a',HISTORY81_PDF,'goryeo',{...f.batch(),revision:1}),f.api.save('a',HISTORY81_PDF,'goryeo',{...f.batch(),revision:1})]);assert.equal(races.filter(r=>r.status==='fulfilled').length,1);assert.equal((await f.api.get('a',HISTORY81_PDF,'goryeo')).revision,2);
 });
+test('review selection marks/unmarks and reloads independently of answers, grades, masks and owner',async()=>{
+ const f=service(),id=f.quiz.items[0].id;
+ const empty=await f.api.get('a',HISTORY81_PDF,'goryeo');assert.deepEqual(empty.workspace.selectedReviewQuestionIds,[]);assert.equal(empty.reviewSelectionAvailable,true);
+ const answered=await f.api.save('a',HISTORY81_PDF,'goryeo',f.batch());
+ const mark={...f.batch(),revision:1,updates:[],selectedReviewQuestionIds:[id]};
+ const marked=await f.api.save('a',HISTORY81_PDF,'goryeo',mark);assert.equal(marked.reviewSelectionAvailable,true);assert.deepEqual(marked.workspace.responses,answered.workspace.responses);assert.deepEqual(marked.workspace.selectedReviewQuestionIds,[id]);
+ assert.deepEqual(await f.api.save('a',HISTORY81_PDF,'goryeo',mark),marked);
+ assert.deepEqual((await f.api.get('a',HISTORY81_PDF,'goryeo')).workspace,marked.workspace);
+ for(const [user,era]of [['b','goryeo'],['a','joseon']])assert.deepEqual((await f.api.get(user,HISTORY81_PDF,era)).workspace.selectedReviewQuestionIds,[]);
+ await assert.rejects(f.api.save('a',HISTORY81_PDF,'goryeo',{...mark,selectedReviewQuestionIds:[]}),{code:'source_progress_conflict'});
+ const oldClient=await f.api.save('a',HISTORY81_PDF,'goryeo',{...f.batch(),revision:2,status:'paused',updates:[{itemId:id,values:['draft'],submitted:false,checkedSlots:[false]}]});assert.deepEqual(oldClient.workspace.selectedReviewQuestionIds,[id]);
+ const cleared=await f.api.save('a',HISTORY81_PDF,'goryeo',{...f.batch(),revision:3,status:'paused',updates:[],selectedReviewQuestionIds:[]});assert.deepEqual(cleared.workspace.selectedReviewQuestionIds,[]);assert.deepEqual(cleared.workspace.responses,oldClient.workspace.responses);assert.equal(cleared.workspace.status,'paused');
+});
+test('older stored JSON defaults selection to empty without rewriting row or invalidating retry',async()=>{
+ const f=service(),batch=f.batch();await f.api.save('a',HISTORY81_PDF,'goryeo',batch);
+ const row=[...f.rows.values()][0];delete (row.workspace as Record<string,unknown>).selectedReviewQuestionIds;const before=JSON.stringify(row);
+ const saved=await f.api.get('a',HISTORY81_PDF,'goryeo');assert.deepEqual(saved.workspace.selectedReviewQuestionIds,[]);assert.equal(saved.revision,1);assert.equal(JSON.stringify(row),before);
+ assert.deepEqual((await f.api.save('a',HISTORY81_PDF,'goryeo',batch)).workspace.selectedReviewQuestionIds,[]);assert.equal(JSON.stringify(row),before);
+});
+test('invalid/null/duplicate/other-era review IDs cannot start a transaction',async()=>{
+ const f=service(),id=f.quiz.items[0].id;
+ for(const selectedReviewQuestionIds of [null,'bad',[null],[id,id],['unknown'],[id.replace(':goryeo:',':joseon:')],Array(173).fill(id)])await assert.rejects(f.api.save('a',HISTORY81_PDF,'goryeo',{...f.batch(),selectedReviewQuestionIds} as unknown as Parameters<History81Service['save']>[3]),{code:'invalid_source_progress'});
+ assert.equal(f.calls.length,0);assert.equal(f.rows.size,0);
+});
 test('invalid mutations cannot enter a transaction or alter records',async()=>{
  const f=service(),b=f.batch();for(const patch of [{version:'old79'},{revision:-1},{mutationId:'bad'},{cursor:1},{updates:[{...b.updates[0],itemId:'old79'}]},{updates:[b.updates[0],b.updates[0]]},{updates:[{...b.updates[0],values:[]}]},{updates:[{...b.updates[0],values:['x'.repeat(2001)]}]},{updates:[{...b.updates[0],checkedSlots:[]}]}])await assert.rejects(f.api.save('a',HISTORY81_PDF,'goryeo',{...b,...patch}),{code:'invalid_source_progress'});assert.equal(f.calls.length,0);assert.equal(f.rows.size,0);
 });
@@ -69,6 +93,10 @@ test('HTTP guards, private errors, DTO owner/grade rejection, bounded save and r
  try{const req=request(app.getHttpServer()),base=`/api/v1/textbook/revisions/${HISTORY81_PDF}/semantic`,route=base+'/workspaces/goryeo';
   for(const endpoint of [route,base+'/quizzes/goryeo']){await req.get(endpoint).expect(401).expect('Cache-Control','private, no-store').expect('X-Content-Type-Options','nosniff').expect('Cross-Origin-Resource-Policy','same-site');await req.get(endpoint).set('Authorization','Bearer invalid-token-1234567890').expect(401);await req.get(endpoint).set('Authorization','Bearer '+token).expect(200);}
   await req.put(route).send(f.batch()).expect(401);for(const patch of [{userId:'b'},{updates:[{...f.batch().updates[0],correct:true}]},{updates:Array(201).fill(f.batch().updates[0])}])await req.put(route).set('Authorization','Bearer '+token).send({...f.batch(),...patch}).expect(400);
-  await req.put(route).set('Authorization','Bearer '+token).send(f.batch()).expect(200);revoked=true;await req.get(route).set('Authorization','Bearer '+token).expect(401);await req.put(route).set('Authorization','Bearer '+token).send(f.batch()).expect(401);assert.equal(f.rows.size,1);
+  await req.put(route).set('Authorization','Bearer '+token).send(f.batch()).expect(200);
+  const id=f.quiz.items[0].id;for(const selection of [null,'bad',[id,id],['unknown'],Array(173).fill(id)])await req.put(route).set('Authorization','Bearer '+token).send({...f.batch(),revision:1,updates:[],selectedReviewQuestionIds:selection}).expect(400);
+  const marked=await req.put(route).set('Authorization','Bearer '+token).send({...f.batch(),revision:1,updates:[],selectedReviewQuestionIds:[id]}).expect(200);assert.deepEqual(marked.body.workspace.selectedReviewQuestionIds,[id]);assert.equal(marked.body.reviewSelectionAvailable,true);
+  const loaded=await req.get(route).set('Authorization','Bearer '+token).expect(200);assert.deepEqual(loaded.body.workspace,marked.body.workspace);
+  revoked=true;await req.get(route).set('Authorization','Bearer '+token).expect(401);await req.put(route).set('Authorization','Bearer '+token).send(f.batch()).expect(401);assert.equal(f.rows.size,1);
  }finally{await app.close();}
 });

@@ -27,8 +27,15 @@ async function main(){
  assert.deepEqual((await s.get(b,HISTORY81_PDF,'goryeo')).workspace.responses,{});assert.deepEqual((await s.get(a,HISTORY81_PDF,'joseon')).workspace.responses,{});
  const paused=await s.save(a,HISTORY81_PDF,'goryeo',{...batch(),revision:1,status:'paused',updates:[{itemId:quiz.items[0].id,values:['unfinished'],submitted:false,checkedSlots:[false]}]});assert.equal(paused.revision,2);
  assert.deepEqual(await service().get(a,HISTORY81_PDF,'goryeo'),paused);
+ // Additive selection lives in the same optimistic transaction, independently of graded slots.
+ const selected={...batch(),revision:2,status:'paused',updates:[],selectedReviewQuestionIds:[quiz.items[0].id]};
+ const marked=await s.save(a,HISTORY81_PDF,'goryeo',selected);assert.deepEqual(marked.workspace.responses,paused.workspace.responses);assert.deepEqual(marked.workspace.selectedReviewQuestionIds,[quiz.items[0].id]);
+ assert.deepEqual(await s.save(a,HISTORY81_PDF,'goryeo',selected),marked);assert.deepEqual(await service().get(a,HISTORY81_PDF,'goryeo'),marked);
+ assert.deepEqual((await s.get(b,HISTORY81_PDF,'goryeo')).workspace.selectedReviewQuestionIds,[]);assert.deepEqual((await s.get(a,HISTORY81_PDF,'joseon')).workspace.selectedReviewQuestionIds,[]);
+ const oldPayload=await s.save(a,HISTORY81_PDF,'goryeo',{...batch(),revision:3,status:'paused',updates:[]});assert.deepEqual(oldPayload.workspace.selectedReviewQuestionIds,[quiz.items[0].id]);
+ const unmarked=await s.save(a,HISTORY81_PDF,'goryeo',{...batch(),revision:4,status:'paused',updates:[],selectedReviewQuestionIds:[]});assert.deepEqual(unmarked.workspace.selectedReviewQuestionIds,[]);assert.deepEqual(unmarked.workspace.responses,paused.workspace.responses);
  assert.deepEqual((await pool.query('SELECT * FROM hanq.source_blank_workspaces WHERE source_version=$1',['legacy79'])).rows,original);
  assert.equal((await pool.query('SELECT count(*)::int AS n FROM hanq.source_blank_workspaces')).rows[0].n,2);
- console.log(JSON.stringify({isolatedPostgres:true,concurrentInsert:'one success / one conflict',retry:'idempotent',accountAndEraIsolation:true,legacyRowUnchanged:true,pauseResumeAcrossServiceInstances:true,productionAccess:false}));
+ console.log(JSON.stringify({isolatedPostgres:true,concurrentInsert:'one success / one conflict',retry:'idempotent',accountAndEraIsolation:true,legacyRowUnchanged:true,pauseResumeAcrossServiceInstances:true,reviewSelectionMarkUnmarkReload:true,oldPayloadPreservesSelection:true,answersAndMasksPreserved:true,productionAccess:false}));
 }
 main().finally(()=>pool.end()).catch(e=>{console.error(e.message);process.exitCode=1;});
