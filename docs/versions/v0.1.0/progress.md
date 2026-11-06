@@ -166,3 +166,11 @@ QA launcher는 독립 임시 port와240초 한계를 사용한다. embedded-post
 ## 2026-11-03 CI/CD local review preparation
 
 Prepared the new-repository/main/manual-only functional producer and exact66/40 inventory checks on a separate local review checkout. No remote workflow, runner, credential, controller installation, database, runtime or feature activation was changed. Actual local suite results and missing original fixture inputs are recorded in the external review handoff; full authenticated six-suite qualification remains pending.
+
+
+## 2026-11-06 · CBT 공개 자산 기본 주소 수정
+
+- 운영 프런트의 공개 manifest501개와 파일 전체의 WebP/SHA 검증 결과에 따라 기본 CBT asset base를 study.fileisland.co.kr/media/cbt-originals로 수정했다. 이전 hanq.vercel.app manifest는404다. 명시적 override/off, 비공개 directory, HTTPS/URL 검증과 시작 전 이미지 무결성 가드는 유지한다.
+- config 회귀에 현재 기본값·빈 값 fallback·명시적 HTTPS override와 trailing slash 보존 검사를 반영했다. 실제 DB/토큰/사용자 데이터 없이 합성 설정만 사용한다.
+- main 빌드 전용 CI와 운영 Windows controller/bootstrap의 배포 계약을 구분한다. 현재 런타임 override와 인증 rounds는 읽기 접근이 없어 미확인이다. 코드 수정/push를 운영 완료로 표시하지 않고, 새 권한·배포 우회·migration/seed·실제 시험/답안 제출을 수행하지 않는다.
+- 집중 검수: 설정 의존 코드 TypeScript 컴파일, config 단위24개, 변경된 두 TS 파일 ESLint 통과. 공개 health200/manifest501개200/옛 manifest404, 인증 rounds401을 재확인했다. 전체 API 빌드는 정확 커밋 CI로 별도 확인하며 DB integration이나 운영시험 시작을 실행했다고 주장하지 않는다.

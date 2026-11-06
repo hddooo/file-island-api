@@ -25,10 +25,13 @@ function throwsClean(fn: () => unknown, re: RegExp) {
 }
 
 describe('config fails closed', () => {
-  it('uses the existing public frontend by default without a Render asset ENV', () => {
+  it('uses the current public frontend by default without an asset ENV', () => {
     const c = loadConfig(prod());
     assert.equal(c.cbt?.assetDir, null);
-    assert.equal(c.cbt?.publicAssetBaseUrl, 'https://hanq.vercel.app/media/cbt-originals');
+    assert.equal(c.cbt?.publicAssetBaseUrl, 'https://study.fileisland.co.kr/media/cbt-originals');
+    assert.equal(loadConfig(prod({ HANQ_CBT_PUBLIC_ASSET_BASE_URL: '' })).cbt?.publicAssetBaseUrl, c.cbt?.publicAssetBaseUrl);
+    assert.equal(loadConfig(prod({ HANQ_CBT_PUBLIC_ASSET_BASE_URL: '  ' })).cbt?.publicAssetBaseUrl, c.cbt?.publicAssetBaseUrl);
+    assert.equal(loadConfig(prod({ HANQ_CBT_PUBLIC_ASSET_BASE_URL: 'https://assets.example.invalid/cbt/' })).cbt?.publicAssetBaseUrl, 'https://assets.example.invalid/cbt');
     assert.equal(loadConfig(prod({ HANQ_CBT_PUBLIC_ASSET_BASE_URL: 'off' })).cbt?.publicAssetBaseUrl, null);
     for (const bad of ['http://evil.example/images', 'https://u:p@evil.example/images', 'https://evil.example/images?token=x']) {
       const invalid = loadConfig(prod({ HANQ_CBT_PUBLIC_ASSET_BASE_URL: bad }));
@@ -151,3 +154,4 @@ describe('config fails closed', () => {
     assert.equal(ok.database.ssl, false);
   });
 });
+

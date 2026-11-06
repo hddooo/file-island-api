@@ -183,7 +183,7 @@ function cbtAssets(env: Env, warnings: string[]): NonNullable<AppConfig['cbt']> 
     }
     return v;
   };
-  const raw = str(env, 'HANQ_CBT_PUBLIC_ASSET_BASE_URL') ?? 'https://hanq.vercel.app/media/cbt-originals';
+  const raw = str(env, 'HANQ_CBT_PUBLIC_ASSET_BASE_URL') ?? 'https://study.fileisland.co.kr/media/cbt-originals';
   let publicAssetBaseUrl: string | null = null;
   if (raw !== 'off') {
     try {
@@ -267,4 +267,5 @@ export function loadConfig(env: Env, opts: { readFile?: (p: string) => string } 
     warnings,
   };
 }
+
 
