@@ -8,6 +8,8 @@ const {migrate}=require('../dist/src/db/migrator'),{DbService}=require('../dist/
  let time=Date.parse('2026-11-07T14:00:00Z'),clock={now:()=>new Date(time)};
  const service=new CbtService(clock,db,new CbtRepository(),new AttemptsRepository(),{verify:async()=>{},read:async()=>Buffer.from('synthetic')});
  try{
+ assert.equal((await pool.query('SELECT current_database() n')).rows[0].n,'cbt_uninterrupted_test');
+ await pool.query('DROP SCHEMA IF EXISTS hanq CASCADE');
  await migrate(pool,path.resolve('migrations'));
  const user=randomUUID();await pool.query("INSERT INTO hanq.users(id,email_normalized,email_display,password_hash,display_name,created_at,updated_at,password_changed_at) VALUES($1,'synthetic@test.invalid','synthetic@test.invalid','$argon2id$synthetic','Synthetic',$2,$2,$2)",[user,new Date(time)]);
  await pool.query("INSERT INTO hanq.owned_digimon(user_id,family,xp,stage,equipped,first_partner) VALUES($1,'agumon',0,0,true,true)",[user]);
