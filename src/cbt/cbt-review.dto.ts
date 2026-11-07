@@ -14,7 +14,7 @@ export class CbtStarImportDto {
 }
 export class CreateCbtReviewDto {
  @IsOptional() @IsIn(['exam-wrong-only']) selection?: 'exam-wrong-only';
- @IsInt() @Min(70) @Max(79) round: number;
+ @IsInt() @Min(70) @Max(80) round: number;
  @IsString() @Matches(SUBMISSION_ID) idempotencyKey: string;
 }
 export class CbtReviewAnswersDto {

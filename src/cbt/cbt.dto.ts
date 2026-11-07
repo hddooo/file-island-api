@@ -6,7 +6,7 @@ import { OPTION_ID, SUBMISSION_ID } from '../attempts/attempts.dto';
  *  (global ValidationPipe: whitelist + forbidNonWhitelisted). */
 export class CreateCbtRunDto {
   @IsOptional() @IsIn(['legacy','batch']) answerMode?: 'legacy' | 'batch';
-  @IsInt() @Min(70) @Max(79) round: number;
+  @IsInt() @Min(70) @Max(80) round: number;
   /** Client-generated key (e.g. a UUID) that makes create retries and double clicks return the same run. */
   @IsString() @Matches(SUBMISSION_ID) idempotencyKey: string;
 }
