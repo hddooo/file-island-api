@@ -15,6 +15,7 @@ import { SessionsRepository } from '../../src/auth/sessions.repository';
 import { loadConfig } from '../../src/config/config';
 import { JwtAuthGuard } from '../../src/auth/guards';
 import { ApiExceptionFilter } from '../../src/common/api-exception.filter';
+import { OpeningStructureService } from '../../src/textbook/opening-structure.service';
 import { OpeningScriptController } from '../../src/textbook/opening-script.controller';
 import { ScriptHeadersGuard } from '../../src/textbook/joseon-script.controller';
 import { OPENING_SCRIPT_IDENTITY, OPENING_SCRIPT_ROOT, OpeningScriptService, type ScriptPin } from '../../src/textbook/opening-script.service';
@@ -61,6 +62,7 @@ async function fixture() {
       return { rowCount: revoked ? 0 : 1 };
     } } } });
   const module = await Test.createTestingModule({ controllers: [OpeningScriptController], providers: [OpeningScriptService,
+    {provide:OpeningStructureService,useValue:{get:async()=>Buffer.from('{}')}},
     ScriptHeadersGuard, JwtAuthGuard, TextbookMemberGuard, { provide: OPENING_SCRIPT_ROOT, useValue: root },
     { provide: OPENING_SCRIPT_IDENTITY, useValue: pin },
     { provide: AuthService, useValue: auth },
@@ -77,7 +79,7 @@ test('GET byte delivery, private headers, JWT/live-session denial and no writes/
   const f = await fixture();
   try {
     const before = await readdir(f.root);
-    for (const path of ['/bundle', '/figures/p060-01.png']) {
+    for (const path of ['/bundle', '/structure', '/figures/p060-01.png']) {
       await f.request.get(f.base + path).expect(401).expect('Cache-Control', 'private, no-store').expect('X-Content-Type-Options', 'nosniff').expect('Cross-Origin-Resource-Policy', 'same-site');
       await f.request.get(f.base + path).set('Authorization', 'Bearer invalid-session-token-123456').expect(401);
       await f.get(path).expect(200).expect('Cache-Control', 'private, no-store').expect('X-Content-Type-Options', 'nosniff').expect('Cross-Origin-Resource-Policy', 'same-site');
@@ -211,7 +213,7 @@ test('closed HTTP response cancels delivery and suppresses response writes', asy
     destroyed: false,
     type: () => { throw new Error('response must not be written'); },
   });
-  const result = new OpeningScriptController(service).bundle('synthetic', response as unknown as Response);
+  const result = new OpeningScriptController(service,{} as OpeningStructureService).bundle('synthetic', response as unknown as Response);
   response.destroyed = true; response.emit('close'); release();
   await result;
   assert.equal(signal?.aborted, true);

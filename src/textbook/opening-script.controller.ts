@@ -4,11 +4,12 @@ import { JwtAuthGuard } from '../auth/guards';
 import { TextbookMemberGuard } from './textbook-member.guard';
 import { ScriptHeadersGuard } from './joseon-script.controller';
 import { OpeningScriptService } from './opening-script.service';
+import { OpeningStructureService } from './opening-structure.service';
 
 @Controller('api/v1/textbook/scripts/opening/:sourceSha256')
 @UseGuards(ScriptHeadersGuard, JwtAuthGuard, TextbookMemberGuard)
 export class OpeningScriptController {
-  constructor(private readonly script: OpeningScriptService) {}
+  constructor(private readonly script: OpeningScriptService, private readonly structureData: OpeningStructureService) {}
   private async deliver(res: Response, mime: string, read: (signal: AbortSignal) => Promise<Buffer>) {
     const abort = new AbortController();
     const closed = () => abort.abort();
@@ -23,6 +24,10 @@ export class OpeningScriptController {
   @Get('bundle')
   async bundle(@Param('sourceSha256') source: string, @Res() res: Response) {
     await this.deliver(res, 'application/json', signal => this.script.bundle(source, signal));
+  }
+  @Get('structure')
+  async structure(@Param('sourceSha256') source: string, @Res() res: Response) {
+    await this.deliver(res, 'application/json', signal => this.structureData.get(source, signal));
   }
   @Get('figures/:name')
   async figure(@Param('sourceSha256') source: string, @Param('name') name: string, @Res() res: Response) {
