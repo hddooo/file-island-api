@@ -104,8 +104,20 @@ export class CbtRepository {
 
   async listOwned(q: Queryable, userId: string): Promise<(CbtRunRow & { answered: number })[]> {
     const r = await q.query<CbtRunRow & { answered: number }>(
-      `SELECT r.*, (SELECT count(*)::int FROM hanq.cbt_run_items i WHERE i.run_id = r.id AND i.answer_option_id IS NOT NULL) AS answered
-         FROM hanq.cbt_runs r WHERE r.user_id = $1 ORDER BY r.created_at DESC, r.id LIMIT 100`,
+      `WITH ranked_final AS (
+           SELECT id, row_number() OVER (
+             PARTITION BY exam_round ORDER BY final_at DESC NULLS LAST, created_at DESC, id
+           ) AS recent_rank
+             FROM hanq.cbt_runs WHERE user_id = $1 AND status = 'final'
+         ), selected AS (
+           SELECT id FROM ranked_final WHERE recent_rank <= 3
+           UNION ALL
+           (SELECT id FROM hanq.cbt_runs WHERE user_id = $1 AND status IN ('ready', 'active')
+            ORDER BY created_at DESC, id LIMIT 100)
+         )
+         SELECT r.*, (SELECT count(*)::int FROM hanq.cbt_run_items i WHERE i.run_id = r.id AND i.answer_option_id IS NOT NULL) AS answered
+           FROM hanq.cbt_runs r JOIN selected s ON s.id = r.id
+          WHERE r.user_id = $1 ORDER BY r.created_at DESC, r.id`,
       [userId],
     );
     return r.rows;
