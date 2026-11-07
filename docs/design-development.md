@@ -208,3 +208,7 @@ Dockerfile은 pinned official Node24 amd64·nonroot·승인 mounted bootstrap �
 ### 통합 검사의 독립 oracle
 
 10/30 유지보수 이후 테스트의 mock XP 기대값은 server 응답 대신 FE fixture의 원래 배점을 사용한다. 출석은 signup과 별도 event/FK/날짜/정확한 금액으로 검사한다. test/fixtures/migration-manifest-20261030.json은 검토된 파일명·체크섬의 고정 목록이며 새 migration 승인 시 의도적으로 갱신한다. 실제 파일과 DB 적용 ledger가 이 목록과 정확히 일치하고 재실행으로 applied_at이 바뀌지 않아야 한다. 과거 음수 상태 fixture는 격리 DB transaction에서만 구성하며 현재 XP guard 실패와 rollback 뒤 guard 복구도 함께 검사한다.
+
+## Private question request staging
+
+[API contract and undeployed migration gate](question-request-staging.md). Owner uploads and manual answers stay private until reviewed; OCR, automatic review and publication remain disabled capabilities.

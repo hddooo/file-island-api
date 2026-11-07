@@ -1,0 +1,20 @@
+import 'reflect-metadata';
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {plainToInstance} from 'class-transformer';
+import {validate} from 'class-validator';
+import {QuestionRequestDto,QuestionRequestReviewDto} from '../../src/portal/question-request.dto';
+import {validateQuestionRequest,QUESTION_REQUEST_CAPABILITIES,QuestionRequestService} from '../../src/portal/question-request.service';
+import type {DbService} from '../../src/db/db.service';
+import type {PortalService} from '../../src/portal/portal.service';
+const input=()=>({requestId:'8e2a7010-ef71-4352-8f43-04ea447e1b9a',subject:'toeic',part:5,sourceLabel:'synthetic',questions:[{number:101,stem:'Synthetic question',choices:['A','B','C','D'].map(id=>({id,text:'Synthetic '+id})),correctOptionId:'B'}]});
+test('manual answer preserved; no inferred answer or automatic publication',()=>{const result=validateQuestionRequest(input());assert.equal(result.questions[0].correctOptionId,'B');assert.equal(result.questions[0].answerSource,'manual');assert.deepEqual(QUESTION_REQUEST_CAPABILITIES,{ocr:false,mediaUpload:true,publish:false,automaticReview:false});});
+test('missing manual answer and wrong part choices rejected',async()=>{const value=input();delete (value.questions[0] as {correctOptionId?:string}).correctOptionId;assert((await validate(plainToInstance(QuestionRequestDto,value))).length);assert.throws(()=>validateQuestionRequest({...input(),part:2}));});
+test('duplicate numbers and empty stems rejected',()=>{const value=input();value.questions.push(value.questions[0]);assert.throws(()=>validateQuestionRequest(value));const other=input();other.questions[0].stem=' ';assert.throws(()=>validateQuestionRequest(other,true));});
+test('unknown fields and publish state rejected',async()=>{assert((await validate(plainToInstance(QuestionRequestDto,{...input(),secret:'no'}),{whitelist:true,forbidNonWhitelisted:true})).length);assert((await validate(plainToInstance(QuestionRequestReviewDto,{expectedRevision:1,status:'published',reviewNote:'x'}))).length);});
+test('all service entry points enforce admin before data query',async()=>{let queries=0,checks=0;const db={tx:async(fn:(q:unknown)=>unknown)=>fn({query:()=>{queries++;throw Error('should not query');}})};const portal={admin:async()=>{checks++;throw Error('denied');}};const service=new QuestionRequestService(db as unknown as DbService,portal as unknown as PortalService);await assert.rejects(service.list('actor',{page:1,search:''},true));await assert.rejects(service.detail('actor','id',true));await assert.rejects(service.authorizeUpload('actor','id',true));await assert.rejects(service.review('actor','id',{expectedRevision:1,status:'reviewed',reviewNote:'review'}));assert.equal(checks,4);assert.equal(queries,0);});
+
+import {validateMedia,IMAGE_LIMIT} from '../../src/portal/question-request-media';
+test('uploads reject executable/svg, mismatch, excessive size and empty bytes',()=>{for(const [bytes,mime,purpose] of [[Buffer.from('<svg/>'),'image/svg+xml','source_image'],[Buffer.from('<html/>'),'image/png','source_image'],[Buffer.alloc(IMAGE_LIMIT+1),'image/png','source_image'],[Buffer.alloc(0),'audio/mpeg','audio']] as [Buffer,string,string][]){assert.throws(()=>validateMedia(bytes,mime,purpose));}});
+test('PNG dimensions checked; audio and image purposes separated',()=>{const image=Buffer.alloc(32);Buffer.from([137,80,78,71,13,10,26,10]).copy(image);image.writeUInt32BE(10,16);image.writeUInt32BE(10,20);assert.equal(validateMedia(image,'image/png','source_image').mediaType,'image/png');assert.throws(()=>validateMedia(image,'image/png','audio'));image.writeUInt32BE(30000,16);assert.throws(()=>validateMedia(image,'image/png','source_image'));});
+test('history answers remain 1..5; part is forbidden for history',()=>{const v={...input(),subject:'history',part:undefined,questions:[{number:1,stem:'Synthetic',choices:['1','2','3','4','5'].map(id=>({id,text:id})),correctOptionId:'3'}]};assert.equal(validateQuestionRequest(v,true).questions[0].correctOptionId,'3');assert.throws(()=>validateQuestionRequest({...v,part:1},true));});
