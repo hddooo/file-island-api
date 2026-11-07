@@ -6,16 +6,17 @@ import {PortalService} from './portal.service';
 import type {PageQuery} from './portal.dto';
 import type {QuestionRequestDto,QuestionRequestUpdateDto,QuestionRequestReviewDto} from './question-request.dto';
 import {validateMedia} from './question-request-media';
-export const QUESTION_REQUEST_CAPABILITIES={ocr:false,mediaUpload:true,publish:false,automaticReview:false};
+export const QUESTION_REQUEST_CAPABILITIES={ocr:false,mediaUpload:true,publish:true,automaticReview:false};
 export function validateQuestionRequest(d:QuestionRequestDto,submitted=false){
- if(!['toeic','history'].includes(d.subject)||d.subject==='toeic'&&(!d.part||d.part<1||d.part>7)||d.subject==='history'&&d.part!==undefined)throw new AppError(400,'invalid_subject','Choose a subject and valid part');
+ if(!['toeic','history'].includes(d.subject)||d.subject==='toeic'&&(!d.part||d.part<1||d.part>7)||d.subject==='history'&&d.part!=null)throw new AppError(400,'invalid_subject','Choose a subject and valid part');
  const allowed=d.subject==='history'?['1','2','3','4','5']:d.part===2?['A','B','C']:['A','B','C','D'];
  if(!d.sourceLabel.trim()||(submitted&&!d.questions.length)||new Set(d.questions.map(q=>q.number)).size!==d.questions.length)throw new AppError(400,'invalid_question_request','Source and unique question numbers are required');
  for(const q of d.questions){
+  if(q.cropProvenance){const c=q.cropProvenance,b=c.crop;if(!b||b.x0>=b.x1||b.y0>=b.y1||b.x1>c.sourceWidth||b.y1>c.sourceHeight||c.outputWidth!==b.x1-b.x0||c.outputHeight!==b.y1-b.y0)throw new AppError(400,'invalid_crop_bounds','Crop bounds must be inside the source image');}
   if(q.choices.length!==allowed.length||q.choices.some((c,i)=>c.id!==allowed[i])||!allowed.includes(q.correctOptionId))throw new AppError(400,'invalid_question_choices','Provide ordered choices and a manually entered answer');
   if(submitted&&(d.subject==='history'||(d.part||0)>=3)&&(!q.stem.trim()||q.choices.some(c=>!c.text.trim())))throw new AppError(400,'question_text_required','Question and choice text are required');
  }
- return {subject:d.subject,part:d.subject==='toeic'?d.part:null,sourceLabel:d.sourceLabel.trim(),questions:d.questions.map(q=>({number:q.number,stem:q.stem.trim(),choices:q.choices.map(c=>({id:c.id,text:c.text.trim()})),correctOptionId:q.correctOptionId,answerSource:'manual',passage:(q.passage||'').trim(),imageAssetId:q.imageAssetId||null,audioAssetId:q.audioAssetId||null})),note:(d.note||'').trim()};
+ return {subject:d.subject,part:d.subject==='toeic'?d.part:null,sourceLabel:d.sourceLabel.trim(),questions:d.questions.map(q=>({number:q.number,stem:q.stem.trim(),choices:q.choices.map(c=>({id:c.id,text:c.text.trim()})),correctOptionId:q.correctOptionId,answerSource:'manual',passage:(q.passage||'').trim(),imageAssetId:q.imageAssetId||null,audioAssetId:q.audioAssetId||null,...(q.cropProvenance?{cropProvenance:q.cropProvenance}:{})})),publicationAudience:d.publicationAudience||'private',note:(d.note||'').trim()};
 }
 @Injectable() export class QuestionRequestService {
  constructor(private readonly db:DbService,private readonly portal:PortalService){}

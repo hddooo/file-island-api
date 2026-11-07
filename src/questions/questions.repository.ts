@@ -42,14 +42,14 @@ export class QuestionsRepository {
   }
 
   async getCurrentPublic(q: Queryable, questionId: string): Promise<PublicQuestionRow | null> {
-    const r = await q.query<PublicQuestionRow>(`SELECT ${PUBLIC_COLS} FROM hanq.question_versions WHERE question_id = $1 AND is_current`, [questionId]);
+    const r = await q.query<PublicQuestionRow>(`SELECT ${PUBLIC_COLS} FROM hanq.question_versions WHERE question_id = $1 AND is_current AND public_payload->>'visibility' IS DISTINCT FROM 'authenticated-members'`, [questionId]);
     return r.rows[0] ?? null;
   }
 
   async listCurrentPublic(q: Queryable, f: { kind?: 'quiz' | 'mock'; era?: string; afterId?: string; limit: number }): Promise<PublicQuestionRow[]> {
     const r = await q.query<PublicQuestionRow>(
       `SELECT ${PUBLIC_COLS} FROM hanq.question_versions
-        WHERE is_current
+        WHERE is_current AND public_payload->>'visibility' IS DISTINCT FROM 'authenticated-members'
           AND ($1::text IS NULL OR kind = $1)
           AND ($2::text IS NULL OR era = $2 OR $2 = ANY (related_eras))
           AND ($3::text IS NULL OR question_id > $3)
@@ -74,7 +74,7 @@ export class QuestionsRepository {
   }
 
   async counts(q: Queryable): Promise<{ quiz: number; mock: number }> {
-    const r = await q.query<{ kind: string; n: string }>(`SELECT kind, count(*)::text AS n FROM hanq.question_versions WHERE is_current GROUP BY kind`);
+    const r = await q.query<{ kind: string; n: string }>(`SELECT kind, count(*)::text AS n FROM hanq.question_versions WHERE is_current AND public_payload->>'visibility' IS DISTINCT FROM 'authenticated-members' GROUP BY kind`);
     const by = Object.fromEntries(r.rows.map((x) => [x.kind, Number(x.n)]));
     return { quiz: by.quiz ?? 0, mock: by.mock ?? 0 };
   }

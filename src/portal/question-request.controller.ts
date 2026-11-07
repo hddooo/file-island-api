@@ -1,8 +1,9 @@
+import {QuestionRequestPublicationService} from './question-request-publication.service';
 import {Body,Controller,Get,Param,ParseUUIDPipe,Patch,Post,Query,Req,Res,UseGuards} from '@nestjs/common';
 import type {Request,Response} from 'express';
 import {CurrentAuth,JwtAuthGuard,type AuthContext} from '../auth/guards';
 import {AppError} from '../common/app-error';
-import {QuestionRequestDto,QuestionRequestUpdateDto,QuestionRequestReviewDto,QuestionRequestRevisionDto} from './question-request.dto';
+import {QuestionRequestDto,QuestionRequestUpdateDto,QuestionRequestReviewDto,QuestionRequestRevisionDto,QuestionRequestPublishDto} from './question-request.dto';
 import {PageQuery} from './portal.dto';
 import {QuestionRequestService} from './question-request.service';
 import {AUDIO_LIMIT,IMAGE_LIMIT,ASSET_PURPOSES} from './question-request-media';
@@ -28,10 +29,20 @@ export class OwnQuestionRequestController {
 }
 @Controller('api/v1/ops/question-requests') @UseGuards(JwtAuthGuard)
 export class QuestionRequestController {
- constructor(private readonly service:QuestionRequestService){}
+ constructor(private readonly service:QuestionRequestService,private readonly publication:QuestionRequestPublicationService){}
+ @Post(':id/publication-preview') preview(@CurrentAuth()a:AuthContext,@Param('id',ParseUUIDPipe)id:string,@Body()d:QuestionRequestPublishDto){return this.publication.preview(a.userId,id,d);}
+ @Post(':id/publish') publish(@CurrentAuth()a:AuthContext,@Param('id',ParseUUIDPipe)id:string,@Body()d:QuestionRequestPublishDto){return this.publication.publish(a.userId,id,d);}
  @Get() list(@CurrentAuth()a:AuthContext,@Query()p:PageQuery){return this.service.list(a.userId,p,true);}
  @Get(':id') detail(@CurrentAuth()a:AuthContext,@Param('id',ParseUUIDPipe)id:string){return this.service.detail(a.userId,id,true);}
  @Patch(':id') review(@CurrentAuth()a:AuthContext,@Param('id',ParseUUIDPipe)id:string,@Body()d:QuestionRequestReviewDto){return this.service.review(a.userId,id,d);}
  @Post(':id/assets') upload(@CurrentAuth()a:AuthContext,@Param('id',ParseUUIDPipe)id:string,@Req()req:Request){return upload(this.service,a.userId,id,req,true);}
  @Get(':id/assets/:assetId') async asset(@CurrentAuth()a:AuthContext,@Param('id',ParseUUIDPipe)id:string,@Param('assetId',ParseUUIDPipe)assetId:string,@Res()res:Response){sendAsset(res,await this.service.asset(a.userId,id,assetId,true));}
+}
+
+@Controller('api/v1') @UseGuards(JwtAuthGuard)
+export class PublishedQuestionController {
+ constructor(private readonly publication:QuestionRequestPublicationService){}
+ @Get('published-question-assets/:id/:assetId') async asset(@Param('id',ParseUUIDPipe)id:string,@Param('assetId',ParseUUIDPipe)assetId:string,@Res()res:Response){sendAsset(res,await this.publication.asset(id,assetId));}
+ @Get('published-history') history(@Query('after')after='',@Query('limit')raw='50'){const limit=Number(raw);if(!Number.isInteger(limit)||limit<1||limit>100)throw new AppError(400,'invalid_limit','Limit must be 1 to 100');return this.publication.history(after,limit);}
+ @Get('published-history/:id') historyQuestion(@Param('id')id:string){return this.publication.historyQuestion(id);}
 }

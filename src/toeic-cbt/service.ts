@@ -8,7 +8,7 @@ import { CLOCK,type Clock } from '../common/tokens';
 import { AppError,notFound } from '../common/app-error';
 import { lockOwner } from '../common/owner-lock';
 import { iso,sha256hex } from '../common/util';
-import { inspectCatalog,selectParts,privateImage,type ToeicCollection } from './catalog';
+import { inspectCatalog,selectParts,privateImage,privateAudio,type ToeicCollection } from './catalog';
 import { loadStudyHistory,questionKey } from './history';
 import { part7Evidence } from './part7-evidence';
 import type { CreateToeicRunDto,ToeicAnswerDto,ToeicCheckpointDto,ToeicSubmitDto } from './dto';
@@ -85,7 +85,7 @@ export class ToeicCbtService {
   const items=(await q.query<Item>('SELECT * FROM hanq.toeic_cbt_items WHERE user_id=$1 AND run_id=$2 ORDER BY position',[r.user_id,r.id])).rows,history=await this.history(q,r.user_id);
   return{run,items:items.map(i=>{
    const source=data.questions.find(q=>q.number===i.question_number)!,group=data.groups.find(g=>g.id===source.groupId)!,final=r.status==='final';
-   const item={studyHistory:history.get(c.source_key+'\0'+questionKey(source))||{wrongCount:0,reportedWrongCount:0,provisionalWrongCount:0,everWrong:false,repeatedWrong:false},sourceIdentity:source.sourceIdentity||null,originalWrong:data.wrongNumbers.includes(i.question_number),position:i.position,number:i.question_number,part:source.part,groupId:group.id,groupQuestionNumbers:group.questionNumbers,stem:source.part<=2?null:source.stem,passage:source.part>=6?group.passage:null,audioUrl:source.part<=4?group.audioUrl:null,photoUrl:privateImage(source.photoUrl)?null:source.photoUrl,photoPath:privateImage(source.photoUrl)?'/collections/'+c.id+'/images/'+source.photoUrl.slice('private-image:'.length):null,options:source.choices.map(o=>({id:o.id,text:source.part<=2?o.id:o.text})),selectedOptionId:i.selected_option};
+   const item={studyHistory:history.get(c.source_key+'\0'+questionKey(source))||{wrongCount:0,reportedWrongCount:0,provisionalWrongCount:0,everWrong:false,repeatedWrong:false},sourceIdentity:source.sourceIdentity||null,originalWrong:data.wrongNumbers.includes(i.question_number),position:i.position,number:i.question_number,part:source.part,groupId:group.id,groupQuestionNumbers:group.questionNumbers,stem:source.part<=2?null:source.stem,passage:source.part>=6?group.passage:null,audioUrl:source.part<=4&&!privateAudio(group.audioUrl)?group.audioUrl:null,audioPath:source.part<=4&&privateAudio(group.audioUrl)?'/collections/'+c.id+'/audio/'+encodeURIComponent(group.id):null,photoUrl:privateImage(source.photoUrl)?null:source.photoUrl,photoPath:privateImage(source.photoUrl)?'/collections/'+c.id+'/images/'+source.photoUrl.slice('private-image:'.length):null,options:source.choices.map(o=>({id:o.id,text:source.part<=2?o.id:o.text})),selectedOptionId:i.selected_option};
    if(!final)return item;
    return{...item,review:{optionStudy:part5OptionStudy(source),paraphrases:paraphrasing(source.part<=4?(group.scriptStatus==='verified'?group.script:null):group.passage,source),correct:i.correct,status:i.correct===null?'unanswered':i.correct?'correct':'wrong',correctOptionId:source.correctOptionId,stem:source.stem,choices:source.choices,explanation:source.explanation,tutorExplanation:source.tutorExplanation||null,script:group.script,scriptStatus:group.scriptStatus,timing:group.timing||null,...(source.part===7?{evidence:part7Evidence(group.passage,source.number,source.correctOptionId)}:{})}};
   })};
