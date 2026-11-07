@@ -14,7 +14,7 @@ Create result id is distinct from requestId; detail returns {request,assets,capa
 
 draft/needs_revision -> owner edits -> draft; owner submit -> submitted. Submission needs questions, explicit answer, text for history/Part3..7, source image except Part2, and linked audio for Part1..4. Asset references must belong to the request.
 
-ADMIN submitted -> needs_revision or content_reviewed. Content approval requires sourceChecked=true and one nonempty explanation per question. content_reviewed -> needs_revision or ready_for_publish. Second approval requires cleanImageChecked=true and a clean_image asset. Owner/admin can add clean_image in content_reviewed without changing reviewed content. No direct state skip. Revision mismatch409. No deletion endpoints. Existing learning data untouched.
+ADMIN submitted -> needs_revision or content_reviewed. Content approval requires sourceChecked=true and one nonempty explanation per question. content_reviewed -> needs_revision or ready_for_publish. Second approval requires cleanImageChecked=true and a clean_image asset, except TOEIC Part2 which requires audioChecked=true and its audio asset without any photo. Owner/admin can add clean_image in content_reviewed without changing reviewed content. No direct state skip. Revision mismatch409. No deletion endpoints. Existing learning data untouched.
 
 Capabilities: mediaUpload=true; ocr=false, automaticReview=false, publish=false. ready_for_publish is NOT published. There is no publish endpoint, no automatic assistant invocation, and no OCR worker in this implementation.
 

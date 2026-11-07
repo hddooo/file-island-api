@@ -26,5 +26,6 @@ export class QuestionRequestReviewDto extends QuestionRequestRevisionDto {
  @IsString() @MaxLength(4000) reviewNote:string;
  @IsOptional() @IsBoolean() sourceChecked?:boolean;
  @IsOptional() @IsBoolean() cleanImageChecked?:boolean;
+ @IsOptional() @IsBoolean() audioChecked?:boolean;
  @IsOptional() @IsArray() @ArrayMaxSize(40) @ValidateNested({each:true}) @Type(()=>ExplanationDto) explanations?:ExplanationDto[];
 }

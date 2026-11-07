@@ -25,5 +25,13 @@ test('private question request: owner isolation, replay-safe binary uploads and 
  const final=await request(app.server).patch(ops).set(bearer(admin.access)).send({expectedRevision:5,status:'ready_for_publish',reviewNote:'Second image check',cleanImageChecked:true});assert.equal(final.body.status,'ready_for_publish');
  const detail=await request(app.server).get(path).set(bearer(owner.access));assert.equal(detail.body.capabilities.publish,false);assert.equal(detail.body.request.payload.questions[0].correctOptionId,'C');assert.equal(detail.body.request.review_payload.explanations[0].explanation,'Synthetic explanation');assert.equal(detail.body.assets.length,2);
  assert.equal((await request(app.server).patch(ops).set(bearer(admin.access)).send({expectedRevision:6,status:'published',reviewNote:'No fake publish'})).status,400);
+
+ const audioId=randomUUID(),p2={requestId:randomUUID(),subject:'toeic',part:2,sourceLabel:'Synthetic Part2',questions:[{number:16,stem:'',choices:['A','B','C'].map(id=>({id,text:''})),correctOptionId:'B',audioAssetId:audioId}]};
+ const p2created=await request(app.server).post(base).set(bearer(owner.access)).send(p2);assert.equal(p2created.status,201);const p2path=base+'/'+p2created.body.id,p2ops='/api/v1/ops/question-requests/'+p2created.body.id;
+ const audio=Buffer.from([73,68,51,4,0,0,0,0,0,0]);assert.equal((await request(app.server).post(p2path+'/assets?assetId='+audioId+'&purpose=audio&mediaType=audio/mpeg&expectedRevision=1').set(bearer(owner.access)).set('Content-Type','application/octet-stream').send(audio)).status,201);
+ assert.equal((await request(app.server).post(p2path+'/submit').set(bearer(owner.access)).send({expectedRevision:2})).body.status,'submitted');
+ assert.equal((await request(app.server).patch(p2ops).set(bearer(admin.access)).send({expectedRevision:3,status:'content_reviewed',reviewNote:'Audio source check',sourceChecked:true,explanations:[{number:16,explanation:'Synthetic audio explanation'}]})).status,200);
+ assert.equal((await request(app.server).patch(p2ops).set(bearer(admin.access)).send({expectedRevision:4,status:'ready_for_publish',reviewNote:'Wrong checkbox',cleanImageChecked:true})).status,400);
+ assert.equal((await request(app.server).patch(p2ops).set(bearer(admin.access)).send({expectedRevision:4,status:'ready_for_publish',reviewNote:'Second audio check',audioChecked:true})).body.status,'ready_for_publish');
  }finally{await app.close();await pool.end();}
 });
