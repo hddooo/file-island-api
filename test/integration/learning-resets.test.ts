@@ -52,3 +52,30 @@ it('English wrong history disappears while correct answers/source and other user
  const client=await pool.connect();try{const h=await loadStudyHistory(client,a.userId);assert.equal(h.get('synthetic\0'+'1')?.everWrong,false);assert.deepEqual(h.get('synthetic\0'+'1')?.recentResults,[true]);}finally{client.release();}
  assert.equal((await request(t.server).get('/api/v1/me/learning-resets').set(bearer(b.access))).body.toeic.resetAt,null);
 });
+
+it('completed-exam notebook 76 old wrong questions honors the already-saved reset, without deleting source or XP',async()=>{
+ const a=await signup(t),b=await signup(t),now=t.clock.now(),old=new Date(now.getTime()-10000);
+ const questions=(await pool.query('SELECT question_id,version,exam_round,exam_number,points,option_ids,correct_option_id FROM hanq.question_versions WHERE is_current AND kind=\'mock\' AND exam_round IN(78,79) ORDER BY exam_round,exam_number')).rows;
+ assert.equal(questions.length,100);
+ async function seed(owner:string,at:Date,onlyOne=false){let n=0;
+  for(const round of onlyOne?[78]:[78,79]){const id=randomUUID();await pool.query("INSERT INTO hanq.cbt_runs(id,user_id,idempotency_key,exam_round,status,duration_ms,created_at,updated_at,started_at,ends_at,final_at,final_reason,result) VALUES($1,$2,$3,$4,'final',4800000,$5,$5,$5,$5::timestamptz+interval '80 minutes',$5::timestamptz+interval '1 second','submit','{}')",[id,owner,randomUUID(),round,at]);
+   const picked=questions.filter(q=>q.exam_round===round).slice(0,onlyOne?1:50);
+   for(const q of picked){const wrong=onlyOne||n++<76;await pool.query('INSERT INTO hanq.cbt_run_items(run_id,user_id,position,question_id,version,exam_number,points,option_ids,answer_option_id,answered_at,correct) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)',[id,owner,q.exam_number-1,q.question_id,q.version,q.exam_number,q.points,q.option_ids,wrong?q.option_ids.find((x:string)=>x!==q.correct_option_id):q.correct_option_id,at,!wrong]);}
+  }
+ }
+ await seed(a.userId,old);await seed(b.userId,old);
+ const get=(s:typeof a)=>request(t.server).get('/api/v1/cbt/notebook').set(bearer(s.access));
+ assert.equal((await get(a)).body.items.length,76);
+ const xp=(await pool.query('SELECT * FROM hanq.growth_ledger WHERE user_id=$1 ORDER BY event_key',[a.userId])).rows;
+ const reset=await request(t.server).post('/api/v1/me/learning-resets').set(bearer(a.access)).send({island:'history',confirmation:'RESET_HISTORY',requestId:randomUUID()});assert.equal(reset.status,200);
+ const resetBefore=(await pool.query('SELECT * FROM hanq.wrong_history_resets WHERE user_id=$1',[a.userId])).rows;
+ assert.equal((await get(a)).body.items.length,0,'existing reset must apply at read time');
+ assert.equal((await get(a)).body.items.length,0,'refresh must not resurrect old questions');
+ assert.equal((await get(b)).body.items.length,76,'other owner remains unchanged');
+ assert.equal((await pool.query('SELECT * FROM hanq.cbt_run_items WHERE user_id=$1',[a.userId])).rowCount,100);
+ assert.equal((await pool.query('SELECT * FROM hanq.cbt_run_items WHERE user_id=$1 AND correct',[a.userId])).rowCount,24);
+ assert.deepEqual((await pool.query('SELECT * FROM hanq.growth_ledger WHERE user_id=$1 ORDER BY event_key',[a.userId])).rows,xp);
+ assert.deepEqual((await pool.query('SELECT * FROM hanq.wrong_history_resets WHERE user_id=$1',[a.userId])).rows,resetBefore);
+ await seed(a.userId,new Date(now.getTime()+1000),true);
+ assert.equal((await get(a)).body.items.length,1,'new wrong after reset still appears');
+});
