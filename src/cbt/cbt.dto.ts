@@ -30,3 +30,14 @@ export class CbtSubmitDto {
 export class CbtPauseDto extends CbtSubmitDto {
   @IsOptional() @IsInt() @Min(0) checkpointVersion?: number;
 }
+
+export class CbtStartDto {
+ @IsString() @Matches(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i) attemptToken: string;
+}
+export class CbtCheckpointDto {
+ @IsInt() @Min(1) @Max(2147483647) version: number;
+ @IsArray() @ArrayMinSize(50) @ArrayMaxSize(50) @ValidateNested({each:true}) @Type(() => CbtAnswerDto) answers: CbtAnswerDto[];
+ @IsInt() @Min(0) @Max(49) currentPosition: number;
+}
+export class CbtFinishDto { @IsOptional() @IsString() @Matches(SUBMISSION_ID) submissionKey?: string; }
+export class CbtAbandonDto { @IsOptional() @IsIn(['leave','reload','logout']) reason?: string; }

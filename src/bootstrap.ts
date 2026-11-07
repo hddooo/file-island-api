@@ -36,7 +36,7 @@ export async function createApp(config: AppConfig, clock?: Clock): Promise<INest
     origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => cb(null, !!origin && config.cors.origins.includes(origin)),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-    allowedHeaders: ['Authorization', 'Content-Type', 'X-HanQ-CSRF'],
+    allowedHeaders: ['Authorization', 'Content-Type', 'X-HanQ-CSRF', 'X-Cbt-Attempt-Token'],
     maxAge: 600,
   });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true, stopAtFirstError: false, validationError: { target: false, value: false } }));

@@ -31,10 +31,11 @@ export const reviewSignature = (items:Pick<Item,'question_id'|'version'|'option_
 export class CbtReviewService {
  constructor(private readonly db:DbService,@Inject(CLOCK) private readonly clock:Clock,private readonly assets:CbtAssetsService) {}
 
- private async source(q:Queryable,userId:string,id:string,origin:Origin) {
+ private async source(q:Queryable,userId:string,id:string,origin:Origin,token?:string) {
   const table=origin==='exam'?'cbt_runs':'cbt_reviews',itemTable=origin==='exam'?'cbt_run_items':'cbt_review_items',fk=origin==='exam'?'run_id':'review_id';
-  const run=(await q.query<{exam_round:number}>(`SELECT exam_round FROM hanq.${table} WHERE id=$1 AND user_id=$2`,[requireUuid(id),userId])).rows[0];
+  const run=(await q.query<{exam_round:number;status:string;attempt_policy?:string;attempt_token_hash?:string}>(`SELECT * FROM hanq.${table} WHERE id=$1 AND user_id=$2`,[requireUuid(id),userId])).rows[0];
   if(!run)throw notFound();
+  if(origin==='exam'&&run.status!=='final'&&(run.status!=='active'||run.attempt_policy!=='uninterrupted-v1'||!token||sha256(token).toString('hex')!==run.attempt_token_hash))throw new AppError(409,'attempt_session_required','Active exam requires its document token');
   const items=(await q.query<Item>(`SELECT i.*,v.correct_option_id,v.public_payload,v.review_payload,v.era FROM hanq.${itemTable} i JOIN hanq.question_versions v ON v.question_id=i.question_id AND v.version=i.version WHERE i.${fk}=$1 AND i.user_id=$2 ORDER BY i.position`,[id,userId])).rows;
   return {round:run.exam_round,items};
  }
@@ -43,19 +44,19 @@ export class CbtReviewService {
   const map=new Map(rows.map(s=>[JSON.stringify([s.question_id,s.version]),s.starred]));
   return {signature:reviewSignature(items),flags:items.map(i=>map.get(JSON.stringify([i.question_id,i.version]))===true)};
  }
- async stars(userId:string,id:string,origin:Origin) {return this.db.tx(async q=>this.starsView(q,userId,(await this.source(q,userId,id,origin)).items));}
- async saveStar(userId:string,id:string,origin:Origin,dto:CbtStarDto) {
+ async stars(userId:string,id:string,origin:Origin,token?:string) {return this.db.tx(async q=>this.starsView(q,userId,(await this.source(q,userId,id,origin,token)).items));}
+ async saveStar(userId:string,id:string,origin:Origin,dto:CbtStarDto,token?:string) {
   return this.db.tx(async q=>{
-   await lockOwner(q,userId);const {items}=await this.source(q,userId,id,origin);
+   await lockOwner(q,userId);const {items}=await this.source(q,userId,id,origin,token);
    if(dto.signature!==reviewSignature(items))throw new AppError(409,'star_signature_mismatch','Question versions or option order changed');
    const item=items[dto.position];if(!item)throw notFound();
    await q.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,$4,$5) ON CONFLICT(user_id,question_id,version) DO UPDATE SET starred=EXCLUDED.starred,updated_at=EXCLUDED.updated_at`,[userId,item.question_id,item.version,dto.starred,this.clock.now()]);
    return this.starsView(q,userId,items);
   });
  }
- async importStars(userId:string,id:string,origin:Origin,dto:CbtStarImportDto) {
+ async importStars(userId:string,id:string,origin:Origin,dto:CbtStarImportDto,token?:string) {
   return this.db.tx(async q=>{
-   await lockOwner(q,userId);const {items}=await this.source(q,userId,id,origin);
+   await lockOwner(q,userId);const {items}=await this.source(q,userId,id,origin,token);
    if(dto.signature!==reviewSignature(items)||dto.flags.length!==items.length)throw new AppError(409,'star_signature_mismatch','Question versions or option order changed');
    const receipt=await q.query(`INSERT INTO hanq.cbt_star_imports(user_id,origin,source_id,signature,imported_at) VALUES($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING RETURNING source_id`,[userId,origin,id,dto.signature,this.clock.now()]);
    if(receipt.rowCount)for(const item of items)if(dto.flags[item.position])await q.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4) ON CONFLICT DO NOTHING`,[userId,item.question_id,item.version,this.clock.now()]);

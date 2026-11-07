@@ -8,7 +8,11 @@ export interface CbtRunRow {
   user_id: string;
   idempotency_key: string;
   exam_round: number;
-  status: 'ready' | 'active' | 'final';
+  status: 'ready' | 'active' | 'final' | 'incomplete';
+  attempt_policy?: string;
+  attempt_token_hash?: string | null;
+  incomplete_reason?: string | null;
+  checkpoint_payload_hash?: string | null;
   checkpoint_version: number;
   pause_submission_key: string | null;
   pause_payload_hash: string | null;
@@ -112,7 +116,7 @@ export class CbtRepository {
          ), selected AS (
            SELECT id FROM ranked_final WHERE recent_rank <= 3
            UNION ALL
-           (SELECT id FROM hanq.cbt_runs WHERE user_id = $1 AND status IN ('ready', 'active')
+           (SELECT id FROM hanq.cbt_runs WHERE user_id = $1 AND status IN ('ready', 'active', 'incomplete')
             ORDER BY created_at DESC, id LIMIT 100)
          )
          SELECT r.*, (SELECT count(*)::int FROM hanq.cbt_run_items i WHERE i.run_id = r.id AND i.answer_option_id IS NOT NULL) AS answered
@@ -124,7 +128,7 @@ export class CbtRepository {
   }
 
   async dueRunIds(q: Queryable, userId: string, now: Date): Promise<string[]> {
-    const r = await q.query<{ id: string }>(`SELECT id FROM hanq.cbt_runs WHERE user_id = $1 AND status = 'active' AND answer_mode = 'legacy' AND ends_at <= $2`, [userId, now]);
+    const r = await q.query<{ id: string }>(`SELECT id FROM hanq.cbt_runs WHERE user_id = $1 AND status = 'active' AND attempt_policy = 'uninterrupted-v1' AND ends_at <= $2`, [userId, now]);
     return r.rows.map((x) => x.id);
   }
 

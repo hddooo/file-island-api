@@ -1,8 +1,8 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, HttpCode, Param, Post, Res, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
 import { AppError } from '../common/app-error';
 import { CurrentAuth, JwtAuthGuard, type AuthContext } from '../auth/guards';
-import { CbtAnswerDto, CbtGoDto, CbtPauseDto, CbtSubmitDto, CreateCbtRunDto } from './cbt.dto';
+import { CbtStartDto, CbtCheckpointDto, CbtFinishDto, CbtAbandonDto, CbtAnswerDto, CbtGoDto, CbtPauseDto, CreateCbtRunDto } from './cbt.dto';
 import { CbtService } from './cbt.service';
 
 function position(raw: string): number {
@@ -54,14 +54,14 @@ export class CbtController {
   }
 
   @Get('runs/:id')
-  get(@CurrentAuth() who: AuthContext, @Param('id') id: string) {
-    return this.cbt.get(who.userId, id);
+  get(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Headers('x-cbt-attempt-token') token?:string) {
+    return this.cbt.get(who.userId, id,token);
   }
 
   @Post('runs/:id/start')
   @HttpCode(200)
-  start(@CurrentAuth() who: AuthContext, @Param('id') id: string) {
-    return this.cbt.start(who.userId, id);
+  start(@CurrentAuth() who: AuthContext, @Param('id') id: string,@Body() dto:CbtStartDto) {
+    return this.cbt.start(who.userId, id,dto.attemptToken);
   }
 
   @Post('runs/:id/answer')
@@ -78,10 +78,15 @@ export class CbtController {
 
   @Post('runs/:id/submit')
   @HttpCode(200)
-  submit(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Body() dto: CbtSubmitDto) {
-    return this.cbt.submit(who.userId, id, dto);
+  submit(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Body() dto: CbtFinishDto,@Headers('x-cbt-attempt-token') token?:string) {
+    return this.cbt.submit(who.userId, id, dto,token);
   }
 
+
+  @Post('runs/:id/checkpoint') @HttpCode(200)
+  checkpoint(@CurrentAuth() who:AuthContext,@Param('id') id:string,@Body() dto:CbtCheckpointDto,@Headers('x-cbt-attempt-token') token?:string){return this.cbt.checkpoint(who.userId,id,dto,token);}
+  @Post('runs/:id/abandon') @HttpCode(200)
+  abandon(@CurrentAuth() who:AuthContext,@Param('id') id:string,@Body() dto:CbtAbandonDto,@Headers('x-cbt-attempt-token') token?:string){return this.cbt.abandon(who.userId,id,dto.reason,token);}
   @Post('runs/:id/batch') @HttpCode(200)
   batch(@CurrentAuth() who: AuthContext, @Param('id') id: string) { return this.cbt.batch(who.userId,id); }
   @Post('runs/:id/pause') @HttpCode(200)
@@ -91,12 +96,12 @@ export class CbtController {
 
   /** Binary WebP only (no JSON/base64/redirect), private and never cached. */
   @Get('runs/:id/questions/:position/image')
-  async image(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Param('position') pos: string, @Res() res: Response) {
-    sendWebp(res, await this.cbt.image(who.userId, id, position(pos), 'question'));
+  async image(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Param('position') pos: string, @Res() res: Response,@Headers('x-cbt-attempt-token') token?:string) {
+    sendWebp(res, await this.cbt.image(who.userId, id, position(pos), 'question',token));
   }
 
   @Get('runs/:id/questions/:position/common')
-  async common(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Param('position') pos: string, @Res() res: Response) {
-    sendWebp(res, await this.cbt.image(who.userId, id, position(pos), 'common'));
+  async common(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Param('position') pos: string, @Res() res: Response,@Headers('x-cbt-attempt-token') token?:string) {
+    sendWebp(res, await this.cbt.image(who.userId, id, position(pos), 'common',token));
   }
 }
