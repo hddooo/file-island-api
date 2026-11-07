@@ -9,7 +9,7 @@ export function recordNickname(value:unknown){if(typeof value!=='string'||value.
 export const RECORD_EVENTS=`
  SELECT 'history:'||a.id::text key,'history' subject,'unknown' source,coalesce(a.reported_at,a.created_at) at,a.created_at recorded_at,
  jsonb_build_object('questionId',a.question_id,'question',v.review_payload,'public',v.public_payload,'answer',v.correct_option_id,'selected',a.option_id,'correct',a.correct,'origin',a.source,'runId',a.run_id,'timeUnknown',a.source='import' AND a.reported_at IS NULL,'timeBasis',CASE WHEN a.source='import' THEN 'import' ELSE 'saved' END) detail
- FROM hanq.visible_wrong_attempts a LEFT JOIN hanq.question_versions v ON v.question_id=a.question_id AND v.version=a.version WHERE a.user_id=$1
+ FROM hanq.visible_wrong_attempts a LEFT JOIN hanq.question_versions v ON v.question_id=a.question_id AND v.version=a.version WHERE a.user_id=$1 AND (a.cbt_run_id IS NULL OR EXISTS(SELECT 1 FROM hanq.cbt_runs reset_run WHERE reset_run.id=a.cbt_run_id AND reset_run.user_id=a.user_id AND hanq.wrong_history_visible(reset_run.user_id,'history',reset_run.created_at)))
 
  UNION ALL
  SELECT 'focus:'||a.event_id::text,'toeic','unknown',a.attempted_at,a.received_at,

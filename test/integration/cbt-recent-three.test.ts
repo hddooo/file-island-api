@@ -11,6 +11,7 @@ test('owned runs keeps latest three final scores per round despite 100 newer run
   const pool = new Pool({ connectionString: url });
   try {
     await pool.query(`CREATE SCHEMA hanq;
+      CREATE FUNCTION hanq.wrong_history_visible(uuid,text,timestamptz) RETURNS boolean LANGUAGE sql AS 'SELECT true';
       CREATE TABLE hanq.cbt_runs(id uuid PRIMARY KEY,user_id uuid,exam_round int,status text,created_at timestamptz,final_at timestamptz);
       CREATE TABLE hanq.cbt_run_items(run_id uuid,answer_option_id text);`);
     const a=randomUUID(),b=randomUUID();

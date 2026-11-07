@@ -64,12 +64,27 @@ it('completed-exam notebook 76 old wrong questions honors the already-saved rese
   }
  }
  await seed(a.userId,old);await seed(b.userId,old);
+ const aRun=(await pool.query('SELECT id FROM hanq.cbt_runs WHERE user_id=$1 ORDER BY exam_round LIMIT 1',[a.userId])).rows[0].id;
+ const question=questions[0];
+ for(const cbt of [aRun,null])await pool.query("INSERT INTO hanq.attempts(id,user_id,submission_id,question_id,version,option_id,correct,source,payload_hash,created_at,cbt_run_id) VALUES($1,$2,$3,$4,$5,$6,true,$7,$8,$9,$10)",[randomUUID(),a.userId,randomUUID(),question.question_id,question.version,question.correct_option_id,cbt?'run':'practice',Buffer.alloc(32,1),old,cbt]);
+ await pool.query("INSERT INTO hanq.growth_ledger(user_id,event_key,kind,amount,cbt_run_id,created_at) VALUES($1,$2,'cbt-exam',5,$3,$4)",[a.userId,'cbt:'+aRun,aRun,old]);
+ const {CbtRepository}=await import('../../src/cbt/cbt.repository');const repo=new CbtRepository();
+ assert.equal((await repo.listOwned(pool,a.userId)).length,2);
+ assert.equal((await repo.finalItems(pool,a.userId)).length,100);
+ const records=()=>request(t.server).get('/api/v1/me/records?subject=history').set(bearer(a.access));
+ assert.equal((await records()).body.total,2);
  const get=(s:typeof a)=>request(t.server).get('/api/v1/cbt/notebook').set(bearer(s.access));
  assert.equal((await get(a)).body.items.length,76);
  const xp=(await pool.query('SELECT * FROM hanq.growth_ledger WHERE user_id=$1 ORDER BY event_key',[a.userId])).rows;
  const reset=await request(t.server).post('/api/v1/me/learning-resets').set(bearer(a.access)).send({island:'history',confirmation:'RESET_HISTORY',requestId:randomUUID()});assert.equal(reset.status,200);
  const resetBefore=(await pool.query('SELECT * FROM hanq.wrong_history_resets WHERE user_id=$1',[a.userId])).rows;
  assert.equal((await get(a)).body.items.length,0,'existing reset must apply at read time');
+ assert.equal((await repo.listOwned(pool,a.userId)).length,0,'old scores hidden by existing cutoff');
+ assert.equal((await repo.finalItems(pool,a.userId)).length,0,'old exam stats hidden');
+ assert.equal((await repo.listOwned(pool,b.userId)).length,2,'other owner scores retained');
+ assert.equal((await records()).body.total,1,'exam correct record hidden; standalone correct retained');
+ const growth=await request(t.server).get('/api/v1/me/growth-history').set(bearer(a.access));assert.equal(growth.status,200);assert.ok(!growth.body.items.some((x:{reason:string})=>x.reason==='cbt-exam'));
+
  assert.equal((await get(a)).body.items.length,0,'refresh must not resurrect old questions');
  assert.equal((await get(b)).body.items.length,76,'other owner remains unchanged');
  assert.equal((await pool.query('SELECT * FROM hanq.cbt_run_items WHERE user_id=$1',[a.userId])).rowCount,100);
@@ -78,4 +93,6 @@ it('completed-exam notebook 76 old wrong questions honors the already-saved rese
  assert.deepEqual((await pool.query('SELECT * FROM hanq.wrong_history_resets WHERE user_id=$1',[a.userId])).rows,resetBefore);
  await seed(a.userId,new Date(now.getTime()+1000),true);
  assert.equal((await get(a)).body.items.length,1,'new wrong after reset still appears');
+ assert.equal((await repo.listOwned(pool,a.userId)).length,1,'new exam scores visible');
 });
+
