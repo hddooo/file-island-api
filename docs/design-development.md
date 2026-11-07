@@ -212,3 +212,7 @@ Dockerfile은 pinned official Node24 amd64·nonroot·승인 mounted bootstrap �
 ## Private question request staging
 
 [API contract and undeployed migration gate](question-request-staging.md). Owner uploads and manual answers stay private until reviewed; OCR, automatic review and publication remain disabled capabilities.
+
+
+### 개인 오답 기록 초기화 (2026-11-07, 운영 미반영)
+사용자·섬별 비파괴 가시성 기준일로 오답 항목과 나의 기록에서 과거 오답만 제외한다. 정답·XP·원본 자료와 다른 계정/섬은 유지한다. [API 계약·검증·배포 주의](learning-reset-readiness.md).

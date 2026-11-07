@@ -15,6 +15,7 @@ function harness(kind: 'quiz' | 'mock', existingSource?: AttemptRow['source']) {
   const rows = new Map<string, AttemptRow>(), ledger: { amount: number; attempt: string; kind: string }[] = [], log: string[] = [];
   const q: Queryable = {
     query: (async (text: string, p: unknown[] = []) => {
+      if (text.includes('FROM hanq.wrong_history_resets')) return { rows: [] };
       if (text.startsWith('SELECT 1 FROM hanq.users') && text.includes('FOR UPDATE')) { log.push('lock'); return { rows: [] }; }
       if (text.startsWith('UPDATE hanq.wrong_note_review_state SET correct_streak = 0')) { log.push('reset:' + p[1]); return { rows: [] }; }
       if (text.includes('premium_state')) return { rows: [{}], rowCount: 1 }; // access gate: allowed

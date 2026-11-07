@@ -59,3 +59,8 @@ Unknown body fields are rejected (400). Someone else's object id answers 404, ex
 - **CBT final score (009)** — once per final run, in the finalization transaction (submit, deadline expiry, listing, concurrent submits all finalize once): original weighted score (no normalization) <60 −100 · 60–69 +50 · 70–79 +100 · 80–89 +150 · ≥90 +200 (`kind` `cbt-exam`, `event_key 'cbt:<run id>'`, unique `cbt_run_id`); `result.growthReward` is stored in the immutable result. Never per question. Runs finalized before 009 get nothing.
 - **Schema prerequisite**: 008 depends on 001/003; 009 requires 007/008. The previously approved 007–009 application was verified in this session. Final-score history joins use these existing columns and add no migration, grant or backfill. The 24-hour review policy (e27b81c7) also needs no new migration: it uses existing attempts and question_review_state. This change does not apply migrations or modify operating data.
 - `/me/growth-history` reasons now include `practice-quiz`, `practice-mock`, `cbt-exam`.
+
+
+## 개인 오답 기록 초기화 (운영 미반영)
+
+JWT 소유자 전용 GET/POST `/api/v1/me/learning-resets`. POST body `{island:"history"|"toeic",confirmation:"RESET_HISTORY"|"RESET_TOEIC",requestId:UUIDv4}`. 정답/XP/원본 삭제 없이 과거 오답 가시성만 초기화. 새 오답 제출은 생성 시 캡처한 `resetAt`을 전달하며 오래된 대기 오답은 409 `learning_reset_changed`. [전체 계약](learning-reset-readiness.md).

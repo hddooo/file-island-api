@@ -21,6 +21,7 @@ function harness() {
   let seq = 0;
   const q: Queryable = {
     query: (async (text: string, params: unknown[] = []) => {
+      if (text.includes('FROM hanq.wrong_history_resets')) return { rows: [] };
       if (text.startsWith('SELECT 1 FROM hanq.users') && text.includes('FOR UPDATE')) return { rows: [] }; // owner lock (first statement)
       if (text.startsWith('UPDATE hanq.wrong_note_review_state SET correct_streak = 0')) return { rows: [] }; // a new wrong breaks the study streak
       const key = (params[0] as Buffer).toString('hex');

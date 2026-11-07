@@ -1,3 +1,4 @@
+import { assertWrongResetGeneration } from '../profile/learning-resets';
 import {learningOwner} from './learning-owner';
 import {toeicGrowth} from '../common/toeic-growth';
 import {part5OptionStudy} from './part5-options';
@@ -76,6 +77,7 @@ export class ToeicPracticeService {
  private async saveAnswer(q:Queryable,owner:string,c:Collection,d:ToeicPracticeAnswerDto){const id=c.id,item=c.content.questions.find(q=>q.number===d.number);if(!item)throw notFound();const verified=this.readiness(c,item);if(!item.choices.some(o=>o.id===d.optionId))throw new AppError(400,'invalid_toeic_answers','Choose one listed option');
   let answer=(await q.query<Answer>('SELECT * FROM hanq.toeic_cbt_practice_answers WHERE user_id=$1 AND request_key=$2',[owner,d.requestKey])).rows[0];
   const isNew=!answer;
+  if(isNew && verified && d.optionId!==item.correctOptionId)await assertWrongResetGeneration(q,owner,'toeic',d.resetAt);
   if(answer){if(answer.collection_id!==id||answer.question_number!==d.number||answer.selected_option!==d.optionId)throw new AppError(409,'idempotency_conflict','Answer key belongs to a different selection');}
   else answer=(await q.query<Answer>('INSERT INTO hanq.toeic_cbt_practice_answers(id,user_id,collection_id,question_number,selected_option,answer_verified,correct,request_key,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',[randomUUID(),owner,id,item.number,d.optionId,verified,verified?d.optionId===item.correctOptionId:null,d.requestKey,this.clock.now()])).rows[0];
   const growth=isNew&&typeof answer.correct==='boolean'?await toeicGrowth(q,owner,'toeic-practice:'+answer.id,answer.correct,this.clock.now()):null;
