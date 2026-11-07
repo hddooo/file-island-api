@@ -1,3 +1,4 @@
+import { assertWrongResetGeneration } from '../profile/learning-resets';
 import {historyQuestionGrowth,awardHistoryAttempt} from '../common/history-growth';
 import { boundedGrowth } from '../common/growth-floor';
 import {assertQuestionAccess} from '../portal/member-state';
@@ -86,7 +87,7 @@ export class AttemptsService {
   }
 
   /** Free ordinary practice for signed-in users: grade one answer to the CURRENT version of a question. */
-  async submitPractice(userId: string, dto: { submissionId: string; questionId: string; version: string; optionId: string }) {
+  async submitPractice(userId: string, dto: { submissionId: string; questionId: string; version: string; optionId: string; resetAt?:string|null }) {
     return this.db.tx(async (q) => {
       await lockOwner(q, userId); // serialize with wrong-note queue issuance; confirmation clock read after the wait
       const now = this.clock.now();
@@ -94,6 +95,7 @@ export class AttemptsService {
       const question = await this.questions.getVersion(q, dto.questionId, dto.version);
       if (!question) throw new AppError(404, 'question_not_found', 'Unknown question or version');
       if (!prior && !question.is_current) throw new AppError(409, 'stale_version', 'This question has a newer version; reload it');
+      if(!prior && dto.optionId!==question.correct_option_id)await assertWrongResetGeneration(q,userId,'history',dto.resetAt);
       if(!prior)await assertQuestionAccess(q,userId,question,now);
       const { attempt, replayed } = await this.record(q, userId, { submissionId: dto.submissionId, question, optionId: dto.optionId, source: 'practice' }, now);
       if (attempt.source !== 'practice') throw new AppError(409, 'submission_conflict', 'This submission id was already used with a different answer');

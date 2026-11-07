@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsIn, IsInt, IsOptional, IsString, Matches, Max, Min, ValidateIf, ValidateNested } from 'class-validator';
+import { IsISO8601, ArrayMaxSize, ArrayMinSize, IsArray, IsIn, IsInt, IsOptional, IsString, Matches, Max, Min, ValidateIf, ValidateNested } from 'class-validator';
 
 export const SUBMISSION_ID = /^[A-Za-z0-9][A-Za-z0-9_.:-]{7,119}$/;
 export const QUESTION_ID = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,119}$/;
@@ -8,6 +8,7 @@ export const OPTION_ID = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,119}$/;
 
 /** Note: there is deliberately no `correct` field. Unknown fields are rejected (forbidNonWhitelisted). */
 export class SubmitAttemptDto {
+  @IsOptional() @IsISO8601() resetAt?: string | null;
   @IsString() @Matches(SUBMISSION_ID) submissionId: string;
   @IsString() @Matches(QUESTION_ID) questionId: string;
   @IsString() @Matches(VERSION) version: string;

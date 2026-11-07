@@ -9,23 +9,23 @@ export function recordNickname(value:unknown){if(typeof value!=='string'||value.
 export const RECORD_EVENTS=`
  SELECT 'history:'||a.id::text key,'history' subject,'unknown' source,coalesce(a.reported_at,a.created_at) at,a.created_at recorded_at,
  jsonb_build_object('questionId',a.question_id,'question',v.review_payload,'public',v.public_payload,'answer',v.correct_option_id,'selected',a.option_id,'correct',a.correct,'origin',a.source,'runId',a.run_id,'timeUnknown',a.source='import' AND a.reported_at IS NULL,'timeBasis',CASE WHEN a.source='import' THEN 'import' ELSE 'saved' END) detail
- FROM hanq.attempts a LEFT JOIN hanq.question_versions v ON v.question_id=a.question_id AND v.version=a.version WHERE a.user_id=$1
+ FROM hanq.visible_wrong_attempts a LEFT JOIN hanq.question_versions v ON v.question_id=a.question_id AND v.version=a.version WHERE a.user_id=$1 AND (a.cbt_run_id IS NULL OR EXISTS(SELECT 1 FROM hanq.cbt_runs reset_run WHERE reset_run.id=a.cbt_run_id AND reset_run.user_id=a.user_id AND hanq.wrong_history_visible(reset_run.user_id,'history',reset_run.created_at)))
 
  UNION ALL
  SELECT 'focus:'||a.event_id::text,'toeic','unknown',a.attempted_at,a.received_at,
  jsonb_build_object('questionId',a.question_id,'bankId',a.bank_id,'version',a.question_version,'selected',a.selected_option,'answer',a.correct_option,'correct',a.selected_option=a.correct_option,'origin','focus','timeBasis','device')
- FROM hanq.weakness_practice_attempts a WHERE a.user_id=$1
+ FROM hanq.visible_wrong_focus_attempts a WHERE a.user_id=$1
  UNION ALL
  SELECT 'toeic:'||a.id::text,'toeic','unknown',a.created_at,a.created_at,
  jsonb_build_object('questionId',a.collection_id::text||':'||a.question_number,'question',i.item,'selected',a.selected_option,'correct',CASE WHEN a.answer_verified THEN a.correct ELSE NULL END,'reference',NOT a.answer_verified,'origin','practice','title',c.title,'collectionId',c.id,'passage',(SELECT g->>'passage' FROM jsonb_array_elements(c.content->'groups') g WHERE g->>'id'=i.item->>'groupId' LIMIT 1),'script',(SELECT g->>'script' FROM jsonb_array_elements(c.content->'groups') g WHERE g->>'id'=i.item->>'groupId' LIMIT 1))
- FROM hanq.toeic_cbt_practice_answers a LEFT JOIN hanq.toeic_cbt_collections c ON c.id=a.collection_id
+ FROM hanq.visible_wrong_toeic_answers a LEFT JOIN hanq.toeic_cbt_collections c ON c.id=a.collection_id
  LEFT JOIN LATERAL (SELECT value item FROM jsonb_array_elements(c.content->'questions') WHERE (value->>'number')::int=a.question_number LIMIT 1) i ON true WHERE a.user_id=$1
  UNION ALL
  SELECT 'toeic-run:'||r.id::text||':'||i.position,'toeic','unknown',r.final_at,r.final_at,
  jsonb_build_object('questionId',r.collection_id::text||':'||i.question_number,'question',x.item,'selected',i.selected_option,'correct',i.correct,'origin','run','title',c.title,'collectionId',c.id,'passage',(SELECT g->>'passage' FROM jsonb_array_elements(c.content->'groups') g WHERE g->>'id'=x.item->>'groupId' LIMIT 1),'script',(SELECT g->>'script' FROM jsonb_array_elements(c.content->'groups') g WHERE g->>'id'=x.item->>'groupId' LIMIT 1))
  FROM hanq.toeic_cbt_runs r JOIN hanq.toeic_cbt_items i ON i.run_id=r.id AND i.user_id=r.user_id LEFT JOIN hanq.toeic_cbt_collections c ON c.id=r.collection_id
  LEFT JOIN LATERAL (SELECT value item FROM jsonb_array_elements(c.content->'questions') WHERE (value->>'number')::int=i.question_number LIMIT 1) x ON true
- WHERE r.user_id=$1 AND r.status='final' AND i.selected_option IS NOT NULL AND i.correct IS NOT NULL AND NOT EXISTS(SELECT 1 FROM hanq.toeic_cbt_verification_runs v WHERE v.user_id=r.user_id AND v.run_id=r.id)
+ WHERE r.user_id=$1 AND r.status='final' AND (i.correct IS DISTINCT FROM false OR hanq.wrong_history_visible(r.user_id,'toeic',r.created_at)) AND i.selected_option IS NOT NULL AND i.correct IS NOT NULL AND NOT EXISTS(SELECT 1 FROM hanq.toeic_cbt_verification_runs v WHERE v.user_id=r.user_id AND v.run_id=r.id)
  UNION ALL
  SELECT 'battle:'||m.id::text||':'||r.round_no||':'||(i.item->>'id'),m.subject,'battle',
  CASE WHEN ans.answer->>'at' ~ '^\\d{10,16}$' THEN to_timestamp((ans.answer->>'at')::double precision/1000) ELSE r.started_at END,CASE WHEN m.state->>'endedAt' ~ '^\\d{10,16}$' THEN to_timestamp((m.state->>'endedAt')::double precision/1000) ELSE m.created_at END,
@@ -62,7 +62,7 @@ export class MyRecordsService{
  constructor(private readonly db:DbService){}
  async list(owner:string,query:{subject?:unknown;source?:unknown;page?:unknown;snapshot?:unknown}){const filter=recordQuery(query);return this.db.tx(async q=>{
   await q.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
-  const base=`WITH events AS (${RECORD_EVENTS}), filtered AS (SELECT * FROM events WHERE ($2='all' OR subject=$2) AND ($3='all' OR source=$3) AND recorded_at<=$4::timestamptz)`;
+  const base=`WITH events AS (${RECORD_EVENTS}), filtered AS (SELECT * FROM events WHERE ($2='all' OR subject=$2) AND ($3='all' OR source=$3) AND recorded_at<=$4::timestamptz AND (source<>'unknown' OR detail->>'correct' IS DISTINCT FROM 'false' OR hanq.wrong_history_visible($1,subject,recorded_at)))`;
   const params=[owner,filter.subject,filter.source,filter.snapshot];
   const total=Number((await q.query<{total:string}>(base+' SELECT count(*)::text total FROM filtered',params)).rows[0].total),pages=Math.max(1,Math.ceil(total/20)),page=Math.min(filter.page,pages);
   const rows=(await q.query(base+' SELECT * FROM filtered ORDER BY at DESC,key DESC LIMIT 20 OFFSET $5',[...params,(page-1)*20])).rows;

@@ -1,3 +1,4 @@
+import { learningResetStatus, requestLearningReset, type ResetIsland } from './learning-resets';
 import {lockOwner} from '../common/owner-lock';
 import{type PartnerFamily}from'../partner/evolution';
 import {collection,command,finishDueHatches,type CollectionCommand} from '../partner/collection';
@@ -28,6 +29,9 @@ export class ProfileService {
     private readonly passwords: PasswordService,
     private readonly premium: PremiumService,
   ) {}
+
+  async learningResets(userId:string){return learningResetStatus(this.db.pool,userId);}
+  async resetLearning(userId:string,island:ResetIsland,confirmation:string,requestId:string){return this.db.tx(q=>requestLearningReset(q,userId,island,confirmation,requestId,()=>this.clock.now()));}
 
   async studyActivity(userId:string,month?:string){return this.db.tx(async q=>{await q.query('SET TRANSACTION READ ONLY');return studyActivity(q,userId,this.clock.now(),month);});}
 
@@ -73,6 +77,7 @@ export class ProfileService {
          LEFT JOIN hanq.cbt_runs c
            ON g.kind = 'cbt-exam' AND c.id = g.cbt_run_id AND c.user_id = $1 AND c.status = 'final'
         WHERE g.user_id = $1
+          AND (g.kind <> 'cbt-exam' OR hanq.wrong_history_visible(g.user_id, 'history', coalesce(c.created_at,g.created_at)))
           AND ($2::timestamptz IS NULL OR (g.created_at, g.event_key COLLATE "C") < ($2::timestamptz, $3::text COLLATE "C"))
         ORDER BY g.created_at DESC, g.event_key COLLATE "C" DESC
         LIMIT $4`,

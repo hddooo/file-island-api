@@ -5,10 +5,11 @@ export interface ToeicGroup {id:string;questionNumbers:number[];audioUrl:string|
 export interface ToeicCheckQuestion {id:string;prompt:string;options:{id:string;text:string}[];correctOptionId:string;explanation:string;}
 export interface ToeicTutorExplanation {translation?:string;checkQuestions?:ToeicCheckQuestion[];answerReason:string;reading:{chunk:string;translation:string}[];steps:string[];options:{id:string;explanation:string}[];traps:string[];checklist:string[];}
 export interface ToeicSourceIdentity {key:string;unit:string|null;page:string;questionNumber:number;}
-export interface ToeicQuestion {sourceIdentity?:ToeicSourceIdentity;answerStatus?:'assistant_inferred_not_officially_verified';tutorExplanation?:ToeicTutorExplanation;number:number;part:number;groupId:string;stem:string|null;questionVerified:boolean;choices:{id:string;text:string}[];choicesVerified:boolean;correctOptionId:string|null;answerVerified:boolean;photoUrl:string|null;photoVerified:boolean;explanation:string|null;}
+export interface ToeicQuestion {audioOnly?:boolean;answerProvenance?:'user-entered-admin-reviewed';sourceIdentity?:ToeicSourceIdentity;answerStatus?:'assistant_inferred_not_officially_verified';tutorExplanation?:ToeicTutorExplanation;number:number;part:number;groupId:string;stem:string|null;questionVerified:boolean;choices:{id:string;text:string}[];choicesVerified:boolean;correctOptionId:string|null;answerVerified:boolean;photoUrl:string|null;photoVerified:boolean;explanation:string|null;}
 export interface ToeicSourceMetadata {folderLabel:string;roundIndex:number;bookTitle:string;bookVolume:string|null;testNumber:number|null;}
 export interface ToeicCollection {coverage?:{excludedQuestionNumbers:number[];exclusionReason:'user-excluded-correct-range';explanationsPending:number};metadata?:ToeicSourceMetadata;roundKey:string;title:string;wrongNumbers:number[];replayNumbers?:number[];groups:ToeicGroup[];questions:ToeicQuestion[];}
 export const privateImage=(v:unknown):v is string=>typeof v==='string'&&/^private-image:[a-f0-9]{64}$/.test(v);
+export const privateAudio=(v:unknown):v is string=>typeof v==='string'&&/^private-audio:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 export const imageAsset=(v:unknown)=>httpsAsset(v)||privateImage(v);
 export const httpsAsset=(v:unknown):v is string=>{if(typeof v!=='string'||v.length>4096)return false;try{const u=new URL(v);return u.protocol==='https:'&&!u.username&&!u.password&&!u.hash;}catch{return false;}};
 const obj=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v);
@@ -30,10 +31,10 @@ export function inspectCatalog(value:unknown){
   const reasons:string[]=[],g=d.groups.find(g=>g.id===q.groupId);
   if(!Number.isInteger(q.part)||q.part<1||q.part>7)reasons.push('invalid_part');
   if(!g||!g.questionNumbers.includes(q.number)||(q.part===3||q.part===4)&&(g.questionNumbers.length!==3||new Set(g.questionNumbers).size!==3))reasons.push('question_group');
-  if(q.part<=4&&(!g||!httpsAsset(g.audioUrl)||g.audioVerified!==true))reasons.push('verified_audio');
+  if(q.part<=4&&(!g||!(httpsAsset(g.audioUrl)||privateAudio(g.audioUrl))||g.audioVerified!==true))reasons.push('verified_audio');
   if(q.photoUrl!==null&&(!imageAsset(q.photoUrl)||q.photoVerified!==true))reasons.push('question_photo');
   if(q.part===1&&(!imageAsset(q.photoUrl)||q.photoVerified!==true))reasons.push('question_photo');
-  if(q.questionVerified!==true||q.part!==1&&!(typeof q.stem==='string'&&q.stem.trim()))reasons.push('verified_question');
+  if(q.questionVerified!==true||q.part!==1&&!(q.part===2&&q.audioOnly===true&&q.answerProvenance==='user-entered-admin-reviewed')&&!(typeof q.stem==='string'&&q.stem.trim()))reasons.push('verified_question');
   const expected=q.part===2?['A','B','C']:['A','B','C','D'];
   if(!Array.isArray(q.choices)||q.choices.length!==expected.length||!q.choices.every((o,i)=>obj(o)&&o.id===expected[i]&&typeof o.text==='string'&&!!o.text.trim())||q.choicesVerified!==true)reasons.push('verified_choices');
   if(q.sourceIdentity){const identity=q.sourceIdentity;if(!obj(identity)||typeof identity.key!=='string'||!identity.key||typeof identity.page!=='string'||!identity.page||!(identity.unit===null||typeof identity.unit==='string')||!Number.isInteger(identity.questionNumber)||identity.questionNumber<1)reasons.push('source_identity');}

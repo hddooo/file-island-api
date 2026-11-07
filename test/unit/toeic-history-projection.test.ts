@@ -6,8 +6,8 @@ import {toeicFixture} from '../helpers/toeic-fixture';
 
 test('history projection omits script groups and metadata without losing grading fields or owner scope',async()=>{
  const content=toeicFixture();const queries:string[]=[];
- const q={query:async(sql:string,args:unknown[])=>{queries.push(sql);assert.deepEqual(args,['owner']);return{rows:sql.includes('FROM hanq.toeic_cbt_collections')?[{id:'a',source_key:'round',content:{questions:content.questions,wrongNumbers:content.wrongNumbers}}]:[{collection_id:'a',question_number:1,correct:false,selected_option:'A',practice:true}]};}} as unknown as Queryable;
- const history=await loadStudyHistory(q,'owner');assert.equal(queries.length,2);assert.match(queries[0],/content - 'groups' - 'metadata' AS content/);assert.match(queries[0],/WHERE user_id=\$1/);assert.equal(history.get('round\0'+'1')?.wrongCount,2);assert.equal(history.get('round\0'+'1')?.practiceReviewed,true);
+ const q={query:async(sql:string,args:unknown[])=>{queries.push(sql);if(sql.includes('FROM hanq.wrong_history_resets'))return{rows:[]};assert.deepEqual(args,['owner']);return{rows:sql.includes('FROM hanq.toeic_cbt_collections')?[{id:'a',source_key:'round',content:{questions:content.questions,wrongNumbers:content.wrongNumbers}}]:[{collection_id:'a',question_number:1,correct:false,selected_option:'A',practice:true}]};}} as unknown as Queryable;
+ const history=await loadStudyHistory(q,'owner');assert.equal(queries.length,3);assert.match(queries[0],/content - 'groups' - 'metadata' AS content/);assert.match(queries[0],/WHERE user_id=\$1/);assert.equal(history.get('round\0'+'1')?.wrongCount,2);assert.equal(history.get('round\0'+'1')?.practiceReviewed,true);
 });
 test('many attempts use indexed question lookup and preserve chronological recent outcomes',()=>{
  const content=toeicFixture();Object.defineProperty(content.questions,'find',{value:()=>{throw Error('linear question lookup must not run per attempt');}});

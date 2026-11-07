@@ -56,6 +56,7 @@ export class ImportService {
       const b = (await q.query<{ user_id: string; accepted: number }>('SELECT user_id, accepted FROM hanq.import_batches WHERE batch_key = $1 FOR UPDATE', [keyHash])).rows[0];
       if (b.user_id !== userId) throw new AppError(409, 'import_key_owned_by_another_account', 'These local records were already imported into a different account');
 
+      const reset=(await q.query<{reset_at:Date}>("SELECT reset_at FROM hanq.wrong_history_resets WHERE user_id=$1 AND island='history'",[userId])).rows[0]?.reset_at;
       const versions = await this.questions.getVersions(q, entries.map((e) => ({ questionId: e.questionId, version: e.contentVersion })));
       const byKey = new Map(versions.map((v) => [v.question_id + '\u0000' + v.version, v]));
       const skipped: { localId: string; reason: string }[] = [];
@@ -72,6 +73,7 @@ export class ImportService {
         if (question.kind !== e.mode) { skip('mode-mismatch'); continue; }
         if (!question.option_ids.includes(e.optionId)) { skip('unknown-option'); continue; }
         const reportedAt = typeof e.ts === 'number' && e.ts >= 1.5e12 && e.ts <= now.getTime() + 86_400_000 ? new Date(e.ts) : null;
+        if(reset && e.optionId!==question.correct_option_id && (!reportedAt || reportedAt<=reset)){skip('before-wrong-history-reset');continue;}
         const submissionId = scope === 'account' ? accountSubmissionId(userId, e.localId) : 'imp-' + sha256hex(keyHex + '|' + e.localId).slice(0, 40);
         // Cap on accepted unique attempts (row locked above): a resend of an already-imported entry is still acknowledged.
         if (b.accepted + imported >= IMPORT_MAX_PER_KEY && !(await this.repo.findBySubmission(q, userId, submissionId))) { skip('import-cap-reached'); continue; }

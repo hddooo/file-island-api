@@ -113,6 +113,7 @@ export class CbtRepository {
              PARTITION BY exam_round ORDER BY final_at DESC NULLS LAST, created_at DESC, id
            ) AS recent_rank
              FROM hanq.cbt_runs WHERE user_id = $1 AND status = 'final'
+              AND hanq.wrong_history_visible(user_id, 'history', created_at)
          ), selected AS (
            SELECT id FROM ranked_final WHERE recent_rank <= 3
            UNION ALL
@@ -149,7 +150,7 @@ export class CbtRepository {
     const r = await q.query<CbtItemRow & { run_id: string }>(
       `SELECT i.run_id, i.position, i.question_id, i.version, i.exam_number, i.points, i.option_ids, i.answer_option_id, i.answered_at, i.correct, i.attempt_id,
               qv.era, qv.public_payload, qv.correct_option_id, qv.review_payload
-         FROM (SELECT id FROM hanq.cbt_runs WHERE user_id = $1 AND status = 'final' ORDER BY final_at DESC LIMIT 200) r
+         FROM (SELECT id FROM hanq.cbt_runs WHERE user_id = $1 AND status = 'final' AND hanq.wrong_history_visible(user_id, 'history', created_at) ORDER BY final_at DESC LIMIT 200) r
          JOIN hanq.cbt_run_items i ON i.run_id = r.id
          JOIN hanq.question_versions qv ON qv.question_id = i.question_id AND qv.version = i.version
         ORDER BY i.run_id, i.position`,
