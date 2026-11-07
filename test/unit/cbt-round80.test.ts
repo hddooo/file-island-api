@@ -13,3 +13,6 @@ test('round 80 still requires exactly fifty numbered questions and one hundred p
  rows[0].points=1;assert(!checkRound(80,rows).ok);
 });
 
+
+import { CbtController } from '../../src/cbt/cbt.controller';
+test('single-round readiness includes80 and rejects81',async()=>{ const controller=new CbtController({rounds:async(round:number)=>({round})} as never); assert.deepEqual(await controller.retryRound('80'),{round:80}); assert.throws(()=>controller.retryRound('81')); });

@@ -34,7 +34,7 @@ export class CbtController {
 
   @Get('rounds/:round')
   retryRound(@Param('round') raw:string){
-    if(!/^7[0-9]$/.test(raw))throw new AppError(404,'round_not_found','No such round');
+    if(!/^(?:7[0-9]|80)$/.test(raw))throw new AppError(404,'round_not_found','No such round');
     return this.cbt.rounds(Number(raw));
   }
 
