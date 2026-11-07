@@ -1,3 +1,4 @@
+import {assertWrongResetGeneration, learningResetStatus} from '../profile/learning-resets';
 import {awardHistoryAttempt} from '../common/history-growth';
 import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
@@ -33,23 +34,24 @@ export class CbtReviewService {
 
  private async source(q:Queryable,userId:string,id:string,origin:Origin,token?:string) {
   const table=origin==='exam'?'cbt_runs':'cbt_reviews',itemTable=origin==='exam'?'cbt_run_items':'cbt_review_items',fk=origin==='exam'?'run_id':'review_id';
-  const run=(await q.query<{exam_round:number;status:string;attempt_policy?:string;attempt_token_hash?:string}>(`SELECT * FROM hanq.${table} WHERE id=$1 AND user_id=$2`,[requireUuid(id),userId])).rows[0];
+  const run=(await q.query<{exam_round:number;status:string;attempt_policy?:string;attempt_token_hash?:string}>(`SELECT * FROM hanq.${table} WHERE id=$1 AND user_id=$2${origin==='review'?" AND hanq.wrong_history_visible(user_id,'history',created_at)":''}`, [requireUuid(id),userId])).rows[0];
   if(!run)throw notFound();
   if(origin==='exam'&&run.status!=='final'&&(run.status!=='active'||run.attempt_policy!=='uninterrupted-v1'||!token||sha256(token).toString('hex')!==run.attempt_token_hash))throw new AppError(409,'attempt_session_required','Active exam requires its document token');
   const items=(await q.query<Item>(`SELECT i.*,v.correct_option_id,v.public_payload,v.review_payload,v.era FROM hanq.${itemTable} i JOIN hanq.question_versions v ON v.question_id=i.question_id AND v.version=i.version WHERE i.${fk}=$1 AND i.user_id=$2 ORDER BY i.position`,[id,userId])).rows;
   return {round:run.exam_round,items};
  }
  private async starsView(q:Queryable,userId:string,items:Item[]) {
-  const rows=(await q.query<{question_id:string;version:string;starred:boolean}>(`SELECT s.question_id,s.version,s.starred FROM hanq.cbt_question_stars s JOIN unnest($2::text[],$3::text[]) p(question_id,version) USING(question_id,version) WHERE s.user_id=$1`,[userId,items.map(i=>i.question_id),items.map(i=>i.version)])).rows;
+  const rows=(await q.query<{question_id:string;version:string;starred:boolean}>(`SELECT s.question_id,s.version,s.starred FROM hanq.cbt_question_stars s JOIN unnest($2::text[],$3::text[]) p(question_id,version) USING(question_id,version) WHERE s.user_id=$1 AND hanq.wrong_history_visible(s.user_id,'history',s.updated_at)`,[userId,items.map(i=>i.question_id),items.map(i=>i.version)])).rows;
   const map=new Map(rows.map(s=>[JSON.stringify([s.question_id,s.version]),s.starred]));
-  return {signature:reviewSignature(items),flags:items.map(i=>map.get(JSON.stringify([i.question_id,i.version]))===true)};
+  return {resetAt:(await learningResetStatus(q,userId)).history.resetAt,signature:reviewSignature(items),flags:items.map(i=>map.get(JSON.stringify([i.question_id,i.version]))===true)};
  }
- async stars(userId:string,id:string,origin:Origin,token?:string) {return this.db.tx(async q=>this.starsView(q,userId,(await this.source(q,userId,id,origin,token)).items));}
+ async stars(userId:string,id:string,origin:Origin,token?:string) {return this.db.tx(async q=>{await lockOwner(q,userId);return this.starsView(q,userId,(await this.source(q,userId,id,origin,token)).items);});}
  async saveStar(userId:string,id:string,origin:Origin,dto:CbtStarDto,token?:string) {
   return this.db.tx(async q=>{
    await lockOwner(q,userId);const {items}=await this.source(q,userId,id,origin,token);
    if(dto.signature!==reviewSignature(items))throw new AppError(409,'star_signature_mismatch','Question versions or option order changed');
    const item=items[dto.position];if(!item)throw notFound();
+   await assertWrongResetGeneration(q,userId,'history',dto.resetAt);
    await q.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,$4,$5) ON CONFLICT(user_id,question_id,version) DO UPDATE SET starred=EXCLUDED.starred,updated_at=EXCLUDED.updated_at`,[userId,item.question_id,item.version,dto.starred,this.clock.now()]);
    return this.starsView(q,userId,items);
   });
@@ -58,13 +60,14 @@ export class CbtReviewService {
   return this.db.tx(async q=>{
    await lockOwner(q,userId);const {items}=await this.source(q,userId,id,origin,token);
    if(dto.signature!==reviewSignature(items)||dto.flags.length!==items.length)throw new AppError(409,'star_signature_mismatch','Question versions or option order changed');
+   if((await learningResetStatus(q,userId)).history.resetAt)return this.starsView(q,userId,items);
    const receipt=await q.query(`INSERT INTO hanq.cbt_star_imports(user_id,origin,source_id,signature,imported_at) VALUES($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING RETURNING source_id`,[userId,origin,id,dto.signature,this.clock.now()]);
    if(receipt.rowCount)for(const item of items)if(dto.flags[item.position])await q.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4) ON CONFLICT DO NOTHING`,[userId,item.question_id,item.version,this.clock.now()]);
    return this.starsView(q,userId,items);
   });
  }
  private async owned(q:Queryable,userId:string,id:string,locked=false) {
-  const row=(await q.query<Review>(`SELECT * FROM hanq.cbt_reviews WHERE id=$1 AND user_id=$2${locked?' FOR UPDATE':''}`,[requireUuid(id),userId])).rows[0];
+  const row=(await q.query<Review>(`SELECT * FROM hanq.cbt_reviews WHERE id=$1 AND user_id=$2 AND hanq.wrong_history_visible(user_id,'history',created_at)${locked?' FOR UPDATE':''}`,[requireUuid(id),userId])).rows[0];
   if(!row)throw notFound();return row;
  }
  private async transaction<T>(userId:string,id:string,fn:(q:PoolClient,r:Review,items:Item[])=>Promise<T>) {
@@ -79,7 +82,7 @@ export class CbtReviewService {
    // Cumulative real wrong answers, across full exams + partial reviews + practice. A later correct never removes one.
    // Exact versions only; neither an unasked item nor an unanswered submission manufactures a mistake.
    const wrongOnly=dto.selection==='exam-wrong-only';
-   const rows=wrongOnly?(await q.query<Item>(`SELECT * FROM (SELECT DISTINCT ON (i.question_id) i.question_id,i.version,i.exam_number,i.points,i.option_ids,v.correct_option_id,v.public_payload,v.review_payload,v.era FROM hanq.cbt_run_items i JOIN hanq.cbt_runs r ON r.id=i.run_id AND r.user_id=i.user_id JOIN hanq.question_versions v ON v.question_id=i.question_id AND v.version=i.version WHERE i.user_id=$1 AND r.exam_round=$2 AND r.status='final' AND i.correct=false AND hanq.wrong_history_visible(r.user_id,'history',r.created_at) AND i.answer_option_id IS NOT NULL ORDER BY i.question_id,r.final_at DESC,r.id DESC) picked ORDER BY exam_number`,[userId,dto.round])).rows:(await q.query<Item>(`SELECT v.question_id,v.version,v.exam_number,v.points,v.option_ids,v.correct_option_id,v.public_payload,v.review_payload,v.era FROM hanq.question_versions v WHERE v.is_current AND v.kind='mock' AND v.exam_round=$2 AND (EXISTS(SELECT 1 FROM hanq.visible_wrong_attempts a WHERE a.user_id=$1 AND a.question_id=v.question_id AND a.version=v.version AND NOT a.correct AND a.option_id IS NOT NULL) OR EXISTS(SELECT 1 FROM hanq.cbt_question_stars s WHERE s.user_id=$1 AND s.question_id=v.question_id AND s.version=v.version AND s.starred)) ORDER BY v.exam_number`,[userId,dto.round])).rows;
+   const rows=wrongOnly?(await q.query<Item>(`SELECT * FROM (SELECT DISTINCT ON (i.question_id) i.question_id,i.version,i.exam_number,i.points,i.option_ids,v.correct_option_id,v.public_payload,v.review_payload,v.era FROM hanq.cbt_run_items i JOIN hanq.cbt_runs r ON r.id=i.run_id AND r.user_id=i.user_id JOIN hanq.question_versions v ON v.question_id=i.question_id AND v.version=i.version WHERE i.user_id=$1 AND r.exam_round=$2 AND r.status='final' AND i.correct=false AND hanq.wrong_history_visible(r.user_id,'history',r.created_at) AND i.answer_option_id IS NOT NULL ORDER BY i.question_id,r.final_at DESC,r.id DESC) picked ORDER BY exam_number`,[userId,dto.round])).rows:(await q.query<Item>(`SELECT v.question_id,v.version,v.exam_number,v.points,v.option_ids,v.correct_option_id,v.public_payload,v.review_payload,v.era FROM hanq.question_versions v WHERE v.is_current AND v.kind='mock' AND v.exam_round=$2 AND (EXISTS(SELECT 1 FROM hanq.visible_wrong_attempts a WHERE a.user_id=$1 AND a.question_id=v.question_id AND a.version=v.version AND NOT a.correct AND a.option_id IS NOT NULL) OR EXISTS(SELECT 1 FROM hanq.cbt_question_stars s WHERE s.user_id=$1 AND s.question_id=v.question_id AND s.version=v.version AND s.starred AND hanq.wrong_history_visible(s.user_id,'history',s.updated_at))) ORDER BY v.exam_number`,[userId,dto.round])).rows;
    if(!rows.length)throw new AppError(409,'review_empty','No wrong or starred questions in this round');
    const id=randomUUID();await q.query(`INSERT INTO hanq.cbt_reviews(id,user_id,idempotency_key,exam_round,status,created_at) VALUES($1,$2,$3,$4,'ready',$5)`,[id,userId,key,dto.round,this.clock.now()]);
    for(let pos=0;pos<rows.length;pos++){const i=rows[pos];await q.query(`INSERT INTO hanq.cbt_review_items(review_id,user_id,position,question_id,version,exam_number,points,option_ids) VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,[id,userId,pos,i.question_id,i.version,i.exam_number,i.points,i.option_ids]);}
@@ -94,7 +97,7 @@ export class CbtReviewService {
   })};
  }
  async list(userId:string) {
-  const rows=(await this.db.pool.query<Review & {questions:number;answered:number}>(`SELECT r.*,(SELECT count(*)::int FROM hanq.cbt_review_items i WHERE i.review_id=r.id AND i.user_id=r.user_id) questions,(SELECT count(answer_option_id)::int FROM hanq.cbt_review_items i WHERE i.review_id=r.id AND i.user_id=r.user_id) answered FROM hanq.cbt_reviews r WHERE r.user_id=$1 ORDER BY r.created_at DESC,r.id LIMIT 100`,[userId])).rows;
+  const rows=(await this.db.pool.query<Review & {questions:number;answered:number}>(`SELECT r.*,(SELECT count(*)::int FROM hanq.cbt_review_items i WHERE i.review_id=r.id AND i.user_id=r.user_id) questions,(SELECT count(answer_option_id)::int FROM hanq.cbt_review_items i WHERE i.review_id=r.id AND i.user_id=r.user_id) answered FROM hanq.cbt_reviews r WHERE r.user_id=$1 AND hanq.wrong_history_visible(r.user_id,'history',r.created_at) ORDER BY r.created_at DESC,r.id LIMIT 100`,[userId])).rows;
   return {reviews:rows.map(r=>({...this.summary(r),questions:r.questions,answered:r.answered}))};
  }
  async get(userId:string,id:string){return this.db.tx(async q=>this.view(q,await this.owned(q,userId,id)));}
