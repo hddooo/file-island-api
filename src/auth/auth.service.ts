@@ -48,7 +48,7 @@ export class AuthService {
     private readonly tokens: TokenService,
   ) {}
 
-  async signup(input: { email: string; password: string; displayName?: string }): Promise<IssuedSession> {
+  async signup(input: { email: string; password: string; displayName?: string }): Promise<{status:'pending'}> {
     const email = normalizeEmail(input.email);
     validateNewPassword(input.password, email.normalized);
     const displayName = normalizeDisplayName(input.displayName ?? (email.display.split('@')[0].slice(0,30)+'-'+randomUUID().slice(0,8)));
@@ -57,11 +57,8 @@ export class AuthService {
     return this.db.tx(async (q) => {
       const user = await this.users.insert(q, { id: randomUUID(), emailNormalized: email.normalized, emailDisplay: email.display, passwordHash: hash, displayName, now });
       if (!user) throw new AppError(409, 'email_taken', 'An account with this e-mail already exists');
-      await q.query("INSERT INTO hanq.growth_ledger(user_id,event_key,kind,amount,created_at) VALUES($1,'signup','signup',1000,$2)",[user.id,now]);
-      await partnerState(q,user.id,'agumon',1000,now);await partnerState(q,user.id,'patamon',1000,now);
-      await claimNickname(q,user.id,displayName);await attendance(q,user.id,()=>this.clock.now(),true);
-      await q.query("INSERT INTO hanq.member_access_logs(user_id,event,created_at) VALUES($1,'signup',$2)",[user.id,now]);
-      return this.issue(q, user, now);
+      await claimNickname(q,user.id,displayName);
+      return {status:'pending' as const};
     });
   }
 
@@ -94,6 +91,7 @@ export class AuthService {
     return this.db.tx(async (q) => {
       const locked = await this.users.findById(q, user.id, true);
       if (!locked || locked.password_hash !== user.password_hash) throw new AppError(401, 'invalid_credentials', 'E-mail or password is incorrect');
+      this.assertApproved(locked);
       await attendance(q,locked.id,()=>this.clock.now(),true);
       await q.query("INSERT INTO hanq.member_access_logs(user_id,event,created_at) VALUES($1,'signin',$2)",[locked.id,now]);
       return this.issue(q, locked, now, input.rememberMe === true);
@@ -102,6 +100,7 @@ export class AuthService {
 
   /** New session family + first refresh token + access token. */
   async issue(q: Queryable, user: UserRow, now: Date, rememberMe = false): Promise<IssuedSession> {
+    this.assertApproved(user);
     const j = this.config.jwt;
     const familyId = randomUUID();
     const policy = chooseRetention(rememberMe, now.getTime(), j.sessionMaxSec * 1000);
@@ -141,7 +140,7 @@ export class AuthService {
       const accessDeadline = deadline === null ? now : new Date(deadline);
       if (accessDeadline <= now) return { kind: 'invalid' as const };
       const user = await this.users.findById(q, row.user_id);
-      if (!user) return { kind: 'invalid' as const };
+      if (!user || user.approval_status !== 'approved') return { kind: 'invalid' as const };
       const next = await this.newRefresh(q, user.id, row.family_id, now, row.family_expires_at, mode);
       if (next.expiresAt <= now) return { kind: 'invalid' as const };
       await this.sessions.markUsed(q, row.id, now, next.id);
@@ -174,6 +173,46 @@ export class AuthService {
     const claims = await this.tokens.verifyAccess(accessToken, now);
     if (!claims) return null;
     const live = await this.sessions.isFamilyActive(this.db.pool, claims.sessionId, claims.userId, now);
-    return live ? claims : null;
+    if (!live) return null;
+    const user=await this.users.findById(this.db.pool,claims.userId);
+    return user?.approval_status === 'approved' ? claims : null;
+  }
+
+  private assertApproved(user:UserRow):void {
+    if(user.approval_status!=='approved')throw new AppError(403,user.approval_status==='pending'?'membership_pending':'membership_rejected','Administrator approval is required');
+  }
+  private async assertAdmin(q:Queryable,id:string):Promise<void>{
+    const r=await q.query("SELECT 1 FROM hanq.member_roles r JOIN hanq.users u ON u.id=r.user_id WHERE r.user_id=$1 AND r.role='ADMIN' AND u.approval_status='approved' FOR SHARE OF r,u",[id]);
+    if(!r.rowCount)throw new AppError(403,'admin_required','Administrator access required');
+  }
+  async membershipRequests(actor:string,page:number){
+    return this.db.tx(async q=>{
+      await this.assertAdmin(q,actor);
+      const r=await q.query("SELECT id,email_display AS email,display_name AS nickname,created_at,approval_status FROM hanq.users WHERE approval_status='pending' ORDER BY created_at,id LIMIT 25 OFFSET $1",[(page-1)*25]);
+      const n=await q.query("SELECT count(*)::int total FROM hanq.users WHERE approval_status='pending'");
+      return {items:r.rows,page,total:n.rows[0].total};
+    });
+  }
+  async decideMembership(actor:string,id:string,decision:'approved'|'rejected'){
+    return this.db.tx(async q=>{
+      await this.assertAdmin(q,actor);
+      const user=await this.users.findById(q,id,true);
+      if(!user)throw new AppError(404,'not_found','Request not found');
+      if(user.approval_status!=='pending'){
+        if(user.approval_status===decision)return {status:decision,changed:false};
+        throw new AppError(409,'membership_already_decided','Request already decided');
+      }
+      const role=await q.query('SELECT 1 FROM hanq.member_roles WHERE user_id=$1',[id]);
+      if(role.rowCount)throw new AppError(409,'admin_membership_protected','Administrator membership cannot be changed here');
+      const now=this.clock.now();
+      await q.query('UPDATE hanq.users SET approval_status=$2,approval_decided_at=$3,approval_decided_by=$4,updated_at=$3 WHERE id=$1',[id,decision,now,actor]);
+      if(decision==='approved'){
+        await q.query("INSERT INTO hanq.growth_ledger(user_id,event_key,kind,amount,created_at) VALUES($1,'signup','signup',1000,$2) ON CONFLICT(user_id,event_key) DO NOTHING",[id,now]);
+        await partnerState(q,id,'agumon',1000,now);await partnerState(q,id,'patamon',1000,now);
+        await q.query("INSERT INTO hanq.member_access_logs(user_id,event,created_at) VALUES($1,'signup',$2)",[id,now]);
+      }
+      await q.query('INSERT INTO hanq.admin_audit(actor_id,action,target_id,created_at) VALUES($1,$2,$3,$4)',[actor,'membership.'+decision,id,now]);
+      return {status:decision,changed:true};
+    });
   }
 }

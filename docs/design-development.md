@@ -212,3 +212,9 @@ Dockerfile은 pinned official Node24 amd64·nonroot·승인 mounted bootstrap �
 ## Private question request staging
 
 [API contract and undeployed migration gate](question-request-staging.md). Owner uploads and manual answers stay private until reviewed; OCR, automatic review and publication remain disabled capabilities.
+
+
+## Approved-member access (implementation pending deployment)
+Existing users remain approved by additive migration058; new signups are pending and receive no session. ADMIN decides requests under row locks with audit/idempotency. Existing members and administrators cannot be rejected by the request-decision API. Signin, refresh and all authenticated API calls require approved state. A separate HttpOnly Secure host-only root-path cookie carries the existing access token solely for static GET authorization; API bearer/CSRF semantics remain unchanged. An exact handler allowlist leaves credential endpoints, public plan, health and provider webhook infrastructure reachable. No passwords, JWT keys or existing user records are copied.
+
+Validation: TypeScript compile and eight disposable database tests passed, including migration preservation, pending/rejected denial, concurrent one-time approval, API bypass, static-cookie expiry/revocation and ADMIN preservation. Full Windows unit suite had missing private fixture/symlink-platform failures; the legacy seven-day mock is updated with approved status without changing its expiry assertions. Operational rollout still requires latest image layering, strict sorted migration manifest update, admin preflight and static TLS-gate verification. Rollback must preserve new rows/decisions and fail closed rather than silently republish private content.
