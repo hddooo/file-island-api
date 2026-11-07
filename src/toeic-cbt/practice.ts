@@ -60,6 +60,16 @@ export class ToeicPracticeService {
   return{items:items.sort((a,b)=>Number(a.displayNumber)-Number(b.displayNumber))};
  });}
  async questions(owner:string,id:string){const c=await this.collection(this.db.pool,owner,id),history=await loadStudyHistory(this.db.pool,owner);return{collectionId:c.id,title:c.title,officiallyVerified:!c.content.questions.some(q=>q.answerStatus==='assistant_inferred_not_officially_verified'),items:c.content.questions.map(item=>{let available=true;try{this.readiness(c,item);}catch{available=false;}return{...this.safe(c,item),available,studyHistory:history.get(c.source_key+'\0'+questionKey(item))};})};}
+ async reviews(owner:string,id:string){return this.db.tx(async q=>{
+  await q.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
+  const c=await this.collection(q,owner,id);
+  const items=c.content.questions.flatMap(item=>{
+   let verified:boolean;try{verified=this.readiness(c,item);}catch{return [];}
+   const group=c.content.groups.find(g=>g.id===item.groupId);if(!group)return [];
+   return [{...this.safe(c,item),review:{officiallyVerified:verified,correctOptionId:item.correctOptionId,stem:item.stem,choices:item.choices,explanation:item.explanation,tutorExplanation:item.tutorExplanation||null,script:group.script,scriptStatus:group.scriptStatus}}];
+  });
+  return {collectionId:c.id,items};
+ });}
  async answer(owner:string,id:string,d:ToeicPracticeAnswerDto){return this.db.tx(async q=>{
   await lockOwner(q,owner);const c=await this.collection(q,owner,id);return this.saveAnswer(q,owner,c,d);
  });}
