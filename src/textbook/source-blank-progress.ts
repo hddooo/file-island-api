@@ -67,19 +67,19 @@ export function applySourceBatch(items: SourceItem[], current: SourceWorkspace, 
 @Injectable()
 export class SourceBlankProgressService {
  constructor(private readonly db: DbService, private readonly textbook: TextbookService) {}
- private async source(id: string) {
-  const quiz = await this.textbook.semanticQuiz(id) as Record<string, unknown>;
+ private async source(id: string, textbook = this.textbook) {
+  const quiz = await textbook.semanticQuiz(id) as Record<string, unknown>;
   const items = quiz.items as SourceItem[];
   return { items, version: digest({ schema: quiz.schemaVersion, source: quiz.source, items }) };
  }
- async get(userId: string, id: string) {
-  const { version } = await this.source(id);
+ async get(userId: string, id: string, textbook = this.textbook) {
+  const { version } = await this.source(id, textbook);
   const result = await this.db.pool.query('SELECT revision,progress,updated_at FROM hanq.source_blank_progress WHERE user_id=$1 AND quiz_id=$2 AND source_version=$3', [userId, id, version]);
   const row = result.rows[0];
   return { version, revision: row?.revision || 0, progress: row?.progress || initialSourceProgress(), updatedAt: row?.updated_at || null };
  }
- async save(userId: string, id: string, m: ProgressMutation) {
-  const { items, version } = await this.source(id);
+ async save(userId: string, id: string, m: ProgressMutation, textbook = this.textbook) {
+  const { items, version } = await this.source(id, textbook);
   if (!m || m.version !== version || !Number.isInteger(m.revision) || m.revision < 0 || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(m.mutationId || '')) throw invalid();
   const hash = digest(m);
   return this.db.tx(async q => {
@@ -95,22 +95,22 @@ export class SourceBlankProgressService {
    return { version, revision, progress, updatedAt: saved.rows[0].updated_at };
   });
  }
- private async legacyWorkspace(q: { query: DbService['pool']['query'] }, userId: string, id: string, version: string, count: number) {
+ private async legacyWorkspace(q: { query: DbService['pool']['query'] }, userId: string, id: string, version: string, items: SourceItem[]) {
   const legacy=await q.query('SELECT progress FROM hanq.source_blank_progress WHERE user_id=$1 AND quiz_id=$2 AND source_version=$3',[userId,id,version]);
   const progress: SourceProgress=legacy.rows[0]?.progress || initialSourceProgress();
-  const workspace=workspaceFromLegacy(progress,count);
-  if(progress.draft.length && progress.position<count) {
-   const {items}=await this.source(id);workspace.responses[items[progress.position].id]={values:progress.draft,submitted:false,correct:null};
+  const workspace=workspaceFromLegacy(progress,items.length);
+  if(progress.draft.length && progress.position<items.length) {
+   workspace.responses[items[progress.position].id]={values:progress.draft,submitted:false,correct:null};
   }
   return workspace;
  }
- async getWorkspace(userId: string, id: string) {
-  const {items,version}=await this.source(id);
+ async getWorkspace(userId: string, id: string, textbook = this.textbook) {
+  const {items,version}=await this.source(id, textbook);
   const result=await this.db.pool.query('SELECT revision,workspace,updated_at FROM hanq.source_blank_workspaces WHERE user_id=$1 AND quiz_id=$2 AND source_version=$3',[userId,id,version]),row=result.rows[0];
-  return {version,revision:row?.revision||0,workspace:row?.workspace||await this.legacyWorkspace(this.db.pool,userId,id,version,items.length),updatedAt:row?.updated_at||null};
+  return {version,revision:row?.revision||0,workspace:row?.workspace||await this.legacyWorkspace(this.db.pool,userId,id,version,items),updatedAt:row?.updated_at||null};
  }
- async saveWorkspace(userId: string, id: string, m: SourceBatch) {
-  const {items,version}=await this.source(id);
+ async saveWorkspace(userId: string, id: string, m: SourceBatch, textbook = this.textbook) {
+  const {items,version}=await this.source(id, textbook);
   if(!m||m.version!==version||!Number.isInteger(m.revision)||m.revision<0||!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(m.mutationId||''))throw invalid();
   const hash=digest(m);
   return this.db.tx(async q=>{
@@ -118,7 +118,7 @@ export class SourceBlankProgressService {
    const result=await q.query('SELECT revision,workspace,mutation_id,mutation_hash,updated_at FROM hanq.source_blank_workspaces WHERE user_id=$1 AND quiz_id=$2 AND source_version=$3 FOR UPDATE',[userId,id,version]),row=result.rows[0];
    if(row?.mutation_id===m.mutationId){if(row.mutation_hash!==hash)throw conflict();return {version,revision:row.revision,workspace:row.workspace,updatedAt:row.updated_at};}
    if((row?.revision||0)!==m.revision)throw conflict();
-   const initial=row?.workspace||await this.legacyWorkspace(q,userId,id,version,items.length),workspace=applySourceBatch(items,initial,m),revision=m.revision+1;
+   const initial=row?.workspace||await this.legacyWorkspace(q,userId,id,version,items),workspace=applySourceBatch(items,initial,m),revision=m.revision+1;
    const saved=await q.query(`INSERT INTO hanq.source_blank_workspaces (user_id,quiz_id,source_version,revision,workspace,mutation_id,mutation_hash) VALUES($1,$2,$3,$4,$5,$6,$7)
     ON CONFLICT(user_id,quiz_id,source_version) DO UPDATE SET revision=EXCLUDED.revision,workspace=EXCLUDED.workspace,mutation_id=EXCLUDED.mutation_id,mutation_hash=EXCLUDED.mutation_hash,updated_at=now() RETURNING updated_at`,[userId,id,version,revision,workspace,m.mutationId,hash]);
    return {version,revision,workspace,updatedAt:saved.rows[0].updated_at};

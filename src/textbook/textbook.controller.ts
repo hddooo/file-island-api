@@ -105,4 +105,63 @@ export class TextbookController {
     response.setHeader('Cross-Origin-Resource-Policy', 'same-site');
     response.send(image);
   }
+
+  private selected(sourceRevision?: string) { return sourceRevision === undefined ? Promise.resolve(this.textbook) : this.textbook.forRevision(sourceRevision); }
+  @Get('revisions/:sourceRevision/semantic/progress/:id')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionSourceProgressGet(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Param('sourceRevision') sourceRevision?: string) { return this.sourceProgress.get(who.userId,id,await this.selected(sourceRevision)); }
+
+  @Put('revisions/:sourceRevision/semantic/progress/:id')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionSourceProgressSave(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Body() dto: SourceProgressDto, @Param('sourceRevision') sourceRevision?: string) { return this.sourceProgress.save(who.userId,id,dto,await this.selected(sourceRevision)); }
+
+  @Get('revisions/:sourceRevision/semantic/manifest')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionSemanticManifest(@Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).semanticManifest(); }
+
+  @Get('revisions/:sourceRevision/semantic/choices/:id')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionSemanticChoices(@Param('id') id: string, @Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).semanticChoices(id); }
+
+  @Get('revisions/:sourceRevision/semantic/pages/:page')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionSemanticPage(@Param('page') page: string, @Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).semanticPage(page); }
+
+  @Get('revisions/:sourceRevision/semantic/figures/:id')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionSemanticFigure(@Param('id') id: string, @Res() response: Response, @Param('sourceRevision') sourceRevision?: string) {
+    const { data, mime } = await (await this.selected(sourceRevision)).semanticFigure(id);
+    response.setHeader('Content-Type', mime);
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+    response.send(data);
+  }
+
+  @Get('revisions/:sourceRevision/manifest')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionManifest(@Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).manifest(); }
+
+  @Get('revisions/:sourceRevision/pages/:page')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionPage(@Param('page') page: string, @Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).page(page); }
+
+  @Get('revisions/:sourceRevision/pages/:page/enhanced')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionEnhanced(@Param('page') page: string, @Res() response: Response, @Param('sourceRevision') sourceRevision?: string) {
+    const image = await (await this.selected(sourceRevision)).image(page, true);
+    response.setHeader('Content-Type', 'image/png');
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+    response.send(image);
+  }
+
+  @Get('revisions/:sourceRevision/pages/:page/image')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionImage(@Param('page') page: string, @Res() response: Response, @Param('sourceRevision') sourceRevision?: string) {
+    const image = await (await this.selected(sourceRevision)).image(page);
+    response.setHeader('Content-Type', 'image/png');
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+    response.send(image);
+  }
 }

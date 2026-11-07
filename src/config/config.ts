@@ -45,7 +45,7 @@ export interface AppConfig {
    *  Optional so hand-built configs elsewhere keep compiling; loadConfig always sets it. */
   cbt?: { assetDir: string | null; manifestFile: string | null; publicAssetBaseUrl?: string | null };
   /** Non-fatal notes for development (never contain secret values). */
-  textbook?: { dataDir: string | null };
+  textbook?: { dataDir: string | null; revisionsDir?: string | null };
   warnings: string[];
 }
 
@@ -200,7 +200,9 @@ function cbtAssets(env: Env, warnings: string[]): NonNullable<AppConfig['cbt']> 
 function textbookConfig(env: Env): NonNullable<AppConfig['textbook']> {
   const dir = str(env, 'HANQ_TEXTBOOK_DATA_DIR');
   if (dir && (!isAbsolute(dir) || dir.includes('\u0000'))) throw new ConfigError('HANQ_TEXTBOOK_DATA_DIR must be an absolute path');
-  return { dataDir: dir ?? null };
+  const revisions = str(env, 'HANQ_TEXTBOOK_REVISIONS_DIR');
+  if (revisions && (!isAbsolute(revisions) || revisions.includes('\u0000'))) throw new ConfigError('HANQ_TEXTBOOK_REVISIONS_DIR must be an absolute path');
+  return { dataDir: dir ?? null, ...(revisions ? { revisionsDir: revisions } : {}) };
 }
 
 /** Database settings only (migrate/seed scripts): same validation as the API. */

@@ -1,0 +1,42 @@
+{
+  "baseImage": "sha256:2c3f998fb077dd6d50689ca86a9d46a46909dc19de2e76fb412f793fb799f6c6",
+  "candidateImage": "sha256:f8985dccbc66cc0fe80384f542999687581264a8bbf688e77be42a721f2ca9f1",
+  "sourceRevision": "d54c1aa5d5816eeb73a2e82da0ec699555c2cbf1e7cb717a3b84420ed18296de",
+  "semanticManifestSha256": "c5e4647053125aa21cf3b80bd309ae8706299518f7760efdd72a434830b6212e",
+  "patches": [
+    {
+      "target": "/app/dist/src/config/config.js",
+      "sha256": "31c10ca5ac21388ccd4babec0d385e0fdadb7e3a57e3d8f0f9fb0e6242829f67"
+    },
+    {
+      "target": "/app/dist/src/textbook/history81.controller.js",
+      "sha256": "059a409de36dfd461c3a2a5f2f225a30571195f6d4ee732832f17029dbe7b1db"
+    },
+    {
+      "target": "/app/dist/src/textbook/semantic-data.js",
+      "sha256": "b98619298f7db49db7daeb0d2f362b68d1e39d14735b52bb6eb0760d38b66436"
+    },
+    {
+      "target": "/app/dist/src/textbook/source-blank-progress.js",
+      "sha256": "3a8d07b04f3cc2e30d137edc90fc3b237800e2b2629f8b2ed3deb90351a37eba"
+    },
+    {
+      "target": "/app/dist/src/textbook/textbook.controller.js",
+      "sha256": "bfbc7e209c95d0833767c64d30e3c9499afaaa8268d7203f9b2313748faf2a02"
+    },
+    {
+      "target": "/app/dist/src/textbook/textbook.service.js",
+      "sha256": "37eeab97e1b102ab8760b444ea313767505bb10817dc84cb49ac6bf9cff2cd68"
+    }
+  ],
+  "validation": {
+    "unitTests": 15,
+    "pages": 137,
+    "figures": 227,
+    "genericQuizItems": 307,
+    "realNestJwtEphemeralPostgres": true,
+    "legacyProgressPreserved": true,
+    "scriptWorkspacesUnchanged": true,
+    "productionWrites": 0
+  }
+}
