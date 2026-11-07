@@ -83,6 +83,8 @@ export class CbtController {
   }
 
 
+  @Post('runs/:id/claim') @HttpCode(200)
+  claim(@CurrentAuth() who:AuthContext,@Param('id') id:string,@Body() dto:CbtStartDto){return this.cbt.claim(who.userId,id,dto.attemptToken);}
   @Post('runs/:id/checkpoint') @HttpCode(200)
   checkpoint(@CurrentAuth() who:AuthContext,@Param('id') id:string,@Body() dto:CbtCheckpointDto,@Headers('x-cbt-attempt-token') token?:string){return this.cbt.checkpoint(who.userId,id,dto,token);}
   @Post('runs/:id/abandon') @HttpCode(200)

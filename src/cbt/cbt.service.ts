@@ -72,6 +72,8 @@ export class CbtService {
       const now = this.clock.now();
       const existing = await this.repo.findByKey(q, userId, dto.idempotencyKey);
       if (existing) return this.replayCreate(q, existing, dto.round);
+      const candidate=(await q.query<CbtRunRow>("SELECT * FROM hanq.cbt_runs WHERE user_id=$1 AND exam_round=$2 AND attempt_policy='uninterrupted-v1' AND status IN ('ready','active') ORDER BY CASE WHEN status='active' THEN 0 ELSE 1 END, created_at DESC,id DESC LIMIT 1 FOR UPDATE",[userId,dto.round])).rows[0];
+      if(candidate)return {created:false,reused:true,...(await this.view(q,await this.expireIfDue(q,candidate,now)))};
       const check = checkRound(dto.round, await this.repo.roundQuestions(q, dto.round));
       if (!check.ok) throw roundUnavailable(dto.round, check.reason);
       const id = randomUUID();
@@ -108,20 +110,12 @@ export class CbtService {
   private tokenMatches(run:CbtRunRow,token?:string) {return !!token&&/^[0-9a-f-]{36}$/i.test(token)&&!!run.attempt_token_hash&&sha256(token).toString('hex')===run.attempt_token_hash;}
   private assertToken(run:CbtRunRow,token?:string) {if(!this.tokenMatches(run,token))throw new AppError(409,'attempt_session_required','This exam cannot resume in another document');}
   private legacyClosed(run:CbtRunRow) {return run.attempt_policy!=='uninterrupted-v1'&&run.status!=='final';}
-  private async incomplete(q:PoolClient,run:CbtRunRow,reason:string,now:Date) {
-    if(run.status==='final'||run.status==='incomplete'||this.legacyClosed(run))return run;
-    await q.query("UPDATE hanq.cbt_runs SET status='incomplete',incomplete_at=$2,incomplete_reason=$3,paused_at=NULL,pause_remaining_ms=NULL,updated_at=$2 WHERE id=$1 AND status IN ('ready','active')",[run.id,now,reason]);
-    return (await this.repo.findOwned(q,run.id,run.user_id))!;
+  async get(userId:string,id:string,_token?:string) {
+    return this.locked(userId,id,async(q,run,now)=>this.view(q,await this.expireIfDue(q,run,now)));
   }
-  async get(userId:string,id:string,token?:string) {
-    return this.locked(userId,id,async(q,run,now)=>{
-      if(run.status==='active'&&!this.legacyClosed(run)){
-        if(!token)run=await this.incomplete(q,run,'document-left',now);
-        else {this.assertToken(run,token);if(now>=run.ends_at!)run=await this.finalize(q,run,run.ends_at!,'expired',now);}
-      }return this.view(q,run);
-    });
-  }
-  async start(userId:string,id:string,token?:string) {
+  /** A new document claims the same stored attempt, never extends its original deadline. */
+  async claim(userId:string,id:string,token:string) {return this.start(userId,id,token,true);}
+  async start(userId:string,id:string,token?:string,claim=false) {
     if(!token||!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token))throw new AppError(400,'invalid_attempt_token','A fresh document token is required');
     return this.locked(userId,id,async(q,run,now)=>{
       if(this.legacyClosed(run))return this.view(q,run);
@@ -132,7 +126,13 @@ export class CbtService {
         await q.query("UPDATE hanq.cbt_runs SET attempt_token_hash=$2,answer_mode='legacy' WHERE id=$1",[run.id,sha256(token).toString('hex')]);
         await this.repo.start(q,run.id,started,new Date(started.getTime()+CBT_DURATION_MS));
         run=(await this.repo.findOwned(q,run.id,userId))!;
-      }else if(run.status==='active'){this.assertToken(run,token);if(now>=run.ends_at!)run=await this.finalize(q,run,run.ends_at!,'expired',now);}
+      }else if(run.status==='active'){
+        if(now>=run.ends_at!)run=await this.finalize(q,run,run.ends_at!,'expired',now);
+        else if(claim){
+          await q.query('UPDATE hanq.cbt_runs SET attempt_token_hash=$2 WHERE id=$1',[run.id,sha256(token).toString('hex')]);
+          run=(await this.repo.findOwned(q,run.id,userId))!;
+        }else this.assertToken(run,token);
+      }
       return this.view(q,run);
     });
   }
@@ -153,8 +153,9 @@ export class CbtService {
     });
     if(out.closed)throw new AppError(409,'run_closed','No new answers accepted after deadline or completion');return out.value;
   }
-  async abandon(userId:string,id:string,reason='leave',token?:string) {
-    return this.locked(userId,id,async(q,run,now)=>{if(run.status==='active'&&!this.legacyClosed(run)){this.assertToken(run,token);run=await this.incomplete(q,run,reason,now);}return this.view(q,run);});
+  /** Old clients may still send pagehide abandon. Preserve progress under the new policy. */
+  async abandon(userId:string,id:string,_reason='leave',_token?:string) {
+    return this.get(userId,id);
   }
   async answer(_userId:string,_id:string,_position:number,_optionId:string|null) {throw new AppError(409,'checkpoint_required','Use uninterrupted checkpoint');}
   async go(_userId:string,_id:string,_position:number) {throw new AppError(409,'checkpoint_required','Use uninterrupted checkpoint');}
@@ -211,7 +212,7 @@ export class CbtService {
   }
 
   private async expireIfDue(q:PoolClient,run:CbtRunRow,now:Date):Promise<CbtRunRow>{
-    if(!this.legacyClosed(run)&&run.status==='active'&&run.ends_at&&now>=run.ends_at)return this.incomplete(q,run,'orphan-expired',now);return run;
+    if(!this.legacyClosed(run)&&run.status==='active'&&run.ends_at&&now>=run.ends_at)return this.finalize(q,run,run.ends_at,'expired',now);return run;
   }
 
   /** One transaction: grade the 50 items against the stored version, write exactly one attempt per item
@@ -266,7 +267,7 @@ export class CbtService {
       title: `제${r.exam_round}회 한국사능력검정시험 (심화) CBT`,
       status: this.legacyClosed(r)?'incomplete':r.status,
       answerMode: r.answer_mode === 'batch' ? 'batch' : 'server',
-      attemptPolicy:r.attempt_policy, incompleteReason:this.legacyClosed(r)?'policy_updated':r.incomplete_reason||null,
+      attemptPolicy:r.attempt_policy, progressPolicy:'automatic-restore-v1', incompleteReason:this.legacyClosed(r)?'policy_updated':r.incomplete_reason||null,
       paused: !!r.paused_at,
       checkpointVersion: r.checkpoint_version,
       pauseSubmissionKey: r.pause_submission_key,
