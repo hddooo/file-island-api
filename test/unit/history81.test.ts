@@ -11,6 +11,7 @@ import {HISTORY81_PDF,projectHistory81} from '../../src/textbook/history81-quiz'
 import {sourceSlots,sourceGrade} from '../../src/textbook/source-blank-progress';
 import {DbService} from '../../src/db/db.service';
 import {JoseonScriptService} from '../../src/textbook/joseon-script.service';
+import {OpeningScriptService} from '../../src/textbook/opening-script.service';
 import {GoryeoScriptService} from '../../src/textbook/goryeo-script.service';
 import {JwtAuthGuard} from '../../src/auth/guards';
 import {AuthService} from '../../src/auth/auth.service';
@@ -31,7 +32,7 @@ function memoryDb(){const rows=new Map<string,Row>(),calls:{sql:string;values:un
  const db={pool:{query},tx:async<T>(run:(q:{query:typeof query})=>Promise<T>)=>{const prior=queue;let release!:()=>void;queue=new Promise<void>(r=>{release=r;});await prior;try{return await run({query});}finally{release();}}} as unknown as DbService;
  return {db,rows,calls};
 }
-function service(){const mem=memoryDb(),f=fixture(),api=new History81Service(mem.db,{} as JoseonScriptService,{} as GoryeoScriptService);
+function service(){const mem=memoryDb(),f=fixture(),api=new History81Service(mem.db,{} as JoseonScriptService,{} as GoryeoScriptService,{} as OpeningScriptService);
  api.quiz=async(revision,era)=>{assert.equal(revision,HISTORY81_PDF);assert(era==='goryeo'||era==='joseon');return projectHistory81(era,f.bundle,[f.recipe]);};
  const batch=()=>({version:f.quiz.version,revision:0,mutationId:randomUUID(),cursor:0,status:'active' as const,updates:[{itemId:f.quiz.items[0].id,values:['synthetic'],submitted:true}]});return {...mem,...f,api,batch};}
 
@@ -83,8 +84,8 @@ test('invalid mutations cannot enter a transaction or alter records',async()=>{
  const f=service(),b=f.batch();for(const patch of [{version:'old79'},{revision:-1},{mutationId:'bad'},{cursor:1},{updates:[{...b.updates[0],itemId:'old79'}]},{updates:[b.updates[0],b.updates[0]]},{updates:[{...b.updates[0],values:[]}]},{updates:[{...b.updates[0],values:['x'.repeat(2001)]}]},{updates:[{...b.updates[0],checkedSlots:[]}]}])await assert.rejects(f.api.save('a',HISTORY81_PDF,'goryeo',{...b,...patch}),{code:'invalid_source_progress'});assert.equal(f.calls.length,0);assert.equal(f.rows.size,0);
 });
 test('unsupported revision/era never consult source or DB, and missing data fails only its route',async()=>{
- const mem=memoryDb();let calls=0;const provider={bundle:async()=>{calls++;throw new Error('missing');}},api=new History81Service(mem.db,provider as unknown as JoseonScriptService,provider as unknown as GoryeoScriptService);
- for(const [rev,era] of [['old79','goryeo'],[HISTORY81_PDF,'opening'],[HISTORY81_PDF,'../joseon']])await assert.rejects(api.quiz(rev,era),{code:'not_found'});assert.equal(calls,0);await assert.rejects(api.quiz(HISTORY81_PDF,'goryeo'));assert.equal(mem.calls.length,0);
+ const mem=memoryDb();let calls=0;const provider={bundle:async()=>{calls++;throw new Error('missing');}},api=new History81Service(mem.db,provider as unknown as JoseonScriptService,provider as unknown as GoryeoScriptService,provider as unknown as OpeningScriptService);
+ for(const [rev,era] of [['old79','goryeo'],[HISTORY81_PDF,'unknown'],[HISTORY81_PDF,'../joseon']])await assert.rejects(api.quiz(rev,era),{code:'not_found'});assert.equal(calls,0);await assert.rejects(api.quiz(HISTORY81_PDF,'goryeo'));assert.equal(mem.calls.length,0);
 });
 test('HTTP guards, private errors, DTO owner/grade rejection, bounded save and revoked session',async()=>{
  const f=service();let revoked=false;const token='synthetic-test-session-1234567890';
@@ -99,4 +100,29 @@ test('HTTP guards, private errors, DTO owner/grade rejection, bounded save and r
   const loaded=await req.get(route).set('Authorization','Bearer '+token).expect(200);assert.deepEqual(loaded.body.workspace,marked.body.workspace);
   revoked=true;await req.get(route).set('Authorization','Bearer '+token).expect(401);await req.put(route).set('Authorization','Bearer '+token).send(f.batch()).expect(401);assert.equal(f.rows.size,1);
  }finally{await app.close();}
+});
+
+test('opening uses only its pinned provider; corrupt source fails closed before DB access',async()=>{
+ const mem=memoryDb(),seen:string[]=[];
+ const opening={bundle:async(source:string)=>{seen.push(source);return Buffer.from(JSON.stringify({source:{sha256:source},markdown:'corrupt'}));}} as unknown as OpeningScriptService;
+ const api=new History81Service(mem.db,{} as JoseonScriptService,{} as GoryeoScriptService,opening);
+ await assert.rejects(api.quiz(HISTORY81_PDF,'opening'),{code:'source_quiz_unavailable'});
+ assert.deepEqual(seen,['255c37fb68122a329cca00ae1c15035590b6a7b21f601e4a5b5f7515fdfbf695']);assert.equal(mem.calls.length,0);
+});
+
+test('opening workspace: two slots, checked review, CAS/retry, owner and era isolation',async()=>{
+ const mem=memoryDb(),f=fixture('(1) Synthetic pair (  ,   )','first/second');
+ const quiz=JSON.parse(JSON.stringify(f.quiz).replaceAll(':goryeo:',':opening:'));
+ const api=new History81Service(mem.db,{} as JoseonScriptService,{} as GoryeoScriptService,{} as OpeningScriptService);
+ api.quiz=async(_revision,era)=>era==='opening'?quiz:f.quiz;
+ const item=quiz.items[0],batch={version:quiz.version,revision:0,mutationId:randomUUID(),cursor:0,status:'active' as const,updates:[{itemId:item.id,values:['first','second'],submitted:false,checkedSlots:[true,false]}],selectedReviewQuestionIds:[item.id]};
+ const saved=await api.save('a',HISTORY81_PDF,'opening',batch);
+ assert.equal(saved.revision,1);assert.deepEqual(saved.workspace.responses[item.id].checkedSlots,[true,false]);assert.equal(saved.workspace.responses[item.id].correct,null);
+ assert.deepEqual((await api.save('a',HISTORY81_PDF,'opening',batch)).workspace,saved.workspace);
+ await assert.rejects(api.save('a',HISTORY81_PDF,'opening',{...batch,mutationId:randomUUID()}),{code:'source_progress_conflict'});
+ assert.equal((await api.get('b',HISTORY81_PDF,'opening')).revision,0);
+ assert.equal((await api.get('a',HISTORY81_PDF,'goryeo')).revision,0);
+ const final=await api.save('a',HISTORY81_PDF,'opening',{...batch,revision:1,mutationId:randomUUID(),updates:[{...batch.updates[0],submitted:true,checkedSlots:[true,true]}]});
+ assert.equal(final.workspace.responses[item.id].correct,true);assert.equal(final.workspace.status,'completed');assert.deepEqual(final.workspace.selectedReviewQuestionIds,[item.id]);
+ assert(mem.calls.some(c=>c.values.includes('history:81-2026:opening:'+quiz.source.scriptSha256)));
 });

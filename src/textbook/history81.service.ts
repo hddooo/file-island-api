@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { AppError, notFound } from '../common/app-error';
 import { DbService } from '../db/db.service';
 import { JoseonScriptService } from './joseon-script.service';
+import { OpeningScriptService } from './opening-script.service';
+import { OPENING_SCRIPT_PIN } from './opening-script.pin';
+import { projectOpeningHistory81 } from './opening-history81-quiz';
 import { GoryeoScriptService } from './goryeo-script.service';
 import { JOSEON_SCRIPT_PIN } from './joseon-script.pin';
 import { GORYEO_SCRIPT_PIN } from './goryeo-script.pin';
@@ -16,9 +19,10 @@ const withSelection=(workspace:SourceWorkspace & {selectedReviewQuestionIds?:str
 type Saved81 = {version:string;revision:number;workspace:Workspace81;updatedAt:string|null;reviewSelectionAvailable:true};
 @Injectable()
 export class History81Service {
- constructor(private readonly db:DbService,private readonly joseon:JoseonScriptService,private readonly goryeo:GoryeoScriptService){}
+ constructor(private readonly db:DbService,private readonly joseon:JoseonScriptService,private readonly goryeo:GoryeoScriptService,private readonly opening:OpeningScriptService){}
  async quiz(revision:string,era:string){
-  if(revision!==HISTORY81_PDF||(era!=='joseon'&&era!=='goryeo'))throw notFound();
+  if(revision!==HISTORY81_PDF||(era!=='joseon'&&era!=='goryeo'&&era!=='opening'))throw notFound();
+  if(era==='opening')return projectOpeningHistory81(JSON.parse((await this.opening.bundle(OPENING_SCRIPT_PIN.sourceSha256)).toString('utf8')));
   const pin=era==='joseon'?JOSEON_SCRIPT_PIN:GORYEO_SCRIPT_PIN,service=era==='joseon'?this.joseon:this.goryeo;
   return projectHistory81(era,JSON.parse((await service.bundle(pin.sourceSha256)).toString('utf8')));
  }
