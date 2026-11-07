@@ -108,4 +108,12 @@ describe('approved-only membership and static gate',()=>{
    assert.equal((await request(bounded.server).get('/api/v1/auth/site-check').set('Cookie',raw.split(';')[0])).status,401);
   }finally{await bounded.close();}
  });
+
+ it('invalid-token saturation cannot consume verified-member gate capacity',async()=>{
+  const p=await pending();await pool.query("UPDATE hanq.users SET approval_status='approved' WHERE id=$1",[p.id]);
+  const login=await request(t.server).post('/api/v1/auth/signin').set(csrf).send({email:p.email,password:PASSWORD});
+  const raw=(login.headers['set-cookie'] as unknown as string[]).find(x=>x.startsWith('hanq_site_dev='))!;
+  for(let i=0;i<2050;i++)assert.equal((await request(t.server).get('/api/v1/auth/site-check').set('Cookie','hanq_site_dev='+('invalid-token-'+i).padEnd(24,'x'))).status,401);
+  assert.equal((await request(t.server).get('/api/v1/auth/site-check').set('Cookie',raw.split(';')[0])).status,204);
+ });
 });

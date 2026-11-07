@@ -32,8 +32,8 @@ export class AuthController {
   async siteCheck(@Req()req:Request):Promise<void>{
     const token=req.cookies?.[this.siteCookieName()];
     if(typeof token!=='string'||!/^[A-Za-z0-9_.-]{20,2048}$/.test(token))throw unauthorized();
-    if(!this.siteRate.allow(token,Date.now()))throw new AppError(429,'site_check_rate_limited','Too many checks');
     if(!await this.auth.authenticate(token))throw unauthorized();
+    if(!this.siteRate.allow(token,Date.now()))throw new AppError(429,'site_check_rate_limited','Too many checks');
   }
   private respond(res: Response, s: IssuedSession) {
     res.cookie(this.siteCookieName(),s.accessToken,this.siteCookieOptions(s.accessTokenExpiresAt));
