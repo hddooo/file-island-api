@@ -8,6 +8,7 @@ const source={question_id:'q1',version:'v1',era:'goryeo',option_ids:['1','2'],co
 function fixture(opts:{source?:boolean;old?:Record<string,unknown>;reset?:Date}={}){
  const calls:{sql:string;args:unknown[]}[]=[];
  const q={query:async(sql:string,args:unknown[]=[])=>{calls.push({sql,args});
+  if(sql.includes('FROM hanq.manual_wrong_notes')){assert.ok(sql.includes("m.source_key LIKE 'hongmungwan-workbook-v1:%'"));}
   if(sql.includes('FROM hanq.manual_wrong_notes'))return {rows:opts.source===false?[]:[source]};
   if(sql.startsWith('SELECT question_id,version,option_id,correct'))return {rows:opts.old?[opts.old]:[]};
   if(sql.includes('SELECT reset_at FROM'))return {rows:opts.reset?[{reset_at:opts.reset}]:[]};

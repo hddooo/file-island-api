@@ -1,0 +1,7 @@
+# Workbook-only source contract
+
+Hongmungwan is for the user's newly supplied era workbook, not existing mock-exam/manual imports. All list, image, answer and star operations share the owner-scoped SOURCE query. Only explicitly registered manual rows whose source_key starts with `hongmungwan-workbook-v1:` enter this collection. Legacy rows, attempts, images, XP and CBT sources must never be deleted or relabelled merely to populate this page. With no new workbook provided, all eight era lists are empty.
+
+Registration is a future reviewed admin/import step, not an end-user editable request field. Use source_key `hongmungwan-workbook-v1:<collection-id>:<source-item-id>` only after the user supplies the new workbook and confirms content review. Record exact original, correct answer, era, concise per-option explanations and private image manifest SHA. Existing import-book-wrong-notes only accepts verified official exam identifiers; it must not be used to invent or repurpose workbook questions. Extend the registration pipeline separately when actual materials arrive. Question-version keys must not collide with old manual sources, and personal history must not be copied to new materials.
+
+This release intentionally changes no rows and creates no sample questions. Direct calls using old IDs fail the same source check as listing, so stale pages cannot retrieve images, record answers or toggle stars for excluded legacy material. Original old records remain recoverable through their original context.
