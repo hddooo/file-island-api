@@ -1,3 +1,6 @@
+import { readFile, realpath, stat } from 'node:fs/promises';
+import { resolve, dirname, join } from 'node:path';
+import { createHash } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import { AppError } from '../common/app-error';
 import { CLOCK, type Clock } from '../common/tokens';
@@ -47,10 +50,27 @@ export class HongmungwanService {
    for(const a of answers){const k=key(a);history.set(k,[...(history.get(k)??[]),a.correct]);}
    const items=rows.filter(r=>hongEra(r.era)).map(r=>({questionId:r.question_id,version:r.version,era:hongEra(r.era),
     item:r.public_payload,review:hongReview(r),recentResults:history.get(key(r))??[],starred:star.has(key(r)),everWrong:wrong.has(key(r)),source:'book-manual'}));
-   return {items:items.filter(r=>!era||r.era===era),eras:HONG_ERAS.map(id=>({id,count:items.filter(r=>r.era===id).length})),resetAt};
+   return {unassignedCount:rows.length-items.length,items:items.filter(r=>!era||r.era===era),eras:HONG_ERAS.map(id=>({id,count:items.filter(r=>r.era===id).length})),resetAt};
   });
  }
- async answer(userId:string,dto:{questionId:string;version:string;optionId:string;submissionId:string;reviewOnly?:boolean;resetAt?:string|null}) {
+ async image(userId:string,questionId:string,version:string):Promise<Buffer> {
+  await this.premium.assertActive(this.db.pool,userId,this.clock.now());
+  await this.source(this.db.pool,userId,questionId,version);
+  try {
+   const configured=process.env.HANQ_HONGMUNGWAN_ASSET_DIR;
+   if(!configured)throw new Error('missing');
+   const root=await realpath(resolve(configured));
+   const manifest=JSON.parse(await readFile(join(root,'manifest.json'),'utf8')) as {files:Record<string,{file:string;sha256:string}>};
+   const entry=manifest.files[questionId+':'+version];
+   if(!entry||!/^exam-\d{2}-\d{2}\.webp$/.test(entry.file)||!/^[a-f0-9]{64}$/.test(entry.sha256))throw new Error('missing');
+   const file=await realpath(join(root,entry.file));
+   if(dirname(file)!==root)throw new Error('escape');
+   const info=await stat(file);if(!info.isFile()||info.size>8*1024*1024)throw new Error('size');
+   const bytes=await readFile(file);
+   if(bytes.toString('latin1',0,4)!=='RIFF'||bytes.toString('latin1',8,12)!=='WEBP'||createHash('sha256').update(bytes).digest('hex')!==entry.sha256)throw new Error('integrity');
+   return bytes;
+  }catch{throw new AppError(503,'asset_unavailable','This original question image is not available');}
+ } async answer(userId:string,dto:{questionId:string;version:string;optionId:string;submissionId:string;reviewOnly?:boolean;resetAt?:string|null}) {
   return this.db.tx(async q=>{
    await lockOwner(q,userId);const now=this.clock.now();await this.premium.assertActive(q,userId,now);
    const r=await this.source(q,userId,dto.questionId,dto.version);

@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Post, Put, Query, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
+import { Body, Controller, Get, Post, Put, Query, Param, Res, UseGuards } from '@nestjs/common';
 import { IsBoolean, IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { CurrentAuth, JwtAuthGuard, type AuthContext } from '../auth/guards';
 import { HongmungwanService, HONG_ERAS } from './hongmungwan.service';
@@ -19,6 +20,10 @@ class HongStar extends HongIdentity { @IsBoolean() starred!: boolean; }
 export class HongmungwanController {
  constructor(private readonly service: HongmungwanService) {}
  @Get() list(@CurrentAuth() who: AuthContext, @Query() query: HongQuery) { return this.service.list(who.userId, query.era); }
- @Post('answer') answer(@CurrentAuth() who: AuthContext, @Body() body: HongAnswer) { return this.service.answer(who.userId, body); }
+ @Get('questions/:id/:version/image')
+ async image(@CurrentAuth() who:AuthContext,@Param('id') id:string,@Param('version') version:string,@Res() res:Response) {
+  const bytes=await this.service.image(who.userId,id,version);
+  res.setHeader('Content-Type','image/webp');res.setHeader('Cache-Control','private, no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Content-Length',String(bytes.length));res.end(bytes);
+ } @Post('answer') answer(@CurrentAuth() who: AuthContext, @Body() body: HongAnswer) { return this.service.answer(who.userId, body); }
  @Put('star') star(@CurrentAuth() who: AuthContext, @Body() body: HongStar) { return this.service.star(who.userId, body); }
 }
