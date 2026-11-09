@@ -16,7 +16,7 @@ export function hongEra(value: string | null): string | null {
  return HONG_ERAS.includes(value as typeof HONG_ERAS[number]) ? value : null;
 }
 type Source = QuestionRow & { personal_review: Record<string, unknown> | null };
-const SOURCE = `SELECT v.*,CASE WHEN m.version=v.version THEN m.review_payload ELSE NULL END AS personal_review FROM hanq.manual_wrong_notes m
+const SOURCE = `SELECT v.*,CASE WHEN m.version=v.version AND m.review_payload->>'eraOverride' IN ('prehistory','samguk','nambuk','goryeo','joseon','opening','colonial','modern') THEN m.review_payload->>'eraOverride' ELSE v.era END AS era,CASE WHEN m.version=v.version THEN m.review_payload ELSE NULL END AS personal_review FROM hanq.manual_wrong_notes m
  JOIN hanq.question_versions v ON v.question_id=m.question_id AND v.is_current WHERE m.user_id=$1 AND m.source_key LIKE 'hongmungwan-workbook-v1:%'`;
 export function hongReview(r: Source) {
  return {correctOptionId:r.correct_option_id,item:r.personal_review?.questionReview ?? r.review_payload};
