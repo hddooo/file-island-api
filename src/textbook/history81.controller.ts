@@ -19,7 +19,7 @@ export class Batch81 implements History81Batch {
  @IsInt() @Min(0) @Max(1000000) revision:number;
  @IsUUID('4') mutationId:string;
  @IsInt() @Min(0) @Max(199) cursor:number;
- @IsIn(['active','paused']) status:'active'|'paused';
+ @IsIn(['active','paused','completed']) status:'active'|'paused'|'completed';
  @IsArray() @ArrayMaxSize(200) @ValidateNested({each:true}) @Type(()=>Update81) updates:Update81[];
  @ValidateIf((_object,value)=>value!==undefined) @IsArray() @ArrayMaxSize(172) @ArrayUnique() @IsString({each:true}) @MaxLength(200,{each:true}) selectedReviewQuestionIds?:string[];
 }

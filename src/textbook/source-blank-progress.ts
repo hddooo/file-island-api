@@ -46,14 +46,14 @@ export function applySourceMutation(items: SourceItem[], current: SourceProgress
  return next;
 }
 export type SourceWorkspace = { cursor: number; status: 'active' | 'paused' | 'completed'; responses: Record<string, { values: string[]; submitted: boolean; correct: boolean | null; checkedSlots?: boolean[] }> };
-export type SourceBatch = { version: string; revision: number; mutationId: string; cursor: number; status: 'active' | 'paused'; updates: { itemId: string; values: string[]; submitted: boolean; checkedSlots?: boolean[] }[] };
+export type SourceBatch = { version: string; revision: number; mutationId: string; cursor: number; status: 'active' | 'paused' | 'completed'; updates: { itemId: string; values: string[]; submitted: boolean; checkedSlots?: boolean[] }[] };
 export function workspaceFromLegacy(progress: SourceProgress, count: number): SourceWorkspace {
  const responses: SourceWorkspace['responses'] = {};
  progress.responses.forEach(r => { responses[r.itemId] = { values: r.values, submitted: true, correct: r.correct, checkedSlots: r.values.map(()=>true) }; });
  return { cursor: Math.min(progress.position, count-1), status: progress.status, responses };
 }
 export function applySourceBatch(items: SourceItem[], current: SourceWorkspace, batch: SourceBatch): SourceWorkspace {
- if (!Number.isInteger(batch.cursor) || batch.cursor<0 || batch.cursor>=items.length || !['active','paused'].includes(batch.status) || !Array.isArray(batch.updates) || batch.updates.length>items.length) throw invalid();
+ if (!Number.isInteger(batch.cursor) || batch.cursor<0 || batch.cursor>=items.length || !['active','paused','completed'].includes(batch.status) || !Array.isArray(batch.updates) || batch.updates.length>items.length) throw invalid();
  const next=structuredClone(current), seen=new Set<string>();
  for(const update of batch.updates) {
   const item=items.find(i=>i.id===update.itemId);
@@ -62,7 +62,8 @@ export function applySourceBatch(items: SourceItem[], current: SourceWorkspace, 
   seen.add(update.itemId);const checkedSlots=(update.checkedSlots||update.values.map(()=>update.submitted)).map((v,i)=>v&&!!normalized(update.values[i]));const submitted=checkedSlots.every(Boolean)&&update.values.every(v=>!!normalized(v));
   next.responses[item.id]={values:update.values,submitted,correct:submitted?sourceGrade(item,update.values):null,checkedSlots};
  }
- next.cursor=batch.cursor;next.status=batch.status==='paused'?'paused':items.every(i=>next.responses[i.id]?.submitted)?'completed':'active';return next;
+ // Explicit completion ends the session, not the unanswered items. Preserve their masks and grades.
+ next.cursor=batch.cursor;next.status=batch.status==='completed'?'completed':batch.status==='paused'?'paused':items.every(i=>next.responses[i.id]?.submitted)?'completed':'active';return next;
 }
 @Injectable()
 export class SourceBlankProgressService {

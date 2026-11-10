@@ -175,3 +175,7 @@ Dedicated immutable Goryeo GET transport implemented from ee9487e; see [contract
 ## 2026-11-04 Opening Script local transport
 
 Opening-only immutable transport prepared from 83db3a9 with the supplied hanq-opening-local/1 handoff. See [contract and release gates](../../opening-script-transport.md). Existing Joseon/Goryeo/auth/progress implementations remain unchanged; only TextbookModule registration changes. Final independent FE audit and adapter/index integration remain gates. No push, deployment, original-data changes or migration performed.
+
+## 2026-11-10 explicit source workspace completion
+
+Implementation is isolated on `fix/source-blank-completion-544dced`, based on feature snapshot `544dced`. Three source files add completed-status acceptance; focused pure/HTTP tests cover empty and partial completion, retained masks/grades, reload, owner isolation, DTO validation, CAS and retry. No database migration is required. Focused regressions (12/12, including all 642 original questions), typecheck, changed-file lint and production build passed. Full suite: 418 total, 352 pass, 60 fail, 6 skip. A control run using the original 544dced modules produced the same 60 failing test names (414 total, 348 pass, 6 skip), so there is no new full-suite failure. Full lint retains four errors in unchanged CBT files. Publication/deployment evidence is recorded separately. This branch has no active workflow and differs from main, so main merge/deployment is not assumed safe.

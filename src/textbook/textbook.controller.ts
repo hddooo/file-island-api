@@ -27,7 +27,7 @@ class SourceBatchDto implements SourceBatch {
  @IsInt() @Min(0) @Max(1000000) revision: number;
  @IsUUID('4') mutationId: string;
  @IsInt() @Min(0) @Max(199) cursor: number;
- @IsIn(['active','paused']) status: 'active' | 'paused';
+ @IsIn(['active','paused','completed']) status: 'active' | 'paused' | 'completed';
  @IsArray() @ArrayMaxSize(200) @ValidateNested({each:true}) @Type(()=>SourceBatchUpdateDto) updates: SourceBatchUpdateDto[];
 }
 

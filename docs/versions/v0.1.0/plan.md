@@ -104,3 +104,10 @@
 - [x] 기존 실패 뒤 replay/CBT/음수 preflight/rollback·단일 원장 assertion까지 실행
 - [x] 통합66/66, unit289pass/3skip, lint/typecheck/build 통과
 - [ ] 수정 커밋의 정확한 CI·릴리스 artifact 갱신(후속 실행 근거)
+
+## 2026-11-10 explicit source workspace completion
+
+- [x] Accept completed on generic and History81 batch DTOs without requiring every blank answered.
+- [x] Preserve per-item masks/grades, owner/source keys, CAS/idempotency and legacy data.
+- [x] Verify focused and existing regression checks, then record their actual results.
+- [ ] Publish/deploy only through the verified operating feature-branch release path.

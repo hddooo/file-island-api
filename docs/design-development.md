@@ -220,3 +220,11 @@ Existing users remain approved by additive migration058; new signups are pending
 Validation: TypeScript compile and eight disposable database tests passed, including migration preservation, pending/rejected denial, concurrent one-time approval, API bypass, static-cookie expiry/revocation and ADMIN preservation. Full Windows unit suite had missing private fixture/symlink-platform failures; the legacy seven-day mock is updated with approved status without changing its expiry assertions. Operational rollout still requires latest image layering, strict sorted migration manifest update, admin preflight and static TLS-gate verification. Rollback must preserve new rows/decisions and fail closed rather than silently republish private content.
 ### 개인 오답 기록 초기화 (2026-11-07, 운영 미반영)
 사용자·섬별 비파괴 가시성 기준일로 오답 항목과 나의 기록에서 과거 오답만 제외한다. 정답·XP·원본 자료와 다른 계정/섬은 유지한다. [API 계약·검증·배포 주의](learning-reset-readiness.md).
+
+## Explicit workspace completion (2026-11-10)
+
+The generic semantic workspace PUT, revision fallback PUT and History81 scripted PUT accept `status: "completed"` with zero or partially answered items. Completion records the user's explicit end-of-session choice. It does not create answers for untouched items, check empty slots, assign grades to incomplete items, or award exam/XP records. Existing valid responses, partial checked-slot masks and draft values are retained.
+
+`active` and `paused` keep their existing semantics, including automatic completion when every item is submitted. An explicit later active/paused save can reopen/pause a partial session. Manual-save clients send `completed` when saving all pending answer and review-selection changes together; typing, Tab feedback and leaving the view do not require a write.
+
+The existing JSONB workspace already stores completed status. No migration, source hash/version change, key change, historical rewrite, credential or permission change is needed. Owner/source/revision isolation, transaction locks and exact mutation retry checks are unchanged. Read/reload and exact retries return the persisted completed status. API support must be deployed before the manual-completion client.
