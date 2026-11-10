@@ -110,4 +110,4 @@
 - [x] Accept completed on generic and History81 batch DTOs without requiring every blank answered.
 - [x] Preserve per-item masks/grades, owner/source keys, CAS/idempotency and legacy data.
 - [x] Verify focused and existing regression checks, then record their actual results.
-- [ ] Publish/deploy only through the verified operating feature-branch release path.
+- [x] Publish/deploy only through the verified operating feature-branch release path (code 4f56e2b; verified image-only release on 2026-11-10).
