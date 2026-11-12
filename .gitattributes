@@ -1,2 +1,3 @@
-/test/fixtures/bootstrap55-locked.mjs -text
-/test/fixtures/bootstrap54-locked.mjs -text
+* text=auto eol=lf
+ops-prep/current-runtime-fixture/sql/** -text
+ops-prep/current-runtime-fixture/privileges.sql -text

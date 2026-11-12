@@ -17,7 +17,8 @@ function validate(inventory,actual,profile=P.SCHEMA54){
  }
  return inventory;
 }
-function verify(root,commit,profile=P.SCHEMA54){
+function verify(root,commit,profile=P.SCHEMA54,pinnedInventorySha256){
+ if(P.name(profile)===P.SCHEMA61){require('./current-runtime-test-inventory.cjs').committedInventory(root,commit,'ops-prep/functional-current-runtime-test-inventory.json',pinnedInventorySha256);return JSON.parse(C.git(root,['show',commit+':ops-prep/functional-current-runtime-test-inventory.json'],true));}
  assert(/^[a-f0-9]{40}$/.test(commit));
  P.name(profile);const bytes=C.git(root,['show',commit+':'+(profile===P.SCHEMA55?P.INVENTORY55:FILE)],true),inventory=JSON.parse(bytes),actual={};
  if(profile===P.SCHEMA55){assert.equal(hash(bytes),P.INVENTORY55_SHA256,'Pinned schema55 test inventory changed');assert.equal(inventory.sourceBaseCommit,P.SOURCE_BASE);}

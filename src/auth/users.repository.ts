@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { Queryable } from '../db/db.service';
 
 export interface UserRow {
+  approval_status: 'pending'|'approved'|'rejected';
   id: string;
   email_normalized: string;
   email_display: string;

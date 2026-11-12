@@ -1,0 +1,651 @@
+{
+  "version": 1,
+  "qualificationProfile": "schema61-local-private-retained-base",
+  "frozen": true,
+  "suites": {
+    "unit": [
+      {
+        "path": "test/unit/admin-xp-validation.test.ts",
+        "gitBlob": "6befcfc01306fc15b8a3372922fdcb254719d911",
+        "sha256": "ee4fb3a4972a7125bb80b8b0e3c5584c62f34020fd24291eb3bb5e6bf80af031"
+      },
+      {
+        "path": "test/unit/attendance-growth.test.ts",
+        "gitBlob": "bdb55f599f417054434ca22078baceaf729ff3b4",
+        "sha256": "60b32aa2e448981680ba185940cc2c0a967a41e4d7244a8f3dc0feb586a20094"
+      },
+      {
+        "path": "test/unit/attendance-reward.test.ts",
+        "gitBlob": "0f9b43421ae2c7283eaaf1beb4a447aacc39a539",
+        "sha256": "58df6e45ae46aa603de9748195f88ee571b14c8c22e3086559cabe0990ff9327"
+      },
+      {
+        "path": "test/unit/battle-background.test.ts",
+        "gitBlob": "8696f5aeb8c85dff658580578f4bb47b305ed8ac",
+        "sha256": "713eac372df1f52f291c2a4b3f0a65bb11a5414d37ec696b62347ff56b025164"
+      },
+      {
+        "path": "test/unit/battle-history-pool.test.ts",
+        "gitBlob": "fe49b8e57a71b684196eb2a5680feef7d50c3a68",
+        "sha256": "9cc08ab666dedc1fc9386148f9e2b19e6a1592e5a4cb8217abf62b40122b77b7"
+      },
+      {
+        "path": "test/unit/battle-rules.test.ts",
+        "gitBlob": "5da0bc57d260fe31899ab900fbcfa0a1466d0871",
+        "sha256": "aac03c5e2906e9d1e3c67389d92c95b34e910d82b7ddac79b7aa0571cc04866a"
+      },
+      {
+        "path": "test/unit/battle-weak.test.ts",
+        "gitBlob": "8830b02bf3080a28bb7e6134a002b72d35c2df36",
+        "sha256": "d7915ac215553e2cef5964d402d0d8424d899e9736d1b1ecf4bb070e595645fc"
+      },
+      {
+        "path": "test/unit/battle-wrongnotes.test.ts",
+        "gitBlob": "378606b9d8260e3529219c95ec00ff39d3002835",
+        "sha256": "048d5fed4f0b4c82fb8792143ebd70c6bc98c3662c472203ee51d64a9f74ed87"
+      },
+      {
+        "path": "test/unit/catalog.test.ts",
+        "gitBlob": "bf877267b763458fddccd39641753a54fd23a8e1",
+        "sha256": "5887ca863fc9a7af3fd0de7b6aaf81727d68bb9406d7388f3939bf2cd793fe7c"
+      },
+      {
+        "path": "test/unit/cbt-first-round-growth.test.ts",
+        "gitBlob": "7d5ef3d49db913ab8ba4ac671985827de3e080e3",
+        "sha256": "a7e5eb4e4bd25b9d12f7e9a5eec8d0ec90e9246c8c3a1bd9289f131975d995a8"
+      },
+      {
+        "path": "test/unit/cbt-growth.test.ts",
+        "gitBlob": "87c2fec08c687830cf71c2685641a5700c9d1fbc",
+        "sha256": "c7644d951c36f9479169c255a73c2e68c356b86fd850ac8aa2cfce88341e81a9"
+      },
+      {
+        "path": "test/unit/cbt-manifest-readiness.test.ts",
+        "gitBlob": "80f55670edb261106cf1c79ef1fd8e09dda37ac3",
+        "sha256": "5250671e8374703b0eea9847ebbc6d1cd30e84629bb8b9b4a5110020eabcdec3"
+      },
+      {
+        "path": "test/unit/cbt-notebook.test.ts",
+        "gitBlob": "a6e2b06ddef3187152b7050eda8db71e579effd5",
+        "sha256": "e3748af94301ab8f4c065d60a0942ebc664b1d1717071e1b782e01538a5895ec"
+      },
+      {
+        "path": "test/unit/cbt-policy.test.ts",
+        "gitBlob": "7557fcf04a49e831ff11d470db83266b145469ec",
+        "sha256": "f93ff6acd697cada4fa3d264f7b554b641e2b2a8d7a8229b35b9ac5fceba4a2d"
+      },
+      {
+        "path": "test/unit/cbt-round80.test.ts",
+        "gitBlob": "5dd7681a8e9161a9100620042c3b504de5e886b4",
+        "sha256": "f97961abc9f3eb58479d10edb2356b3120038ab29edd58dbcd4b30eaef9ce50b"
+      },
+      {
+        "path": "test/unit/config.test.ts",
+        "gitBlob": "6a411b2fce8173b407ae55c9a417788f6250a117",
+        "sha256": "05b661c245dc90ddc0a8a4b4cff7810a42a790dbe4b7bbb78e54232f11045634"
+      },
+      {
+        "path": "test/unit/credentials.test.ts",
+        "gitBlob": "86d1497482318640d384a34b393203e032bd3cbc",
+        "sha256": "d50fc18418b3dbb684c414b6f0451282a1f72e53201fec08b19e28b01c750d9b"
+      },
+      {
+        "path": "test/unit/development-premium.test.ts",
+        "gitBlob": "ef05376635ae853edf313ccb5cb104087c57da21",
+        "sha256": "6dc25385eeb119a5190db47a56f15b37a12e4a4f98c92046068d7e19c7c8471f"
+      },
+      {
+        "path": "test/unit/email-availability.test.ts",
+        "gitBlob": "1a211ffc5a419843580e44355d50aaa54b8fe506",
+        "sha256": "8ea96fb329fa8b480e83c6b05403fc9c9624638f69c36d27411c6bfc92ce3359"
+      },
+      {
+        "path": "test/unit/exam-result.test.ts",
+        "gitBlob": "bc59381ac76ae4a2b0c7490b4f8c3bec504cee6a",
+        "sha256": "1cf45bd5d942c6245294bcab7a40f0267481cb7cf3552c89099a0ed5798f86a5"
+      },
+      {
+        "path": "test/unit/goryeo-script.test.ts",
+        "gitBlob": "d200c90fe5802e2a83cc9808fd4c690237341c7c",
+        "sha256": "bbbfdf45a4501b7ebbb3019f0ceab120fbc54a74e58d13716399a9248fc02d80"
+      },
+      {
+        "path": "test/unit/grading-normalization-boundaries.test.ts",
+        "gitBlob": "a4aec357912764376358febae4ef4a7998c721e7",
+        "sha256": "80fb7de9c8fa8c7aafec205918daded7dd5f0b3fbaf4444a57da395e0fe0bc1c"
+      },
+      {
+        "path": "test/unit/growth-history.test.ts",
+        "gitBlob": "9ff0d5ce65365e79d8500359e55e48d3deeff17f",
+        "sha256": "cd0d8da4b1b7045060bdeae8f0c7adff1e2399d2de59e7a3a9855599ebfda967"
+      },
+      {
+        "path": "test/unit/hall-of-fame.test.ts",
+        "gitBlob": "bc14e84ee237bfef82a8ca1f4e22be14a8e349b5",
+        "sha256": "6b8bb5c007458ee225bcdeb2e2333241a28cda78618dd4d4c74fe459e18d3a5a"
+      },
+      {
+        "path": "test/unit/history-weighted-growth.test.ts",
+        "gitBlob": "37ea2e4c063f1b906c20cb284d1c748b3afd57f6",
+        "sha256": "16fe30fdd74df03552151f44e2c2aa6738cc819518e63045c0aebeecb98107be"
+      },
+      {
+        "path": "test/unit/history81.test.ts",
+        "gitBlob": "291ccab6bde8d9433f18ba8483b3c66542e7529c",
+        "sha256": "3d11d353f8826b984d090b3653467ce480ea80c0fa4c5d5ea7808858135c6753"
+      },
+      {
+        "path": "test/unit/hongmungwan.test.ts",
+        "gitBlob": "279de949988288c533024d1c0f2ea20b088daaa6",
+        "sha256": "d31d8cb2413bf36d837de278086f5fa06a5d53c500cb66cdf99e0d5c1f65325a"
+      },
+      {
+        "path": "test/unit/import-cap.test.ts",
+        "gitBlob": "bf2464d62e9dac54d74a9ea0b565c8fc6bc03b11",
+        "sha256": "98881ab2eca0bf412ce53de1975818a7e3c94493046db344bfcb56c2a41da32b"
+      },
+      {
+        "path": "test/unit/joseon-script.test.ts",
+        "gitBlob": "c6699af97a3789ceefab4fd2f82261f6084f8d96",
+        "sha256": "5ddfa6c81eea1ca23402efee24473d499c3bff46327d3fa0ac77d0285dd0f7f7"
+      },
+      {
+        "path": "test/unit/lc-audio-file.test.ts",
+        "gitBlob": "20be30c10fb2bccc4d0dd259ab53c08af780b576",
+        "sha256": "5dab9792713f94ed34c51579c042d9f99a5301e28ffc72112fc03cbcf64d8fbf"
+      },
+      {
+        "path": "test/unit/lc-player.test.ts",
+        "gitBlob": "0fc100a16cada5197d5ca3c49e206327fa77fab3",
+        "sha256": "d6cf77292ac0e89fcb7ddeccf0b474792f7aaa4b2a62b5e3d3d9caf490f853e4"
+      },
+      {
+        "path": "test/unit/learning-resets.test.ts",
+        "gitBlob": "f01cfef771e70175e56ddaca914a1a979fe87cb7",
+        "sha256": "fc0a93870f0686de61fa5b17d0e863253d5ce1a4d0c5366897dfdab11e1d1b36"
+      },
+      {
+        "path": "test/unit/login-analytics.test.ts",
+        "gitBlob": "1cc0770e4f816c1795beabea05e3fe333f502701",
+        "sha256": "c543b61789211b39836270d5fb68ef76ccd9632ffefe4941396f54dbf83bfdae"
+      },
+      {
+        "path": "test/unit/my-records-http.test.ts",
+        "gitBlob": "b8f7d051bfc53de37c70c10e9189a4cc01a1675d",
+        "sha256": "aec020ca48e8854b186f29a648ce0001056e439c2deac961c82237abd5d3bf11"
+      },
+      {
+        "path": "test/unit/opening-history81.test.ts",
+        "gitBlob": "4725ba336da857e7ce3e4d07594c6e93a5f7f109",
+        "sha256": "e09a829d4ea019706f3baa16f27e37c586cd8d60a82a7b28164d53d5ff354706"
+      },
+      {
+        "path": "test/unit/opening-script.test.ts",
+        "gitBlob": "f6b1183fc6a7f3a74d8b71f98b967fb5d149b590",
+        "sha256": "bd4c1d6d79f7c99890ead76dd6acf705519bbbac26e9cbfed578c4560d81bb9f"
+      },
+      {
+        "path": "test/unit/paraphrasing.test.ts",
+        "gitBlob": "297356d06fb877b18414f8a4dd9a6824efff92c2",
+        "sha256": "ea76d4ed542847e4766de8b44987a3310c834bf9f601b434435c7443ab7c6486"
+      },
+      {
+        "path": "test/unit/period.test.ts",
+        "gitBlob": "4ae29ff8dfa677e60ce1339e0c57075463959ac0",
+        "sha256": "7dad91ab01f2ab699ee189db858d3a1f6c3f12b8ec2160207edc4db78cd8ee6a"
+      },
+      {
+        "path": "test/unit/practice-growth.test.ts",
+        "gitBlob": "f86792b50c46136315d075c6bd190fefbf973545",
+        "sha256": "df70778d2496dfb6ddf9b92129ca3e4d445c579bd6d3a33e50786f4d30f80162"
+      },
+      {
+        "path": "test/unit/practice-reviews.test.ts",
+        "gitBlob": "0e9d0a4a224ba4a11ec8ec4534f4e0448077d3fb",
+        "sha256": "d6277db6b0f7194dff20e46847b5ee0894d4f132a1a9551912caeaa949fde512"
+      },
+      {
+        "path": "test/unit/private-script-artifact.test.ts",
+        "gitBlob": "039814598e96461a58cc3a8a7e7d38f461c15a70",
+        "sha256": "f56536a2fd29b82f38847a378557188609f03a0a099dcfde7d97678e408c7c6d"
+      },
+      {
+        "path": "test/unit/quality-revision.test.ts",
+        "gitBlob": "38d2cd606a97a3c75e5b0b10d8e80326f38f2266",
+        "sha256": "f1ec11fa1a040c1c866b80ec5862aeaba1ea86815d57120c5d705c252737490e"
+      },
+      {
+        "path": "test/unit/question-request-history-publisher.test.ts",
+        "gitBlob": "92ae78dd3a7a8e42803937239729f331c42976d4",
+        "sha256": "6780fed632ce8f55e0664c89b8fc4aa835efe867e0e13104aac622eee307b67f"
+      },
+      {
+        "path": "test/unit/question-request-toeic-publisher.test.ts",
+        "gitBlob": "85235900786074c46e77fe90c91172f431123f7a",
+        "sha256": "3f569dac5847eb48b93bbe468a8114da154b4680f652ca9d310dbca3ffaf0764"
+      },
+      {
+        "path": "test/unit/question-request.test.ts",
+        "gitBlob": "8c16db7552ab52683b33a59498518244de36b8ec",
+        "sha256": "76b878129cd1a3636704984befb2a047b1f413f6bdeff968d842065457cdd73d"
+      },
+      {
+        "path": "test/unit/retention-policy.test.ts",
+        "gitBlob": "abe76688a75e0c2ff758321960f67c6a22c69d4a",
+        "sha256": "1cfa530d9a34af34953e47648558f279094ef5fe3616f41414d371aa1888c7a1"
+      },
+      {
+        "path": "test/unit/semantic-data.test.ts",
+        "gitBlob": "8be44660487fb8248af1e823ec3a1b83a2a84f50",
+        "sha256": "cf849af8e3752a5bd4c62cb85fff9c2e1a95190f2cac7fb027d04acde5993b22"
+      },
+      {
+        "path": "test/unit/seven-day-session.test.ts",
+        "gitBlob": "f1b8d7285d9400c94b269fc565cd12f3ca1d5335",
+        "sha256": "5d616fb83a5354c477220c6efb6bea5c7faec55486dbe925404381abe12ab303"
+      },
+      {
+        "path": "test/unit/site-gate-rate-limit.test.ts",
+        "gitBlob": "7ed611044516efb2825debd4bd027bbc5421e907",
+        "sha256": "ff0eea455af1d5605e4979f45cac6031dbe11e705e8076920c55fc5135954eb8"
+      },
+      {
+        "path": "test/unit/source-answer-context-policy.test.ts",
+        "gitBlob": "2ff7b82ea3575d3d585feb44342f374fad6e2a7c",
+        "sha256": "38ba75802b11eacb67c11bd838afd2783bb866b4ab311eeefdb62b42c5f7fc14"
+      },
+      {
+        "path": "test/unit/source-answer-normalization.test.ts",
+        "gitBlob": "d37b34c8619759136b0c997f56c7cf306d8c4437",
+        "sha256": "33e0ce4fc8e839bb333bcbd1a864b9f095edd6d9f904026808da63944357788f"
+      },
+      {
+        "path": "test/unit/source-answer-notation.test.ts",
+        "gitBlob": "19cce865a84f89c3204727926b89efcc7945af7a",
+        "sha256": "429e6e606992550130efa690066b72b2ed5cb91c90c3001b0f645d245a06130d"
+      },
+      {
+        "path": "test/unit/source-blank-completion.test.ts",
+        "gitBlob": "bce50f53510568ed8a5c6eab12a9a90667d47e5d",
+        "sha256": "04ad93de03283967fed364a02441e4bdd70a0fa66869d9e8f8ce83d3ce045e9d"
+      },
+      {
+        "path": "test/unit/source-blank-progress.test.ts",
+        "gitBlob": "82dec1b5ac70c4f8b35ea52905310cd01195e7cb",
+        "sha256": "a1fdea63106933c2becca2bb052ba29e8ace2796daf3036ce7d5fb1c19e4a920"
+      },
+      {
+        "path": "test/unit/source-blank-workspace.test.ts",
+        "gitBlob": "b7234f170edb55bd011349822b21848240af682a",
+        "sha256": "8168cdd92a897d0e10d770cb925d8cec0931a457089c3e694471a4cb5af707e6"
+      },
+      {
+        "path": "test/unit/source-grading-namespace.test.ts",
+        "gitBlob": "0278420d0ab92812d8f3daf1bd4d43c7090c7705",
+        "sha256": "f18175217ade4affe98495b4ce980a542f8f527dad90d34f1c6cc49680adf592"
+      },
+      {
+        "path": "test/unit/source-parenthesis-grading.test.ts",
+        "gitBlob": "d48b92aed573e731b2f33c32a0de3dc0bc658391",
+        "sha256": "081ff184e8d5fa4b688bfcfad8b6cb2af3e1f1bf9ce948139d8336d09c47f42b"
+      },
+      {
+        "path": "test/unit/startup.test.ts",
+        "gitBlob": "5ca5cf1e5785bb85a37412e7590fbeca709e3b37",
+        "sha256": "1cf584acee236c0195276bf126d665776c830b221631f8825b09ae3e93df0eec"
+      },
+      {
+        "path": "test/unit/study-activity.test.ts",
+        "gitBlob": "0ddc694d743b0ad7569819f61eeccd8988cd5cda",
+        "sha256": "8a2d0abb4aa90330270087f36a5f0a53126348e7084d258fb6a1130f03a7cf12"
+      },
+      {
+        "path": "test/unit/study-policy.test.ts",
+        "gitBlob": "a0f00904bd056fb73a022372fefd12c602c23607",
+        "sha256": "fd16f51af7ce6ea0eaebddf0ad6ad244aa83d5fbcf671e96f3c9b4e32f2481e9"
+      },
+      {
+        "path": "test/unit/teaching-examples.test.ts",
+        "gitBlob": "200513d8f8ed7872bcd5eea07dc99ce85bf11d47",
+        "sha256": "c2c8ba03f2a2a4529316ef722fa5616ef6bfd5f97d2b41c535b952cf0d94c1db"
+      },
+      {
+        "path": "test/unit/textbook-revisions.test.ts",
+        "gitBlob": "2c2ea5f6c2d4ca38851c03995348fad91087715c",
+        "sha256": "fd30022e20ed5ff16b0b0d384a5bce6dd7c3fb67e02c8f79541291250be49d4e"
+      },
+      {
+        "path": "test/unit/textbook.test.ts",
+        "gitBlob": "c8f732c8938f0f8985c083b5d9235e3b4e6a775f",
+        "sha256": "c652e5ae7e19844188291fd92ea8dc7d4ecc55c1f7032022d3bae291b7ecef46"
+      },
+      {
+        "path": "test/unit/toeic-cbt.test.ts",
+        "gitBlob": "79896ac119c980c3ddc6bfb94e0bf1f524044437",
+        "sha256": "632b4953816f436c5a3339cb577c01aff23899a00640b1eaf2f3e5c351aca656"
+      },
+      {
+        "path": "test/unit/toeic-growth.test.ts",
+        "gitBlob": "5f130e4497c919418cf4136398f50b025a1202b3",
+        "sha256": "5345882ae12e3945a7ba6e5d2b846369daa122b48a212216d3538f3f5b8c96c0"
+      },
+      {
+        "path": "test/unit/toeic-history-projection.test.ts",
+        "gitBlob": "f5fe291621eb18e4598721fd69dfdfb583081cd0",
+        "sha256": "1040d7ae5ca5bdc36966d8467f7d2a61964323002bf76e360a470fe2cd965241"
+      },
+      {
+        "path": "test/unit/toeic-history.test.ts",
+        "gitBlob": "bc217eb5457025c77b2754bfb3981af57338e4a1",
+        "sha256": "1f19d25fdfe5947f18da7660ec55ed317163e18df3e8f0f1a3afb2f9100179c1"
+      },
+      {
+        "path": "test/unit/toeic-lc-evidence.test.ts",
+        "gitBlob": "ac9d2c73a21077662340201da687c0d6eb30c53f",
+        "sha256": "9a7e4f3cf3d7235e2a5dff1daa8880ff87ac0da04709dd86269537e7ba39a4fe"
+      },
+      {
+        "path": "test/unit/toeic-notes-http.test.ts",
+        "gitBlob": "56c31184a5fbc2d4d144476d442884cb3a73f8f0",
+        "sha256": "7a8ecb8ec08cac1ef31f1054188a0a0fe7ec65d703bf4ae47c154416f774d81d"
+      },
+      {
+        "path": "test/unit/toeic-notes.test.ts",
+        "gitBlob": "ece57093d714a2bb013c376c43fffd1a8792106c",
+        "sha256": "44c4ae5983915494752b8e75854ac36fe4c6ec388b52f76254c3d59344c6a145"
+      },
+      {
+        "path": "test/unit/toeic-part5-options.test.ts",
+        "gitBlob": "e2700184d2227cc7e78cec5b487f310dfa091584",
+        "sha256": "cb62a1ca92853d8db6f825f2c1b12bbf9e981a693a47ae25a192e72501fa1024"
+      },
+      {
+        "path": "test/unit/toeic-part7-evidence.test.ts",
+        "gitBlob": "ac1c4825b8e02d49a35d33ebde27f5d13891d12e",
+        "sha256": "7bffb3a6063251ecb62c85f74fe4b2ffb0bfc7a749fcb6b726e970188980bb79"
+      },
+      {
+        "path": "test/unit/toeic-part7-translations.test.ts",
+        "gitBlob": "30146e6ba3f41866db129f63de03622699c3fcd4",
+        "sha256": "4124b5588b0cfd7714097d8195c454ec9389a61f7ba8daa9241097fbf820ea4f"
+      },
+      {
+        "path": "test/unit/toeic-practice-group.test.ts",
+        "gitBlob": "69140fed21fa09df5d1e11bb26db53ccbbb37f4a",
+        "sha256": "44a403e1063e0ddc19c2c42cab63a00539f808e167a51b6f5fb88554d82c4ea8"
+      },
+      {
+        "path": "test/unit/toeic-practice-history.test.ts",
+        "gitBlob": "11b435eed9ee0d7d607f28c57a9242e3bf623d7e",
+        "sha256": "5082a5db0d1db485895b2ec5648f45274e5e6b18d0d06a3000a38f1500329f88"
+      },
+      {
+        "path": "test/unit/toeic-recall.test.ts",
+        "gitBlob": "3ae81c7cab32cd6024c72f72d76a2e6a7306d186",
+        "sha256": "02cb7551aa145edf182870ee988af91cb66ad53879c9548bccf660ddbc892140"
+      },
+      {
+        "path": "test/unit/toeic-reviewed-count.test.ts",
+        "gitBlob": "18b3ae525b9e00edfc2facbd3ec8a07e8864a76b",
+        "sha256": "d4865a521af68398ce4408c87e9c3b09a72e4d42b927de6911a4cc5396cfd3ce"
+      },
+      {
+        "path": "test/unit/toeic-script.test.ts",
+        "gitBlob": "6a9fcec1b448f7a55a07884fbae427cd8744d135",
+        "sha256": "7162147c4e964d1673cc1b1806ab198cf43a2bc5bf3f16b9a225bdf33d676771"
+      },
+      {
+        "path": "test/unit/token.test.ts",
+        "gitBlob": "e5c33cdb904713b124dcf2c07b962454b135034a",
+        "sha256": "4e403860a23a9434b20e3fa48ca1c2d86763fa380a750b6dabd549079e4c7f54"
+      },
+      {
+        "path": "test/unit/vocabulary-mini-chapters.test.ts",
+        "gitBlob": "96709eafa7ffc037a7aef7c658fd816f06fbae60",
+        "sha256": "684a414025f36a723d81a6f679f46f048100b0ff330e407405c7a2b9384e265c"
+      },
+      {
+        "path": "test/unit/vocabulary-mini-new-bank-records.test.ts",
+        "gitBlob": "764a6590db9eec7984957ac025b568b716853fd9",
+        "sha256": "e9209b5d84fd1d9d40b2386a198aaf8d2c816ea3c283600b1f5954baba139c7e"
+      },
+      {
+        "path": "test/unit/vocabulary-mini.test.ts",
+        "gitBlob": "2fe49402f549e979895c70b164d54142aa442db8",
+        "sha256": "e58fd7401d37eabe3121b16939857452f68c28ea79200b5540c28bba0bc9a409"
+      },
+      {
+        "path": "test/unit/weakness-practice.test.ts",
+        "gitBlob": "e697a5610f2577dc7c72d9dcd5cf9a25fbdb3180",
+        "sha256": "01fdeeadbfa16174f387ffcf654298955aab565a6aac80e50f7aa980d94bc263"
+      },
+      {
+        "path": "test/unit/word-checks.test.ts",
+        "gitBlob": "a64754803faf424e8bb2d22d100fc069c52a7211",
+        "sha256": "8aa4385d596495b16943bc4a6ba584262be736bc0caa5bca68bc357c80f1aed2"
+      }
+    ],
+    "integration": [
+      {
+        "path": "test/integration/auth.test.ts",
+        "gitBlob": "45248bbacc9c88533b46c20754ce014102fa65f2",
+        "sha256": "3c72475b800321b53b229ec63da8b2d062b6df08cfb3f4fa1fd274edb0e312d4"
+      },
+      {
+        "path": "test/integration/battle-site.test.ts",
+        "gitBlob": "057b8cc2b49c3ab4f67a38f1a66a3d53cf96ccf7",
+        "sha256": "18e5823b00fcf0348ddbdc036e19c550f66f288e4fb5289c37d553d62671c62e"
+      },
+      {
+        "path": "test/integration/battle.test.ts",
+        "gitBlob": "22819e7e55f8d2c60541191b212fb4417a3bd6f0",
+        "sha256": "7a141190049ec08ca02947bf0fd4b39f2c767ef8e9519c8dc9efe06eb6ce35e6"
+      },
+      {
+        "path": "test/integration/catalog-scope-deployment.test.ts",
+        "gitBlob": "64e92b23deac6259595a6cd93d8506435a88562d",
+        "sha256": "b31c5e8ede5af90ec04fe3a1be93672544f4d943e3e0d0b330a5a03d67ce9f2a"
+      },
+      {
+        "path": "test/integration/cbt-recent-three.test.ts",
+        "gitBlob": "9c6c6e9b6105b4aea36d9320a7d2b3fcc11634b1",
+        "sha256": "cc2294d94c09067a7d1afac647b1e57448deeea6b78dff28ae23e64a3360328b"
+      },
+      {
+        "path": "test/integration/cbt-reviews.test.ts",
+        "gitBlob": "701f39d594a558cf0078ecb7a768cb79fc663d93",
+        "sha256": "c633e4bf847ce7f29a8b351e045366e674785fe0fb5e9b1429736843c337f2cd"
+      },
+      {
+        "path": "test/integration/cbt.test.ts",
+        "gitBlob": "bd7228d69e50f390d8406ff8718813f7c9c848c8",
+        "sha256": "5554121796d276989f596d84e663ceb25450b40545773b82aa2feb027503ac8b"
+      },
+      {
+        "path": "test/integration/concurrency.test.ts",
+        "gitBlob": "cd939bb518e82eaec7aab6b74208d42962a06b83",
+        "sha256": "ca8878409bc1fd7dde17d1d2ffbdaa21e4501c4c5d79712cd9f04f4305092eba"
+      },
+      {
+        "path": "test/integration/connection-quiz.test.ts",
+        "gitBlob": "ef360ee2a53b198f62deb629ab1adefeed474d2d",
+        "sha256": "e23f1832ce45c75c3a4b470ec1ecb0dbf13591b080f10ebbf505d936dff78140"
+      },
+      {
+        "path": "test/integration/goryeo-recall.test.ts",
+        "gitBlob": "2cb9c641e485c4c1c5467697cde59dd3fabe2a89",
+        "sha256": "26c873f4dacf2e6ebd57b1e49915ee2bbeedf43614b7f1cfc218a6b333e78884"
+      },
+      {
+        "path": "test/integration/growth-floor.test.ts",
+        "gitBlob": "78a2184ac40ffba70b086dca12f8f0de872b8492",
+        "sha256": "1e55bcb436a8d62cf619c27405a96c3d38b4b71f7930eea946d88a06c01597de"
+      },
+      {
+        "path": "test/integration/growth-history.test.ts",
+        "gitBlob": "5c56ab9ffa404da2f431f202012559ad98d848ab",
+        "sha256": "c9b2c5614c27e1dec0e7a2f6c2e69ac71af9e437a0614a5b56f1f5557a12bd97"
+      },
+      {
+        "path": "test/integration/growth-preflight.test.ts",
+        "gitBlob": "474eca88a3d95b628f63f321e8e70c5d8ba23aa4",
+        "sha256": "8e9ce108f7cd7e1792d693c3d1c2a761cdabc02bb7d12e45f544aabcfaf4ed43"
+      },
+      {
+        "path": "test/integration/import.test.ts",
+        "gitBlob": "5b85b030cbdab53b381615c94873aaa7317fdd26",
+        "sha256": "ebdc63879d26ce760c464452fe3238992bd1dafd380b99bc3895a67c9b556edc"
+      },
+      {
+        "path": "test/integration/joseon-recall.test.ts",
+        "gitBlob": "6a435ea085d32c1fd2a07fa0b26ed6e4a49de6b2",
+        "sha256": "112cf1380f6f9604e1752c5080e19b7add8d40925f559ccdcbc7dd90f9d55ec5"
+      },
+      {
+        "path": "test/integration/learning-resets.test.ts",
+        "gitBlob": "c350c922ebd109e77f7759ec7be6f4dd3d571df5",
+        "sha256": "afff9fb0b6ee05a53f9fa58513f13cf80b679af3b9c0bd15ca762fd8e0eb2112"
+      },
+      {
+        "path": "test/integration/manual-wrong-notes.test.ts",
+        "gitBlob": "5812735d9929b5c89829d22ecaaf97a5185befba",
+        "sha256": "ef1a9b681a1aff437b3f49cfddcb8f0834487a4d5691a47276c350900d323069"
+      },
+      {
+        "path": "test/integration/member-approval.test.ts",
+        "gitBlob": "de9c57d5c13c86e5b1c6e832ca6e33c3cfb69ef7",
+        "sha256": "e46511b25e1acfc619f6f78bf810fead54ff03c57b3f8d42763d748562ddd68f"
+      },
+      {
+        "path": "test/integration/member-portal.test.ts",
+        "gitBlob": "896d35d32e77c9ea76aacae708bf5b8d8b8d4726",
+        "sha256": "cc338ede44dbab895f9245a5ae6927575a1d877f3dd977aee31a2497a4e0c91a"
+      },
+      {
+        "path": "test/integration/migration-order.test.ts",
+        "gitBlob": "22184976d9c0cca0a35a741be072dbe1158aa6e6",
+        "sha256": "e47485eed016728cc488e0ec8bf44b3a5be86606b7d0e0d92d655fda0f02f233"
+      },
+      {
+        "path": "test/integration/migrations-seed.test.ts",
+        "gitBlob": "37aa01d70e26c6881505a9fde22f1cf636187090",
+        "sha256": "53528b3a8ba20b0bb4760ecd46643252f4d121b27636c9dbd4cc62e9bee751e2"
+      },
+      {
+        "path": "test/integration/opening-history81.test.ts",
+        "gitBlob": "24390ec730d411d0a9659d871abe9b8581b84e42",
+        "sha256": "f7bbaecfc29003605a062dbc283b2223c1b4e653786672f18e6944cb4951f491"
+      },
+      {
+        "path": "test/integration/payments.test.ts",
+        "gitBlob": "a8476e9b5a1abef45adcc071c876fae70e5d711f",
+        "sha256": "bc2ff95531da6d6d6ece2503b0f94d1281de9cae4db2514faec8c6a414bbc72e"
+      },
+      {
+        "path": "test/integration/personal-goryeo-review.test.ts",
+        "gitBlob": "a3254b6ca5a860148a3c427ddf7dbf724dd6b8ae",
+        "sha256": "fec46e029f0b330ebcd838aa1c0dc7ab432d9d60487792b8ac45eed0bf411ffe"
+      },
+      {
+        "path": "test/integration/practice-growth.test.ts",
+        "gitBlob": "28efbb8c071f5ea1de20ff5b7b46bfb66c964b34",
+        "sha256": "f7842372a5b949b08ab2946543a11e22036dabb4cf38d5c3b552389ef4df9510"
+      },
+      {
+        "path": "test/integration/private-script-artifact.test.ts",
+        "gitBlob": "2c4faf3c4c8c1e6a1df4db0e10f07eb0b94b3a9c",
+        "sha256": "2fee6002db2a2e05b595ffd76c878b9b4abd4ffed0687a940f5c473b20c5b11e"
+      },
+      {
+        "path": "test/integration/profile-attempts.test.ts",
+        "gitBlob": "59fff76983dfb13fa7694766802733f8c7f4d2d7",
+        "sha256": "b7a0af530d8bc59d836ec188eb78557f40fcacb02699166beb21accdafa60af0"
+      },
+      {
+        "path": "test/integration/question-requests.test.ts",
+        "gitBlob": "1602d500a6ca983813fccb7293323e133e1ccc39",
+        "sha256": "4e8929693b9660e5b2912571a9100be44c0bfaaf2534496b6b81f836129d5ecf"
+      },
+      {
+        "path": "test/integration/questions-http.test.ts",
+        "gitBlob": "2b11f58c76051a848803eac44c7fa119120ea7f5",
+        "sha256": "1c02219c00b13a33ffb13875d1a35ed20664c580c0b6b49d9d61d7b0189c43de"
+      },
+      {
+        "path": "test/integration/quiz-progress.test.ts",
+        "gitBlob": "ad746d7a6665aace38adfc100c7eb658cc0ecf64",
+        "sha256": "ca6c4837e4b21a6ef63096d3e7c72c5ef2b03fc20ecbb0ccc0e04e5e45cedd64"
+      },
+      {
+        "path": "test/integration/reviewed-quiz-http.test.ts",
+        "gitBlob": "2f4c9deec4a8b13ff020714d7024112cb7accfd9",
+        "sha256": "7fd13e34ca04d075e1f368b49599df5dc1a5f699d4e7aee3f226ee745399e1d0"
+      },
+      {
+        "path": "test/integration/reward-access.test.ts",
+        "gitBlob": "3e591ac0f84ebd43dfc51a8b56d6d4539f6ce0b1",
+        "sha256": "5b4faf71261e219bbdc254fae44c98d0bd4e3c88f34a239f8d11093daef8893f"
+      },
+      {
+        "path": "test/integration/shared-core-review.test.ts",
+        "gitBlob": "22e3bbef252252f6b93b66e46f2b9cab68ed44be",
+        "sha256": "b9a23c4657507ca9b22d8947cc9a4da8281b022df8698e6e56edbcc4c0b26696"
+      },
+      {
+        "path": "test/integration/source-blank-progress.test.ts",
+        "gitBlob": "3f79d230fa81f14940cd0b6be3cb85a0ca49d1d9",
+        "sha256": "61bc6185c9e7c2a1957d52821107cffd21326591ad0df53aa1fb4119eb2fa956"
+      },
+      {
+        "path": "test/integration/startup-migrations.test.ts",
+        "gitBlob": "819bb697dbcd244e0e2471bd87234f8f043d5b4b",
+        "sha256": "ce20a10f8bae3cfa7eba060d20823cec2355e8976e64886cb988179784cf7d8c"
+      },
+      {
+        "path": "test/integration/test-free-premium.test.ts",
+        "gitBlob": "0a84603d05f03dedc40c96ef1e576a3058046340",
+        "sha256": "02b1c999607ac2ee3db67ddaf0a2f26a559e071fa7704ee88d839c9f338f2e43"
+      },
+      {
+        "path": "test/integration/textbook-revision-routing.test.ts",
+        "gitBlob": "9d624eb4d808d053a33b68f8f2df29d7933ff32e",
+        "sha256": "c2d4055dedcd0527124693a098b714c85605e95e7597836565753985df0943d7"
+      },
+      {
+        "path": "test/integration/toeic-cbt.test.ts",
+        "gitBlob": "9573562ab8fac538884fe6f4be889a6d88ae0ce0",
+        "sha256": "132df20e9ec8825140c2e499b903faf1c609d88cd62019f6aed6be6a7b4d7efa"
+      },
+      {
+        "path": "test/integration/toeic-member-learning.test.ts",
+        "gitBlob": "63a5c7f7fa251df043e0ba9326515fc011d926a7",
+        "sha256": "6683b0e58b0504a4a74ce9460c679e9b3884fc8b4821d3eacdb78f92d0786513"
+      },
+      {
+        "path": "test/integration/toeic-notes.test.ts",
+        "gitBlob": "0fe326c6ee44d33471b8e5b84727d2099eeb4135",
+        "sha256": "603ab726e2b77da29e4e05ef5852f3a0e62b25b8b199bef748a7c2da2f461696"
+      },
+      {
+        "path": "test/integration/toeic-practice.test.ts",
+        "gitBlob": "25da7ece1a0fc270d700182b06ae87590f1c198a",
+        "sha256": "de0c7b8b2c634c827f0eba1c70dc9258260b71703b09ee57d7a1408f938a0e32"
+      },
+      {
+        "path": "test/integration/word-checks.test.ts",
+        "gitBlob": "c4ef285c1a467a080038b3bb59204e63bead575e",
+        "sha256": "5642c0b3d63e9e80ee6022da2081356d8248d982c2cd2f02f1a00a809f72ec1f"
+      },
+      {
+        "path": "test/integration/wrong-note-study.test.ts",
+        "gitBlob": "b2c7118c0563a7537b3687db20fe9f10d3cfaec2",
+        "sha256": "cc59528264955080ff51e5c28059e696c404c9800205f2a10c7e9eed5b96ed51"
+      },
+      {
+        "path": "test/integration/wrong-notes-premium.test.ts",
+        "gitBlob": "6b968f833078a1e84974b077e583ed6f51b3ad55",
+        "sha256": "6eb3a175da4e9bb66d0e35a5288c690452c046ecbb7ddafb809133db46deae92"
+      }
+    ]
+  }
+}

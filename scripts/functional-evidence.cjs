@@ -1,7 +1,7 @@
 'use strict';
 // Produces execution evidence, never deployment approval or authenticated provenance.
 const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto'),assert=require('node:assert/strict');
-const P=require('./functional-schema-profile.cjs');
+const P=require('./functional-schema-profile.cjs'),R=require('./current-runtime-contract.cjs'),{fileHash:hashFileBounded}=require('./bounded-file-hash.cjs');
 const REPOSITORY='hddooo/file-island-api',WORKFLOW='.github/workflows/functional.yml';
 const SUITES=['api-unit','api-integration','migration-compatibility','fe-unit','core-ui','deploy-controller'];
 const CASES={
@@ -22,6 +22,7 @@ function validateBindings(b){
  for(const field of ['imageId','imageConfigDigest'])must(digest.test(b[field]),field+' missing');
  for(const field of ['archiveSha256','composeSha256','bootstrapSha256','controllerSha256'])must(hex.test(b[field]),field+' missing');
  must(b.databaseTarget==='hanq_final_20261028','wrong intended deployment target');
+ if(profile===P.SCHEMA61){const inspection=require('./current-runtime-inspection-bridge.cjs').binding(b.inspection);const schema=P.manifest(b.schemaContract,profile);must(b.bootstrapSha256===R.BOOTSTRAP,'Exact retained normal bootstrap required');must(b.privilegesSha256===schema.privilegesSha256,'Privileges binding mismatch');must(hex.test(b.testInventorySha256),'Independently pinned complete test inventory required');must(JSON.stringify(b.migrations)===JSON.stringify(schema.rows),'Exact composed schema61 binding required');return {qualificationProfile:profile,inspection,...Object.fromEntries(['apiCommit','frontendCommit','deployCommit','imageId','imageConfigDigest','archiveSha256','composeSha256','bootstrapSha256','controllerSha256','databaseTarget','privilegesSha256','testInventorySha256'].map(k=>[k,b[k]])),schemaContract:JSON.parse(JSON.stringify(b.schemaContract)),migrations:schema.rows,migrationManifestSha256:schema.manifestSha256};}
  if(profile===P.SCHEMA55)P.manifest({migrations:b.migrations,privilegesSha256:b.privilegesSha256},profile);
  const count=profile===P.SCHEMA55?55:54;
  must(Array.isArray(b.migrations)&&b.migrations.length===count,'schema54 required unless explicit reviewed schema55 qualification');
@@ -32,7 +33,8 @@ function validateBindings(b){
  return {...Object.fromEntries(fields.map(key=>[key,b[key]])),...(profile===P.SCHEMA55?{qualificationProfile:profile,privilegesSha256:b.privilegesSha256}:{}),migrations:b.migrations.map(({version,checksum})=>({version,checksum})),migrationManifestSha256:manifestHash(b.migrations)};
 }
 function requiredCases(suite,b){return P.cases(suite,CASES[suite]||[],b.qualificationProfile);}
-function identity(env,apiCommit){
+function identity(env,apiCommit,profile=P.SCHEMA54){
+ if(P.name(profile)===P.SCHEMA61)return R.producer(env,apiCommit);
  must(env.GITHUB_ACTIONS==='true','functional artifacts require the trusted Actions workflow; local output stays diagnostic');
  must(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_SHA===apiCommit,'repository/source mismatch');
  must(env.GITHUB_REF==='refs/heads/main'&&['push','workflow_dispatch'].includes(env.GITHUB_EVENT_NAME),'main push/manual only');
@@ -91,7 +93,7 @@ function suiteFromExecutions(name,b,steps,caseTitles){
  return validateSuite(receipt,b);
 }
 function compose(bindings,receipts,env){
- const b=validateBindings(bindings),producer=identity(env,b.apiCommit);
+ const b=validateBindings(bindings),producer=identity(env,b.apiCommit,b.qualificationProfile);
  P.producerProfile(b.qualificationProfile,env);
  must(Array.isArray(receipts)&&receipts.length===SUITES.length&&new Set(receipts.map(x=>x.name)).size===SUITES.length,'exactly six suites required');
  const suites=SUITES.map(name=>validateSuite(receipts.find(x=>x.name===name),b));
@@ -102,9 +104,10 @@ function verifyInputBytes(b,roots){
  const input=roots.inputs;must(input&&typeof input==='object','actual input file paths required');
  for(const [name,key]of [['archive','archiveSha256'],['compose','composeSha256'],['bootstrap','bootstrapSha256']]){
   must(typeof input[name]==='string'&&fs.lstatSync(input[name]).isFile()&&!fs.lstatSync(input[name]).isSymbolicLink(),'regular '+name+' file required');
-  must(hash(fs.readFileSync(input[name]))===b[key],name+' byte hash mismatch');
+  must((name==='archive'?hashFileBounded(input[name]):hash(fs.readFileSync(input[name])))===b[key],name+' byte hash mismatch');
  }
  const controller=path.join(roots.deploy,'scripts/deploy.cjs');must(hash(fs.readFileSync(controller))===b.controllerSha256,'controller bundle byte hash mismatch');
+ if(P.name(b.qualificationProfile)===P.SCHEMA61){require('./current-runtime-test-inventory.cjs').committedInventory(roots.api,b.apiCommit,'ops-prep/functional-current-runtime-test-inventory.json',b.testInventorySha256);const committed=JSON.parse(git(roots.api,['show',b.apiCommit+':ops-prep/functional-current-runtime-schema.json']));must(JSON.stringify(committed)===JSON.stringify(b.schemaContract),'Schema contract differs from committed recipe bytes');return require('./current-runtime-inspection-bridge.cjs').verify(b,roots);}
  const source=require('./image-build-contract.cjs').sourceManifest(roots.api,b.apiCommit,P.buildProfile(b.qualificationProfile));must(source.manifestSha256===b.migrationManifestSha256,'Schema differs from committed Git LF bytes');
  const image=JSON.parse(fs.readFileSync(input.imageReceipt,'utf8'));
  if(P.name(b.qualificationProfile)===P.SCHEMA54)must(image.migrationProfile===undefined||image.migrationProfile==='schema54','schema55 image-only receipt is ineligible for schema54 functional qualification');

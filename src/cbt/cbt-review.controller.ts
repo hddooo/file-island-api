@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, HttpCode, Param, Post, Res, UseGuards } from '@nestjs/common';
 import type { Response } from 'express';
 import { CurrentAuth, JwtAuthGuard, type AuthContext } from '../auth/guards';
 import { notFound } from '../common/app-error';
@@ -8,12 +8,13 @@ import { CbtReviewService } from './cbt-review.service';
 @Controller('api/v1/cbt') @UseGuards(JwtAuthGuard)
 export class CbtReviewController {
  constructor(private readonly service:CbtReviewService) {}
- @Get('runs/:id/stars') stars(@CurrentAuth() w:AuthContext,@Param('id') id:string){return this.service.stars(w.userId,id,'exam');}
- @Post('runs/:id/stars') @HttpCode(200) save(@CurrentAuth() w:AuthContext,@Param('id') id:string,@Body() d:CbtStarDto){return this.service.saveStar(w.userId,id,'exam',d);}
- @Post('runs/:id/stars/import') @HttpCode(200) import(@CurrentAuth() w:AuthContext,@Param('id') id:string,@Body() d:CbtStarImportDto){return this.service.importStars(w.userId,id,'exam',d);}
+ @Get('runs/:id/stars') stars(@CurrentAuth() w:AuthContext,@Param('id') id:string,@Headers('x-cbt-attempt-token') token?:string){return this.service.stars(w.userId,id,'exam',token);}
+ @Post('runs/:id/stars') @HttpCode(200) save(@CurrentAuth() w:AuthContext,@Param('id') id:string,@Body() d:CbtStarDto,@Headers('x-cbt-attempt-token') token?:string){return this.service.saveStar(w.userId,id,'exam',d,token);}
+ @Post('runs/:id/stars/import') @HttpCode(200) import(@CurrentAuth() w:AuthContext,@Param('id') id:string,@Body() d:CbtStarImportDto,@Headers('x-cbt-attempt-token') token?:string){return this.service.importStars(w.userId,id,'exam',d,token);}
  @Get('reviews/:id/stars') reviewStars(@CurrentAuth() w:AuthContext,@Param('id') id:string){return this.service.stars(w.userId,id,'review');}
  @Post('reviews/:id/stars') @HttpCode(200) reviewSave(@CurrentAuth() w:AuthContext,@Param('id') id:string,@Body() d:CbtStarDto){return this.service.saveStar(w.userId,id,'review',d);}
  @Post('reviews/:id/stars/import') @HttpCode(200) reviewImport(@CurrentAuth() w:AuthContext,@Param('id') id:string,@Body() d:CbtStarImportDto){return this.service.importStars(w.userId,id,'review',d);}
+ @Get('review-materials/:round') materials(@CurrentAuth() w:AuthContext,@Param('round') round:string){if(!/^(7[0-9]|80)$/.test(round))throw notFound();return this.service.reviewMaterials(w.userId,Number(round));}
  @Get('notebook') notebook(@CurrentAuth() w:AuthContext){return this.service.notebook(w.userId);}
  @Post('reviews') create(@CurrentAuth() w:AuthContext,@Body() d:CreateCbtReviewDto){return this.service.create(w.userId,d);}
  @Get('reviews') list(@CurrentAuth() w:AuthContext){return this.service.list(w.userId);}

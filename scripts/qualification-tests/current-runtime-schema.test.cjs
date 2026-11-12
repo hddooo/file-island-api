@@ -1,0 +1,11 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),{test}=require('node:test'),A=require('node:assert/strict'),C=require('../current-runtime-contract.cjs'),F=require('../current-runtime-schema-fixture.cjs');
+const root=path.resolve(__dirname,'../../ops-prep/current-runtime-test-fixtures'),manifest=JSON.parse(fs.readFileSync(path.join(root,'schema.json'),'utf8')),directory=path.join(root,'sql');
+test('pinned bootstrap exact61 union accepted',()=>{const r=C.schema(manifest);A.equal(r.rows.length,61);A.equal(r.manifestSha256,C.LEDGER);A.equal(r.expectedApplied,0);});
+test('all61 original SQL bytes loaded without normalization',()=>{const r=F.loadExactSql(manifest,directory);A.equal(r.rows.length,61);for(const row of r.rows)A.equal(C.hash(row.bytes),row.checksum);});
+test('read-only observed image59 equals bootstrap subset',()=>{const observation=JSON.parse(fs.readFileSync(path.join(root,'image59-schema.json'),'utf8').replace(/^\uFEFF/,''));A.deepEqual(observation.migrations,manifest.imageMigrations);});
+test('isolated plan maintains59+1+1 and normal no-apply startup',()=>{const r=F.isolatedFixturePlan(manifest,directory,{databaseName:'hanq_fixture61_test',networkMode:'none',publishedPorts:[]});A.equal(r.imageTopLevel.length,59);A.equal(r.sqlExecuted,false);A.equal(r.bootstrap064.bytes.length,971);A.equal(r.expectedNormalRestartApplied,0);});
+for(const field of ['ledgerBeforeSha256','ledgerAfterSha256','bootstrapSha256'])test('rejects incorrect '+field,()=>A.throws(()=>C.schema({...manifest,[field]:'a'.repeat(64)})));
+test('rejects apply flag despite valid ledger',()=>A.throws(()=>C.schema({...manifest,startArgv:[...manifest.startArgv,'--apply']})));
+test('rejects normalized/mutated SQL checksum',()=>A.throws(()=>C.schema({...manifest,imageMigrations:manifest.imageMigrations.map((r,i)=>i? r:{...r,checksum:'a'.repeat(64)})})));
+for(const config of [{databaseName:'hanq_final_20261028',networkMode:'none',publishedPorts:[]},{databaseName:'hanq_fixture61_test',networkMode:'bridge',publishedPorts:[]},{databaseName:'hanq_fixture61_test',networkMode:'none',publishedPorts:['5432']}])test('rejects nonisolated fixture configuration '+JSON.stringify(config),()=>A.throws(()=>F.isolatedFixturePlan(manifest,directory,config)));

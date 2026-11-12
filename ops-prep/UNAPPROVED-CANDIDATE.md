@@ -1,0 +1,1 @@
+Local preparation checkpoint only. No activation, operating approval, deployment, uploaded archive, or completed six-suite evidence. Compiler output must come from exact Git blobs using Node24.22.2/TypeScript5.9.3/newLineLF. Final FE/controller recipe identity and approved frozen inputs are still required. Retained baseline private image is local-only.

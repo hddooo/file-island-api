@@ -1,9 +1,10 @@
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsInt, IsIn, IsOptional, IsString, Matches, Max, MaxLength, Min, ValidateNested } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsInt, IsIn, IsISO8601, IsOptional, IsString, Matches, Max, MaxLength, Min, ValidateNested } from 'class-validator';
 import { SUBMISSION_ID } from '../attempts/attempts.dto';
 import { CbtAnswerDto } from './cbt.dto';
 
 export class CbtStarDto {
+ @IsOptional() @IsISO8601() resetAt?: string | null;
  @IsString() @MaxLength(65536) signature: string;
  @IsInt() @Min(0) @Max(49) position: number;
  @IsBoolean() starred: boolean;
@@ -14,7 +15,7 @@ export class CbtStarImportDto {
 }
 export class CreateCbtReviewDto {
  @IsOptional() @IsIn(['exam-wrong-only']) selection?: 'exam-wrong-only';
- @IsInt() @Min(70) @Max(79) round: number;
+ @IsInt() @Min(70) @Max(80) round: number;
  @IsString() @Matches(SUBMISSION_ID) idempotencyKey: string;
 }
 export class CbtReviewAnswersDto {

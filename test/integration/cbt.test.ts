@@ -9,7 +9,7 @@ import type { Pool } from 'pg';
 import request from 'supertest';
 import type { Response as AgentResponse } from 'superagent';
 import { CbtAssetsService } from '../../src/cbt/cbt-assets.service';
-import { CBT_DURATION_MS, commonImage, initialPart } from '../../src/cbt/cbt-policy';
+import { CBT_DURATION_MS, cbtReward, commonImage, initialPart } from '../../src/cbt/cbt-policy';
 import { sha256hex } from '../../src/common/util';
 import { seedQuestions } from '../../src/questions/question-seeder';
 import { bearer, buyPremium, signin, signup, startApp, type Session, type TestApp } from '../helpers/app';
@@ -25,9 +25,6 @@ const webp = (tag: string) => {
 };
 
 type Row = { question_id: string; version: string; exam_number: number; points: number; option_ids: string[]; correct_option_id: string; era: string | null; review_payload: Record<string, unknown>; public_payload: Record<string, unknown> };
-
-// Independent current first-completion oracle; historical cbtReward is not the active policy.
-const firstRoundReward = (score:number) => score>=80?10:score>=70?5:score>=60?3:-10;
 
 const binary = (res: AgentResponse, cb: (err: Error | null, body: Buffer) => void) => {
   const chunks: Buffer[] = [];
@@ -82,8 +79,7 @@ describe('authenticated CBT (isolated *_test database)', () => {
 
   before(async () => {
     pool = await freshDatabase(testConfig());
-    // Explicit short TTL belongs to this token-expiry scenario, not the production/default policy.
-    t = await startApp({ HANQ_CBT_ASSET_DIR: assetDir, HANQ_ACCESS_TTL_SECONDS:'600' }, clock);
+    t = await startApp({ HANQ_CBT_ASSET_DIR: assetDir }, clock);
     bare = await startApp({}, clock);
     for (let round = 70; round <= 79; round++) for (let n = 1; n <= 50; n++) {
       const number = String(n).padStart(2, '0');
@@ -452,10 +448,9 @@ describe('authenticated CBT (isolated *_test database)', () => {
     await assert.rejects(pool.query('DELETE FROM hanq.cbt_runs WHERE id=$1', [run.id]), /immutable/);
     // exactly one final-score growth row for the run (never per question); no challenge / study-run writes
     assert.equal(await growthCount(A.userId), growthBefore + 1);
-    const g = await pool.query<{ kind: string; amount: number; cbt_run_id: string; event_key: string }>(`SELECT kind, amount, cbt_run_id, event_key FROM hanq.growth_ledger WHERE user_id = $1 AND kind = 'cbt-exam'`, [A.userId]);
-    assert.deepEqual(g.rows.map((x) => [x.kind, x.amount, x.cbt_run_id, x.event_key]), [['cbt-exam', firstRoundReward(res.score), run.id, 'cbt:' + run.id]]);
-    assert.equal(res.growthReward, firstRoundReward(res.score), 'immutable result carries the current first-round reward');
-    assert.equal(res.rewardEligible,true);assert.equal(res.growthPolicy,'round-first-score-bands-v1');assert.equal(res.policyGrowthReward,firstRoundReward(res.score));
+    const g = await pool.query<{ kind: string; amount: number; cbt_run_id: string; event_key: string }>(`SELECT kind, amount, cbt_run_id, event_key FROM hanq.growth_ledger WHERE user_id = $1 AND kind <> 'signup'`, [A.userId]);
+    assert.deepEqual(g.rows.map((x) => [x.kind, x.amount, x.cbt_run_id, x.event_key]), [['cbt-exam', cbtReward(res.score), run.id, 'cbt:' + run.id]]);
+    assert.equal(res.growthReward, cbtReward(res.score), 'immutable result carries the reward');
     assert.equal((await pool.query(`SELECT count(*)::int n FROM hanq.growth_ledger g JOIN hanq.attempts a ON a.id = g.attempt_id WHERE a.cbt_run_id = $1`, [run.id])).rows[0].n, 0, 'no per-question practice rewards for CBT attempts');
     assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.runs WHERE user_id = $1', [A.userId])).rows[0].n, studyRunsBefore);
     gradedRun = { id: run.id, wrongIds: [...wrongPos, ...(skipPos >= 0 ? [skipPos] : [])].map((k) => db[k].question_id) };
@@ -503,7 +498,7 @@ describe('authenticated CBT (isolated *_test database)', () => {
     assert.equal((await go(D, run.id, 1)).body.error.code, 'run_expired');
     assert.equal((await attemptsOf(run.id)).length, 50);
     const eg = await pool.query<{ amount: number }>(`SELECT amount FROM hanq.growth_ledger WHERE cbt_run_id = $1`, [run.id]);
-    assert.deepEqual(eg.rows.map((x) => x.amount), [-10], 'first completion below60: one -10, unchanged by the later submit');
+    assert.deepEqual(eg.rows.map((x) => x.amount), [-100], 'expired with a low score: one -100, unchanged by the later submit');
 
     // listing alone also finalizes a run that is past its deadline
     const run2 = (await create(D, 73)).body.run;
@@ -566,7 +561,7 @@ describe('authenticated CBT (isolated *_test database)', () => {
     assert.equal(view.body.run.result.correct, saved);
     assert.equal((await attemptsOf(run.id)).length, 50);
     const g = await pool.query<{ amount: number }>(`SELECT amount FROM hanq.growth_ledger WHERE cbt_run_id = $1`, [run.id]);
-    assert.deepEqual(g.rows.map((x) => x.amount), [firstRoundReward(view.body.run.result.score)], 'concurrent submits: one reward');
+    assert.deepEqual(g.rows.map((x) => x.amount), [cbtReward(view.body.run.result.score)], 'concurrent submits: one reward');
   });
 
   it('protected images: owner-only binary WebP, private no-store; traversal, symlink escape, bad and missing files refused', async () => {

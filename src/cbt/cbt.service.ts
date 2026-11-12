@@ -1,6 +1,6 @@
 import {cbtFirstRoundReward} from './cbt-policy';
 import { boundedGrowth } from '../common/growth-floor';
-import type { CbtPauseDto, CbtSubmitDto } from './cbt.dto';
+import type { CbtPauseDto, CbtSubmitDto, CbtCheckpointDto } from './cbt.dto';
 import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { PoolClient } from 'pg';
@@ -72,6 +72,8 @@ export class CbtService {
       const now = this.clock.now();
       const existing = await this.repo.findByKey(q, userId, dto.idempotencyKey);
       if (existing) return this.replayCreate(q, existing, dto.round);
+      const candidate=(await q.query<CbtRunRow>("SELECT * FROM hanq.cbt_runs WHERE user_id=$1 AND exam_round=$2 AND attempt_policy='uninterrupted-v1' AND status IN ('ready','active') ORDER BY CASE WHEN status='active' THEN 0 ELSE 1 END, created_at DESC,id DESC LIMIT 1 FOR UPDATE",[userId,dto.round])).rows[0];
+      if(candidate)return {created:false,reused:true,...(await this.view(q,await this.expireIfDue(q,candidate,now)))};
       const check = checkRound(dto.round, await this.repo.roundQuestions(q, dto.round));
       if (!check.ok) throw roundUnavailable(dto.round, check.reason);
       const id = randomUUID();
@@ -105,125 +107,75 @@ export class CbtService {
     return { runs: rows.map((r) => ({ ...this.summary(r, now), answered: r.answered })), serverTime: now.toISOString() };
   }
 
-  async get(userId: string, id: string) {
-    return this.locked(userId, id, async (q, run) => this.view(q, run));
+  private tokenMatches(run:CbtRunRow,token?:string) {return !!token&&/^[0-9a-f-]{36}$/i.test(token)&&!!run.attempt_token_hash&&sha256(token).toString('hex')===run.attempt_token_hash;}
+  private assertToken(run:CbtRunRow,token?:string) {if(!this.tokenMatches(run,token))throw new AppError(409,'attempt_session_required','This exam cannot resume in another document');}
+  private legacyClosed(run:CbtRunRow) {return run.attempt_policy!=='uninterrupted-v1'&&run.status!=='final';}
+  async get(userId:string,id:string,_token?:string) {
+    return this.locked(userId,id,async(q,run,now)=>this.view(q,await this.expireIfDue(q,run,now)));
   }
-
-  async start(userId: string, id: string) {
-    return this.locked(userId, id, async (q, run) => {
-      if (run.status === 'ready') {
-        const names = new Set<string>();
-        for (const item of await this.repo.items(q, run.id)) {
-          names.add(questionImageName(run.exam_round, item.exam_number));
-          const common = commonImage(run.exam_round, item.exam_number, item.public_payload);
-          if (common) names.add(common.name);
-        }
-        // Do not start the clock if any original image is absent or fails its private integrity check.
-        await this.assets.verify(names);
-        const started = this.clock.now();
-        await this.repo.start(q, run.id, started, new Date(started.getTime() + CBT_DURATION_MS));
-        run = (await this.repo.findOwned(q, run.id, userId))!;
-      }
-      return this.view(q, run);
-    });
-  }
-
-  async answer(userId: string, id: string, position: number, optionId: string | null) {
-    return this.editActive(userId, id, async (q, run, now) => {
-      const item = (await this.repo.items(q, run.id)).find((i) => i.position === position);
-      if (!item) throw new AppError(404, 'no_such_item', 'This run has no such position');
-      if (optionId !== null && !item.option_ids.includes(optionId)) throw new AppError(400, 'invalid_option', 'This option does not belong to the question');
-      await this.repo.setAnswer(q, run.id, position, optionId, now);
-      const fresh = (await this.repo.findOwned(q, run.id, userId))!;
-      const items = await this.repo.items(q, run.id);
-      return { run: { ...this.summary(fresh, now), answered: items.filter((i) => i.answer_option_id !== null).length }, item: this.publicItem(fresh, items[position]) };
-    });
-  }
-
-  async go(userId: string, id: string, position: number) {
-    return this.editActive(userId, id, async (q, run, now) => {
-      await this.repo.setCurrent(q, run.id, position, now);
-      const fresh = (await this.repo.findOwned(q, run.id, userId))!;
-      const items = await this.repo.items(q, run.id);
-      return { run: { ...this.summary(fresh, now), answered: items.filter((i) => i.answer_option_id !== null).length }, item: this.publicItem(fresh, items[position]) };
-    });
-  }
-
-  async batch(userId: string, id: string) {
-    return this.locked(userId,id,async(q,run)=>{
-      if(run.status !== 'final' && run.answer_mode !== 'batch') {
-        await q.query("UPDATE hanq.cbt_runs SET answer_mode='batch' WHERE id=$1",[run.id]);
+  /** A new document claims the same stored attempt, never extends its original deadline. */
+  async claim(userId:string,id:string,token:string) {return this.start(userId,id,token,true);}
+  async start(userId:string,id:string,token?:string,claim=false) {
+    if(!token||!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(token))throw new AppError(400,'invalid_attempt_token','A fresh document token is required');
+    return this.locked(userId,id,async(q,run,now)=>{
+      if(this.legacyClosed(run))return this.view(q,run);
+      if(run.status==='ready'){
+        const names=new Set<string>();
+        for(const item of await this.repo.items(q,run.id)){names.add(questionImageName(run.exam_round,item.exam_number));const common=commonImage(run.exam_round,item.exam_number,item.public_payload);if(common)names.add(common.name);}
+        await this.assets.verify(names);const started=this.clock.now();
+        await q.query("UPDATE hanq.cbt_runs SET attempt_token_hash=$2,answer_mode='legacy' WHERE id=$1",[run.id,sha256(token).toString('hex')]);
+        await this.repo.start(q,run.id,started,new Date(started.getTime()+CBT_DURATION_MS));
         run=(await this.repo.findOwned(q,run.id,userId))!;
+      }else if(run.status==='active'){
+        if(now>=run.ends_at!)run=await this.finalize(q,run,run.ends_at!,'expired',now);
+        else if(claim){
+          await q.query('UPDATE hanq.cbt_runs SET attempt_token_hash=$2 WHERE id=$1',[run.id,sha256(token).toString('hex')]);
+          run=(await this.repo.findOwned(q,run.id,userId))!;
+        }else this.assertToken(run,token);
       }
       return this.view(q,run);
     });
   }
-
-  async pause(userId: string,id: string,resume: boolean,dto: CbtPauseDto = {}) {
-    return this.locked(userId,id,async(q,run,now)=>{
-      if(run.status !== 'active' || run.answer_mode !== 'batch') throw new AppError(409,'run_not_active','Start a batch run first');
-      if(!resume && (dto.answers !== undefined || dto.submissionKey !== undefined)) {
-        if(!dto.submissionKey || !dto.answers || dto.answers.length!==CBT_SIZE) throw new AppError(400,'invalid_batch','Exactly fifty answers and a key are required');
-        const answers=[...dto.answers].sort((a,b)=>a.position-b.position),items=await this.repo.items(q,run.id);
-        if(answers.some((a,i)=>a.position!==i || (a.optionId!==null && !items[i].option_ids.includes(a.optionId)))) throw new AppError(400,'invalid_batch','Answers must match the stored questions');
-        const position=dto.currentPosition ?? run.current_position;
-        const hash=sha256(JSON.stringify([answers.map(a=>[a.position,a.optionId]),position,dto.checkpointVersion ?? null])).toString('hex');
-        if(run.pause_submission_key===dto.submissionKey) {
-          if(run.pause_payload_hash!==hash) throw new AppError(409,'pause_conflict','The pause key already has different answers');
-          return this.view(q,run); // A delayed duplicate after resume must not pause again.
-        }
-        if(run.paused_at) throw new AppError(409,'run_paused','This run is already paused');
-        if(dto.checkpointVersion!==undefined && dto.checkpointVersion!==run.checkpoint_version) throw new AppError(409,'checkpoint_conflict','Load the latest saved run before pausing');
-        const remaining=Math.max(0,run.ends_at!.getTime()-now.getTime());
-        if(!remaining) throw new AppError(409,'run_expired','Time is over');
-        await q.query(`UPDATE hanq.cbt_run_items i SET answer_option_id=a.option_id,answered_at=CASE WHEN a.option_id IS NULL THEN NULL ELSE $4::timestamptz END
-          FROM unnest($2::int[],$3::text[]) a(position,option_id) WHERE i.run_id=$1 AND i.position=a.position`,[run.id,answers.map(a=>a.position),answers.map(a=>a.optionId),now]);
-        await q.query(`UPDATE hanq.cbt_runs SET paused_at=$2,pause_remaining_ms=$3,updated_at=$2,
-          current_position=$4,checkpoint_version=checkpoint_version+1,pause_submission_key=$5,pause_payload_hash=$6 WHERE id=$1`,[run.id,now,remaining,position,dto.submissionKey,hash]);
-        return this.view(q,(await this.repo.findOwned(q,run.id,userId))!);
+  async checkpoint(userId:string,id:string,dto:CbtCheckpointDto,token?:string) {
+    const out=await this.locked(userId,id,async(q,run,now)=>{
+      this.assertToken(run,token);
+      if(run.status!=='active'||this.legacyClosed(run))return {closed:true as const};
+      if(now>=run.ends_at!){await this.finalize(q,run,run.ends_at!,'expired',now);return {closed:true as const};}
+      const answers=[...dto.answers].sort((a,b)=>a.position-b.position),items=await this.repo.items(q,run.id);
+      if(answers.length!==CBT_SIZE||answers.some((a,i)=>a.position!==i||(a.optionId!==null&&!items[i].option_ids.includes(a.optionId))))throw new AppError(400,'invalid_batch','Answers must match all stored questions');
+      const hash=sha256(JSON.stringify([answers,dto.currentPosition])).toString('hex');
+      if(dto.version<run.checkpoint_version||(dto.version===run.checkpoint_version&&hash!==run.checkpoint_payload_hash))throw new AppError(409,'checkpoint_conflict','A newer checkpoint already exists');
+      if(dto.version>run.checkpoint_version){
+        await q.query("UPDATE hanq.cbt_run_items i SET answer_option_id=a.option_id,answered_at=CASE WHEN a.option_id IS NULL THEN NULL ELSE $4::timestamptz END FROM unnest($2::int[],$3::text[]) a(position,option_id) WHERE i.run_id=$1 AND i.position=a.position",[run.id,answers.map(a=>a.position),answers.map(a=>a.optionId),now]);
+        await q.query('UPDATE hanq.cbt_runs SET checkpoint_version=$2,checkpoint_payload_hash=$3,current_position=$4,updated_at=$5 WHERE id=$1',[run.id,dto.version,hash,dto.currentPosition,now]);
       }
-      if(resume && run.paused_at) {
-        const delta=Math.max(0,now.getTime()-run.paused_at.getTime());
-        await q.query(`UPDATE hanq.cbt_runs SET paused_total_ms=paused_total_ms+$2,
-          ends_at=started_at+make_interval(secs=>duration_ms/1000)+(paused_total_ms+$2)*interval '1 millisecond',
-          paused_at=NULL,pause_remaining_ms=NULL,updated_at=$3 WHERE id=$1`,[run.id,delta,now]);
-      } else if(!resume && !run.paused_at) {
-        const remaining=Math.max(0,run.ends_at!.getTime()-now.getTime());
-        if(!remaining) throw new AppError(409,'run_expired','Time is over');
-        await q.query('UPDATE hanq.cbt_runs SET paused_at=$2,pause_remaining_ms=$3,updated_at=$2 WHERE id=$1',[run.id,now,remaining]);
-      }
-      return this.view(q,(await this.repo.findOwned(q,run.id,userId))!);
+      return {closed:false as const,value:await this.view(q,(await this.repo.findOwned(q,run.id,userId))!)};
     });
+    if(out.closed)throw new AppError(409,'run_closed','No new answers accepted after deadline or completion');return out.value;
   }
-
-  /** Freeze all fifty answers and receipt before grading in the same owner-locked transaction. */
-  async submit(userId: string, id: string, dto: CbtSubmitDto = {}) {
-    return this.locked(userId, id, async (q, run, now) => {
-      if (run.status === 'ready') throw new AppError(409, 'run_not_started', 'Start the run first');
-      if(run.answer_mode === 'batch') {
-        if(!dto.submissionKey || !dto.answers || dto.answers.length!==CBT_SIZE) throw new AppError(400,'invalid_batch','Exactly fifty answers and a submission key are required');
-        const answers=[...dto.answers].sort((a,b)=>a.position-b.position), items=await this.repo.items(q,run.id);
-        if(answers.some((a,i)=>a.position!==i || (a.optionId!==null && !items[i].option_ids.includes(a.optionId)))) throw new AppError(400,'invalid_batch','Answers must match all stored questions');
-        const hash=sha256(JSON.stringify([answers.map(a=>[a.position,a.optionId]),dto.currentPosition ?? run.current_position])).toString('hex');
-        if(run.status==='final') {
-          if(run.batch_submission_key!==dto.submissionKey || run.batch_payload_hash!==hash) throw new AppError(409,'submission_conflict','This run already has another submission');
-          return this.view(q,run);
-        }
-        if(run.paused_at) throw new AppError(409,'run_paused','Resume before submitting');
-        await q.query(`UPDATE hanq.cbt_run_items i SET answer_option_id=a.option_id,answered_at=CASE WHEN a.option_id IS NULL THEN NULL ELSE $4::timestamptz END
-          FROM unnest($2::int[],$3::text[]) a(position,option_id) WHERE i.run_id=$1 AND i.position=a.position`,[run.id,answers.map(a=>a.position),answers.map(a=>a.optionId),now]);
-        await q.query('UPDATE hanq.cbt_runs SET batch_submission_key=$2,batch_payload_hash=$3,current_position=$4 WHERE id=$1',[run.id,dto.submissionKey,hash,dto.currentPosition ?? run.current_position]);
-        const expired=now.getTime()>=run.ends_at!.getTime();
-        run=await this.finalize(q,run,expired?run.ends_at!:now,expired?'expired':'submit',now);
-      } else if(run.status==='active') run=await this.finalize(q,run,now,'submit',now);
+  /** Old clients may still send pagehide abandon. Preserve progress under the new policy. */
+  async abandon(userId:string,id:string,_reason='leave',_token?:string) {
+    return this.get(userId,id);
+  }
+  async answer(_userId:string,_id:string,_position:number,_optionId:string|null) {throw new AppError(409,'checkpoint_required','Use uninterrupted checkpoint');}
+  async go(_userId:string,_id:string,_position:number) {throw new AppError(409,'checkpoint_required','Use uninterrupted checkpoint');}
+  async batch(_userId:string,_id:string) {throw new AppError(409,'uninterrupted_required','Exam mode cannot be changed');}
+  async pause(_userId:string,_id:string,_resume:boolean,_dto:CbtPauseDto={}) {throw new AppError(409,'pause_not_allowed','Official exams cannot be paused or resumed');}
+  async submit(userId:string,id:string,dto:CbtSubmitDto={},token?:string) {
+    if(dto.answers!==undefined||dto.currentPosition!==undefined)throw new AppError(400,'checkpoint_required','Submit accepts only saved answers');
+    return this.locked(userId,id,async(q,run,now)=>{
+      if(this.legacyClosed(run))return this.view(q,run);
+      if(run.status==='ready')throw new AppError(409,'run_not_started','Start the run first');
+      if(run.status==='active'){this.assertToken(run,token);run=await this.finalize(q,run,now>=run.ends_at!?run.ends_at!:now,now>=run.ends_at!?'expired':'submit',now);}
       return this.view(q,run);
     });
   }
 
   /** Image file name for an owned, started (active or final) run position. The file itself is read outside the lock. */
-  async image(userId: string, id: string, position: number, which: 'question' | 'common'): Promise<Buffer> {
+  async image(userId: string, id: string, position: number, which: 'question' | 'common', token?:string): Promise<Buffer> {
     const name = await this.locked(userId, id, async (q, run) => {
-      if (run.status === 'ready') throw new AppError(409, 'run_not_started', 'Start the run first');
+      if (run.status === 'ready'||run.status==='incomplete'||this.legacyClosed(run)) throw new AppError(409, 'run_not_started', 'This exam is not active');
+      if(run.status==='active'){this.assertToken(run,token);if(this.clock.now()>=run.ends_at!)throw new AppError(409,'run_expired','Question access ends at deadline');}
       if(run.paused_at || (run.status==='active' && run.answer_mode==='batch' && run.ends_at!.getTime()<=this.clock.now().getTime())) throw new AppError(409,'run_paused','Questions are hidden while paused or awaiting submission');
       const item = (await this.repo.items(q, run.id)).find((i) => i.position === position);
       if (!item) throw new AppError(404, 'no_such_item', 'This run has no such position');
@@ -250,34 +202,17 @@ export class CbtService {
     const runId = requireUuid(id);
     return this.db.tx(async (q) => {
       await lockOwner(q, userId); // owner row, then the run row (same order as every attempt-writing path)
-      let run = await this.repo.findOwned(q, runId, userId, true);
+      const run = await this.repo.findOwned(q, runId, userId, true);
       if (!run) throw notFound();
       // A queued request can cross the deadline while waiting for these locks.
       const now = this.clock.now();
-      run = await this.expireIfDue(q, run, now);
+      // Expiry depends on whether the original document is still requesting it.
       return fn(q, run, now);
     });
   }
 
-  /** Edits are refused once final; a late edit finalizes (committed) and is then rejected without being saved. */
-  private async editActive<T>(userId: string, id: string, fn: (q: PoolClient, run: CbtRunRow, now: Date) => Promise<T>): Promise<T> {
-    const out = await this.locked(userId, id, async (q, run, now) => {
-      if (run.status === 'final') return { final: true as const, reason: run.final_reason };
-      if (run.status !== 'active') throw new AppError(409, 'run_not_started', 'Start the run first');
-      if(run.answer_mode==='batch') throw new AppError(409,'batch_required','Submit answers as one batch');
-      return { final: false as const, value: await fn(q, run, now) };
-    });
-    if (out.final) {
-      throw out.reason === 'expired'
-        ? new AppError(409, 'run_expired', 'Time is over; the run was graded with the answers saved before the deadline')
-        : new AppError(409, 'run_final', 'This run is already graded');
-    }
-    return out.value;
-  }
-
-  private async expireIfDue(q: PoolClient, run: CbtRunRow, now: Date): Promise<CbtRunRow> {
-    if (run.answer_mode !== 'batch' && run.status === 'active' && run.ends_at && now.getTime() >= run.ends_at.getTime()) return this.finalize(q, run, run.ends_at, 'expired', now);
-    return run;
+  private async expireIfDue(q:PoolClient,run:CbtRunRow,now:Date):Promise<CbtRunRow>{
+    if(!this.legacyClosed(run)&&run.status==='active'&&run.ends_at&&now>=run.ends_at)return this.finalize(q,run,run.ends_at,'expired',now);return run;
   }
 
   /** One transaction: grade the 50 items against the stored version, write exactly one attempt per item
@@ -330,8 +265,9 @@ export class CbtService {
       id: r.id,
       round: r.exam_round,
       title: `제${r.exam_round}회 한국사능력검정시험 (심화) CBT`,
-      status: r.status,
+      status: this.legacyClosed(r)?'incomplete':r.status,
       answerMode: r.answer_mode === 'batch' ? 'batch' : 'server',
+      attemptPolicy:r.attempt_policy, progressPolicy:'automatic-restore-v1', incompleteReason:this.legacyClosed(r)?'policy_updated':r.incomplete_reason||null,
       paused: !!r.paused_at,
       checkpointVersion: r.checkpoint_version,
       pauseSubmissionKey: r.pause_submission_key,
@@ -377,7 +313,7 @@ export class CbtService {
     const eras = final ? await this.repo.validEraIds(q) : new Set<string>();
     return {
       run: { ...this.summary(run, now), answered: items.filter((i) => i.answer_option_id !== null).length },
-      items: items.map((i) => {
+      items: run.status==='incomplete'||this.legacyClosed(run)?[]:items.map((i) => {
         const pub = this.publicItem(run, i);
         if (!final) return pub;
         return { ...pub, review: this.review(i, eras) };

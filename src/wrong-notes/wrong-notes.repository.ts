@@ -35,7 +35,7 @@ export class WrongNotesRepository {
               max(a.created_at) FILTER(WHERE NOT a.correct) last_wrong_at,
               (array_agg(a.option_id ORDER BY a.seq DESC) FILTER(WHERE NOT a.correct))[1] last_wrong_option_id,
               (array_agg(a.correct ORDER BY a.seq DESC))[1] last_correct,max(a.seq) last_seq
-         FROM hanq.attempts a JOIN hanq.question_versions v ON v.question_id=a.question_id AND v.version=a.version AND v.is_current
+         FROM hanq.visible_wrong_attempts a JOIN hanq.question_versions v ON v.question_id=a.question_id AND v.version=a.version AND v.is_current
         WHERE a.user_id=$1 GROUP BY a.question_id,a.version
       )
       SELECT v.question_id,v.version,v.kind,v.era,v.related_eras,v.public_payload,
@@ -46,8 +46,8 @@ export class WrongNotesRepository {
              m.added_at manual_added_at,m.review_payload manual_review
         FROM hanq.question_versions v
         LEFT JOIN history h ON h.question_id=v.question_id AND h.version=v.version
-        LEFT JOIN hanq.manual_wrong_notes m ON m.question_id=v.question_id AND m.user_id=$1
-        LEFT JOIN LATERAL(SELECT a.correct,a.created_at FROM hanq.attempts a WHERE a.user_id=$1 AND a.question_id=v.question_id ORDER BY a.seq DESC LIMIT 1) latest ON m.question_id IS NOT NULL
+        LEFT JOIN hanq.visible_manual_wrong_notes m ON m.question_id=v.question_id AND m.user_id=$1
+        LEFT JOIN LATERAL(SELECT a.correct,a.created_at FROM hanq.visible_wrong_attempts a WHERE a.user_id=$1 AND a.question_id=v.question_id ORDER BY a.seq DESC LIMIT 1) latest ON m.question_id IS NOT NULL
        WHERE v.is_current AND (coalesce(h.wrong_count,0)>0 OR m.question_id IS NOT NULL)
        ORDER BY coalesce(greatest(h.last_wrong_at,m.added_at),h.last_wrong_at,m.added_at) DESC,v.question_id`,
       [userId],
@@ -72,18 +72,18 @@ export class WrongNotesRepository {
 
   /** Latest server-confirmed correct answer per STABLE question id across all versions and attempt sources (truthful history). */
   async lastCorrectAt(q: Queryable, userId: string): Promise<Map<string, Date>> {
-    const r = await q.query<{ question_id: string; at: Date }>('SELECT question_id, max(created_at) AS at FROM hanq.attempts WHERE user_id = $1 AND correct GROUP BY question_id', [userId]);
+    const r = await q.query<{ question_id: string; at: Date }>('SELECT question_id, max(created_at) AS at FROM hanq.visible_wrong_attempts WHERE user_id = $1 AND correct GROUP BY question_id', [userId]);
     return new Map(r.rows.map((x) => [x.question_id, x.at]));
   }
 
   async stale(q: Queryable, userId: string): Promise<StaleRow[]> {
     const r = await q.query<StaleRow>(
       `SELECT a.question_id, count(*)::int AS wrong_count, max(a.created_at) AS last_wrong_at
-         FROM hanq.attempts a
+         FROM hanq.visible_wrong_attempts a
          JOIN hanq.question_versions qv ON qv.question_id = a.question_id AND qv.version = a.version AND NOT qv.is_current
         WHERE a.user_id = $1 AND NOT a.correct
           AND NOT EXISTS (
-            SELECT 1 FROM hanq.attempts b
+            SELECT 1 FROM hanq.visible_wrong_attempts b
               JOIN hanq.question_versions cv ON cv.question_id = b.question_id AND cv.version = b.version AND cv.is_current
              WHERE b.user_id = $1 AND b.question_id = a.question_id)
         GROUP BY a.question_id
@@ -123,8 +123,8 @@ export class WrongNotesRepository {
          FROM hanq.replay_items i
          JOIN hanq.question_versions qv ON qv.question_id = i.question_id AND qv.version = i.version
          JOIN hanq.replays owner ON owner.id=i.replay_id
-         LEFT JOIN hanq.manual_wrong_notes m ON m.user_id=owner.user_id AND m.question_id=i.question_id AND m.version=i.version
-         LEFT JOIN hanq.attempts a ON a.id = i.attempt_id
+         LEFT JOIN hanq.visible_manual_wrong_notes m ON m.user_id=owner.user_id AND m.question_id=i.question_id AND m.version=i.version
+         LEFT JOIN hanq.visible_wrong_attempts a ON a.id = i.attempt_id
         WHERE i.replay_id = $1
         ORDER BY i.position`,
       [replayId],

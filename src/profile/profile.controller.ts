@@ -28,10 +28,25 @@ export class EvolveDto { @IsIn(['agumon','patamon']) family:'agumon'|'patamon'; 
 export class ClaimEggDto { @IsIn(['gabumon','patamon']) family:'gabumon'|'patamon'; @IsUUID('4') requestId:string; @IsOptional() @IsInt() @Min(0) @Max(0) priceCoin?:number; }
 export class PartnerActionDto { @IsUUID('4') id:string; @IsInt() @Min(0) @Max(2147483647) revision:number; @IsUUID('4') requestId:string; }
 
+export class LearningResetDto {
+  @IsIn(['history', 'toeic']) island: 'history' | 'toeic';
+  @IsString() @IsIn(['RESET_HISTORY', 'RESET_TOEIC']) confirmation: string;
+  @IsUUID('4') requestId: string;
+}
+
 @Controller('api/v1/me')
 @UseGuards(JwtAuthGuard)
 export class ProfileController {
   constructor(private readonly profile: ProfileService) {}
+
+  /** Non-destructive wrong-answer visibility reset; XP and correct answers stay intact. */
+  @Get('learning-resets')
+  learningResets(@CurrentAuth() who: AuthContext) { return this.profile.learningResets(who.userId); }
+
+  @Post('learning-resets') @HttpCode(200)
+  resetLearning(@CurrentAuth() who: AuthContext, @Body() dto: LearningResetDto) {
+    return this.profile.resetLearning(who.userId, dto.island, dto.confirmation, dto.requestId);
+  }
 
   @Get()
   me(@CurrentAuth() who: AuthContext) {

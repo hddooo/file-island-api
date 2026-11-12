@@ -1,0 +1,4 @@
+'use strict';const A=require('node:assert/strict');
+const PUBLIC_PRIVATE_CODE=Object.freeze(['src/db/private-script-artifact-import.ts','src/textbook/private-script-artifact.ts','scripts/private-script-artifact.ts','test/helpers/private-script-artifact.ts','test/integration/private-script-artifact.test.ts','test/unit/private-script-artifact.test.ts']);
+function safePublicInput(name,current=false){A(typeof name==='string'&&name.length>0&&!name.startsWith('/')&&!/[\\:\0\r\n]/.test(name)&&!name.split('/').includes('..'),'safe relative public input required');A((current&&PUBLIC_PRIVATE_CODE.includes(name))||!/(^|\/)(?:\.env(?:\..*)?|private-[^/]*|node_modules|\.credentials[^/]*)(\/|$)/i.test(name),'Private context input forbidden');return true;}
+module.exports={PUBLIC_PRIVATE_CODE,safePublicInput};

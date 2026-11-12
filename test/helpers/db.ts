@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 import type { Pool } from 'pg';
 import { isLoopbackHost } from '../../src/db/pg-url';
@@ -16,7 +17,10 @@ export function frontCatalog(): SeedQuestion[] {
   return catalog;
 }
 
-export const migrationsDir = () => join(projectRoot(), 'migrations');
+type CurrentRuntimeFixture = { stageFromEnvironment(): { migrations: string }; scope(config: AppConfig): unknown; verifyDatabase(pool: Pool, config: AppConfig): Promise<unknown> };
+const loadFixture = createRequire(__filename);
+const currentRuntimeFixture = (): CurrentRuntimeFixture | null => process.env.HANQ_QUAL_QUALIFICATION_PROFILE === 'schema61-local-private-retained-base' ? loadFixture('/run/current-runtime-fixture.cjs') as CurrentRuntimeFixture : null;
+export const migrationsDir = () => currentRuntimeFixture()?.stageFromEnvironment().migrations ?? join(projectRoot(), 'migrations');
 
 /** Destructive reset, guarded three ways: test env, loopback host, database name ending in _test. */
 function assertDisposable(config: AppConfig): void {
@@ -28,7 +32,10 @@ function assertDisposable(config: AppConfig): void {
 
 export async function resetSchema(config: AppConfig): Promise<Pool> {
   assertDisposable(config);
+  const fixture = currentRuntimeFixture();
+  fixture?.scope(config);
   const pool = createPool(config.database);
+  if (fixture) await fixture.verifyDatabase(pool, config);
   await pool.query('DROP SCHEMA IF EXISTS hanq CASCADE');
   return pool;
 }

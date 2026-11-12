@@ -13,6 +13,7 @@ function config(input,env=process.env){
  for(const field of ['baselineImage','candidateImage'])assert(digest.test(input[field]),'immutable image required');
  assert(/^[a-f0-9]{40}$/.test(input.sourceCommit));assert(path.isAbsolute(input.manifestFile));
  const m=JSON.parse(fs.readFileSync(input.manifestFile,'utf8'));
+ if(qualificationProfile===P.SCHEMA61){assert.equal(input.baselineImage,require('./current-runtime-contract.cjs').BASE);const plan=P.migrationPlan(m,qualificationProfile);return {...input,qualificationProfile,manifestSha256:plan.targetSha256,baselineManifestSha256:plan.baselineSha256,expectedApplied:0,targetCount:61};}
  if(qualificationProfile===P.SCHEMA55){assert.equal(input.baselineImage,'sha256:5ffd2cc49f557fab789dd8f5092350ff27c8396ccfee0dda1c29c774e0a347b6','Reviewed schema54 baseline image required');B.validate(input);const plan=P.migrationPlan(m,qualificationProfile);return {...input,qualificationProfile,manifestSha256:plan.targetSha256,baselineManifestSha256:plan.baselineSha256,expectedApplied:1,targetCount:55};}
  assert.equal(m.migrations.length,54);assert(m.migrations.some(x=>/^055_/.test(x.version)));assert(!m.migrations.some(x=>/^(047|056)_/.test(x.version)));
  return {...input,qualificationProfile,manifestSha256:C.manifestHash(m.migrations),baselineManifestSha256:C.manifestHash(m.migrations),expectedApplied:0,targetCount:54};
@@ -22,6 +23,7 @@ function docker(args,options={}){
  assert.equal(result.status,0,'Isolated migration Docker '+args[0]+' failed; private output withheld');return result.stdout.trim();
 }
 async function prepare(input){
+ assert.notEqual(P.name(input.qualificationProfile),P.SCHEMA61,'Current-runtime host orchestration and normal-bootstrap proof remain unqualified; no Docker execution');
  const cfg=config(input),suffix=crypto.randomBytes(6).toString('hex'),name='hanq-functional-pg-'+suffix,volume='hanq-functional-pgdata-'+suffix,role=cfg.qualificationProfile===P.SCHEMA55?'app':'fixture_'+suffix,baseline='hanq_baseline_'+suffix+'_test',restored='hanq_restore_'+suffix+'_test',tlsVolume='hanq-functional-pgtls-'+suffix;
  // Pull/install never occurs: all images must already be available in the authorized execution environment.
  for(const image of [cfg.postgresImage,cfg.baselineImage,cfg.candidateImage])docker(['image','inspect',image,'--format','{{.Id}}']);
@@ -40,6 +42,7 @@ async function prepare(input){
  return {cfg,name,volume,containerId,baseline,restored,phase,tlsVolume};
 }
 function register(input){
+ if(P.name(input.qualificationProfile)===P.SCHEMA61)return require('./current-runtime-migration-host.cjs').register(config(input));
  const {before,test,after}=require('node:test');let s,beforeResult,candidateResult;
  before(async()=>{s=await prepare(input);});
  test('baseline-checksums',()=>{beforeResult=s.phase(s.cfg.baselineImage,s.baseline,'baseline');assert.equal(beforeResult.applied,54);assert.equal(beforeResult.schemaSha256,s.cfg.baselineManifestSha256);});

@@ -1,3 +1,6 @@
+import {History81Controller} from '../../src/textbook/history81.controller';
+import {History81Service} from '../../src/textbook/history81.service';
+import {ScriptHeadersGuard} from '../../src/textbook/joseon-script.controller';
 import 'reflect-metadata';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -23,7 +26,7 @@ async function fixture(){
  const old=await writeSyntheticRevision(root,OLD_PDF_SHA,144),next=await writeSyntheticRevision(root,NEW_PDF_SHA,147);
  const legacy=join(temp,'legacy');await writeSyntheticBundle(legacy,syntheticSemanticBundle(OLD_PDF_SHA,144));
  const config=loadConfig({...env,HANQ_TEXTBOOK_DATA_DIR:old.raw,HANQ_TEXTBOOK_REVISIONS_DIR:root});let revoked=false;
- const module=await Test.createTestingModule({controllers:[TextbookController],providers:[TextbookService,TextbookMemberGuard,JwtAuthGuard,
+ const module=await Test.createTestingModule({controllers:[TextbookController,History81Controller],providers:[TextbookService,TextbookMemberGuard,JwtAuthGuard,ScriptHeadersGuard,{provide:History81Service,useValue:{quiz:async(revision:string,era:string)=>({script:true,revision,era}),get:async(userId:string,revision:string,era:string)=>({script:true,userId,revision,era}),save:async(userId:string,revision:string,era:string,body:object)=>({script:true,userId,revision,era,body})}},
   {provide:APP_CONFIG,useValue:config},{provide:SEMANTIC_REPOSITORY_ROOT,useValue:legacy},{provide:SourceBlankProgressService,useValue:{}},
   {provide:AuthService,useValue:{authenticate:async(token:string)=>!revoked&&token==='synthetic-revision-unit-session'?{userId:'synthetic-member',sessionId:'synthetic-revision-unit-session'}:null}},
  ]}).compile();const app=module.createNestApplication({logger:false});app.useGlobalFilters(new ApiExceptionFilter());await app.init();
@@ -109,4 +112,8 @@ test('scoped render provenance accepts single hashes and hash maps; rejects malf
   }
   await f.http.get(base+'/semantic/pages/144').set(auth).expect(200);
  }finally{await f.close();}
+});
+
+test('current script era quiz and workspace routes stay on History81Service even without a generic root',async()=>{
+ const f=await fixture();try{delete (f.config.textbook as {revisionsDir?:string}).revisionsDir;for(const era of ['joseon','goryeo','opening']){for(const resource of ['quizzes','workspaces']){const result=await f.http.get(route(NEW_PDF_SHA,'semantic/'+resource+'/'+era)).set(auth).expect(200);assert.equal(result.body.script,true);assert.equal(result.body.era,era);}}await f.http.get(route(NEW_PDF_SHA,'semantic/quizzes/prehistory')).set(auth).expect(503);}finally{await f.close();}
 });

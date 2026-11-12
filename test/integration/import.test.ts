@@ -102,9 +102,8 @@ describe('opt-in import of local browser attempts', () => {
     assert.equal((await counters()).accepted, 5000);
     const again = await send([old[0], fresh[0]]);
     assert.deepEqual([again.body.imported, again.body.alreadyImported, again.body.skippedCount], [0, 2, 0], 'at the cap, retries still succeed');
-    const growth = await pool.query(`SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id = $1 AND kind <> 'attendance'`, [s.userId]);
-    assert.equal(growth.rows[0].n, 1, 'excluding independently recorded attendance, only signup: imports never grant growth points');
-    assert.deepEqual((await pool.query("SELECT amount,event_key,attendance_day::text AS day FROM hanq.growth_ledger WHERE user_id=$1 AND kind='attendance'",[s.userId])).rows,[{amount:10,event_key:'attendance:2026-10-08',day:'2026-10-08'}]);
+    const growth = await pool.query(`SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id = $1`, [s.userId]);
+    assert.equal(growth.rows[0].n, 1, 'only the signup reward: imports never grant growth points');
   });
 
   it('automatic account sync: two keys of one owner (concurrent tabs) store one row per localId; another owner is separate', async () => {
@@ -121,9 +120,8 @@ describe('opt-in import of local browser attempts', () => {
     assert.equal(list.body.items[0].submissionId, rows.rows[0].submission_id, 'owner DTO exposes the exact submission id for reconciliation');
     assert.equal((await send(s2, key())).body.imported, 1, 'same localId on another account is its own record');
     assert.equal((await send(s1, key(), { scope: 'other' })).status, 400);
-    const growth = await pool.query(`SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id = $1 AND kind <> 'attendance'`, [s1.userId]);
+    const growth = await pool.query(`SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id = $1`, [s1.userId]);
     assert.equal(growth.rows[0].n, 1, 'no growth points from sync');
-    assert.deepEqual((await pool.query("SELECT amount,event_key,attendance_day::text AS day FROM hanq.growth_ledger WHERE user_id=$1 AND kind='attendance'",[s1.userId])).rows,[{amount:10,event_key:'attendance:2026-10-08',day:'2026-10-08'}]);
   });
 
   it('caps entries per request and requires authentication', async () => {

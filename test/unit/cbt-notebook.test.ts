@@ -12,7 +12,7 @@ test('notebook owner query uses only selected wrong finalized original exams and
  const db={pool:{query:async(sql:string,args:unknown[])=>{seen=sql;values=args;return{rows:[row]};}}} as unknown as DbService;
  const service=new CbtReviewService(db,{now:()=>new Date()},{} as CbtAssetsService);
  const out=await service.notebook(owner);
- assert.deepEqual(values,[owner]);assert.match(seen,/i\.user_id=\$1/);assert.match(seen,/r\.user_id=i\.user_id/);assert.match(seen,/r\.status='final'/);assert.match(seen,/i\.correct=false/);assert.match(seen,/i\.answer_option_id IS NOT NULL/);assert.match(seen,/v\.version=i\.version/);assert.doesNotMatch(seen,/hanq\.attempts|cbt_question_stars|is_current|cbt_review_items/);
+ assert.deepEqual(values,[owner]);assert.match(seen,/i\.user_id=\$1/);assert.match(seen,/r\.user_id=i\.user_id/);assert.match(seen,/r\.status='final'/);assert.match(seen,/i\.correct=false/);assert.ok(seen.includes("hanq.wrong_history_visible(r.user_id,'history',r.created_at)"));assert.match(seen,/i\.answer_option_id IS NOT NULL/);assert.match(seen,/v\.version=i\.version/);assert.doesNotMatch(seen,/hanq\.attempts|cbt_question_stars|is_current|cbt_review_items/);
  assert.equal(out.items[0].version,'original-version');assert.equal(out.items[0].review.correctNumber,2);assert.equal(out.items[0].review.status,'wrong');assert.equal(out.items[0].points,2);assert.equal(out.items[0].image,`/api/v1/cbt/runs/${row.run_id}/questions/0/image`);assert.equal(out.hasMore,false);assert.equal(out.scope,'finalized-exam-selected-wrong');
 });
 test('notebook reports bounded overflow rather than claiming complete results',async()=>{

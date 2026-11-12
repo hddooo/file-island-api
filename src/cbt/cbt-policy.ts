@@ -2,7 +2,7 @@ import type { QuestionRow } from '../questions/questions.repository';
 
 /** Authenticated official-round CBT: one past exam (rounds 79 → 70), its 50 original questions in original order,
  *  the 5 original numbered choices, original 1–3 point weights summing to 100, 80 minutes on the server clock. */
-export const CBT_ROUNDS = [79, 78, 77, 76, 75, 74, 73, 72, 71, 70] as const;
+export const CBT_ROUNDS = [80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70] as const;
 export const CBT_SIZE = 50;
 export const CBT_TOTAL_POINTS = 100;
 export const CBT_DURATION_MS = 80 * 60_000;
@@ -65,7 +65,7 @@ export function checkRound(round: number, rows: QuestionRow[]): RoundCheck {
 
 // ---- private assets: canonical file names derived from validated integers, never from stored paths ----
 
-export const CBT_ASSET_NAME = /^(7\d)-(0[1-9]|[1-4]\d|50)\.webp$|^(7\d)-common(0[1-9]|[1-4]\d|50)-(0[1-9]|[1-4]\d|50)\.webp$/;
+export const CBT_ASSET_NAME = /^(7\d|80)-(0[1-9]|[1-4]\d|50)\.webp$|^(7\d|80)-common(0[1-9]|[1-4]\d|50)-(0[1-9]|[1-4]\d|50)\.webp$/;
 
 export const questionImageName = (round: number, number: number) => `${round}-${pad2(number)}.webp`;
 

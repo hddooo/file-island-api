@@ -70,7 +70,7 @@ export class AttemptsRepository {
   /** Newest first, keyset on the identity sequence. */
   async listOwned(q: Queryable, userId: string, beforeSeq: string | null, limit: number): Promise<(AttemptRow & { kind: 'quiz' | 'mock' })[]> {
     const r = await q.query<AttemptRow & { kind: 'quiz' | 'mock' }>(
-      `SELECT a.*, qv.kind FROM hanq.attempts a
+      `SELECT a.*, qv.kind FROM hanq.visible_wrong_attempts a
          JOIN hanq.question_versions qv USING (question_id, version)
         WHERE a.user_id = $1 AND ($2::bigint IS NULL OR a.seq < $2::bigint)
         ORDER BY a.seq DESC

@@ -1,13 +1,14 @@
-import { Body, Controller, Get, Header, Param, Put, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Header, Param, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { Type } from 'class-transformer';
-import { IsArray, IsIn, IsInt, IsString, IsUUID, Max, MaxLength, Min, ArrayMaxSize, IsOptional, IsBoolean, ValidateNested } from 'class-validator';
-import { SourceBlankProgressService, type ProgressMutation, type SourceBatch } from './source-blank-progress';
+import { IsArray, IsIn, IsInt, IsString, IsUUID, Max, MaxLength, Min, ArrayMaxSize, IsOptional, IsBoolean, ValidateIf, ValidateNested } from 'class-validator';
+import { SourceBlankProgressService, queryGradingVersion, type GradingVersion, type ProgressMutation, type SourceBatch } from './source-blank-progress';
 import type { Response } from 'express';
 import { CurrentAuth, type AuthContext, JwtAuthGuard } from '../auth/guards';
 import { TextbookMemberGuard } from './textbook-member.guard';
 import { TextbookService } from './textbook.service';
 
 class SourceProgressDto implements ProgressMutation {
+ @ValidateIf((_object,value)=>value!==undefined) @IsIn([1,2]) gradingVersion?:GradingVersion;
  @IsString() @MaxLength(64) version: string;
  @IsInt() @Min(0) @Max(1000000) revision: number;
  @IsUUID('4') mutationId: string;
@@ -23,57 +24,56 @@ class SourceBatchUpdateDto {
  @IsOptional() @IsArray() @ArrayMaxSize(30) @IsBoolean({each:true}) checkedSlots?: boolean[];
 }
 class SourceBatchDto implements SourceBatch {
+ @ValidateIf((_object,value)=>value!==undefined) @IsIn([1,2]) gradingVersion?:GradingVersion;
  @IsString() @MaxLength(64) version: string;
  @IsInt() @Min(0) @Max(1000000) revision: number;
  @IsUUID('4') mutationId: string;
  @IsInt() @Min(0) @Max(199) cursor: number;
- @IsIn(['active','paused']) status: 'active' | 'paused';
+ @IsIn(['active','paused','completed']) status: 'active' | 'paused' | 'completed';
  @IsArray() @ArrayMaxSize(200) @ValidateNested({each:true}) @Type(()=>SourceBatchUpdateDto) updates: SourceBatchUpdateDto[];
 }
 
-@Controller(['api/v1/textbook', 'api/v1/textbook/revisions/:sourceRevision'])
+@Controller('api/v1/textbook')
 @UseGuards(JwtAuthGuard, TextbookMemberGuard)
 export class TextbookController {
   constructor(private readonly textbook: TextbookService, private readonly sourceProgress: SourceBlankProgressService) {}
 
-  private selected(sourceRevision?: string) { return sourceRevision === undefined ? Promise.resolve(this.textbook) : this.textbook.forRevision(sourceRevision); }
-
   @Get('semantic/workspaces/:id')
   @Header('Cache-Control','private, no-store')
-  async sourceWorkspaceGet(@CurrentAuth() who: AuthContext,@Param('id') id: string,@Param('sourceRevision') sourceRevision?: string){return this.sourceProgress.getWorkspace(who.userId,id,await this.selected(sourceRevision));}
+  sourceWorkspaceGet(@CurrentAuth() who: AuthContext,@Param('id') id: string,@Query('gradingVersion') gradingVersion?:unknown){return this.sourceProgress.getWorkspace(who.userId,id,undefined,queryGradingVersion(gradingVersion));}
 
   @Put('semantic/workspaces/:id')
   @Header('Cache-Control','private, no-store')
-  async sourceWorkspaceSave(@CurrentAuth() who: AuthContext,@Param('id') id: string,@Body() dto: SourceBatchDto,@Param('sourceRevision') sourceRevision?: string){return this.sourceProgress.saveWorkspace(who.userId,id,dto,await this.selected(sourceRevision));}
+  sourceWorkspaceSave(@CurrentAuth() who: AuthContext,@Param('id') id: string,@Body() dto: SourceBatchDto){return this.sourceProgress.saveWorkspace(who.userId,id,dto);}
 
   @Get('semantic/progress/:id')
   @Header('Cache-Control', 'private, no-store')
-  async sourceProgressGet(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Param('sourceRevision') sourceRevision?: string) { return this.sourceProgress.get(who.userId,id,await this.selected(sourceRevision)); }
+  sourceProgressGet(@CurrentAuth() who: AuthContext, @Param('id') id: string,@Query('gradingVersion') gradingVersion?:unknown) { return this.sourceProgress.get(who.userId,id,undefined,queryGradingVersion(gradingVersion)); }
 
   @Put('semantic/progress/:id')
   @Header('Cache-Control', 'private, no-store')
-  async sourceProgressSave(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Body() dto: SourceProgressDto, @Param('sourceRevision') sourceRevision?: string) { return this.sourceProgress.save(who.userId,id,dto,await this.selected(sourceRevision)); }
+  sourceProgressSave(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Body() dto: SourceProgressDto) { return this.sourceProgress.save(who.userId,id,dto); }
 
   @Get('semantic/manifest')
   @Header('Cache-Control', 'private, no-store')
-  async semanticManifest(@Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).semanticManifest(); }
+  semanticManifest() { return this.textbook.semanticManifest(); }
 
   @Get('semantic/quizzes/:id')
   @Header('Cache-Control', 'private, no-store')
-  async semanticQuiz(@Param('id') id: string, @Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).semanticQuiz(id); }
+  semanticQuiz(@Param('id') id: string) { return this.textbook.semanticQuiz(id); }
 
   @Get('semantic/choices/:id')
   @Header('Cache-Control', 'private, no-store')
-  async semanticChoices(@Param('id') id: string, @Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).semanticChoices(id); }
+  semanticChoices(@Param('id') id: string) { return this.textbook.semanticChoices(id); }
 
   @Get('semantic/pages/:page')
   @Header('Cache-Control', 'private, no-store')
-  async semanticPage(@Param('page') page: string, @Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).semanticPage(page); }
+  semanticPage(@Param('page') page: string) { return this.textbook.semanticPage(page); }
 
   @Get('semantic/figures/:id')
   @Header('Cache-Control', 'private, no-store')
-  async semanticFigure(@Param('id') id: string, @Res() response: Response, @Param('sourceRevision') sourceRevision?: string) {
-    const { data, mime } = await (await this.selected(sourceRevision)).semanticFigure(id);
+  async semanticFigure(@Param('id') id: string, @Res() response: Response) {
+    const { data, mime } = await this.textbook.semanticFigure(id);
     response.setHeader('Content-Type', mime);
     response.setHeader('X-Content-Type-Options', 'nosniff');
     response.setHeader('Cross-Origin-Resource-Policy', 'same-site');
@@ -82,16 +82,16 @@ export class TextbookController {
 
   @Get('manifest')
   @Header('Cache-Control', 'private, no-store')
-  async manifest(@Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).manifest(); }
+  manifest() { return this.textbook.manifest(); }
 
   @Get('pages/:page')
   @Header('Cache-Control', 'private, no-store')
-  async page(@Param('page') page: string, @Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).page(page); }
+  page(@Param('page') page: string) { return this.textbook.page(page); }
 
   @Get('pages/:page/enhanced')
   @Header('Cache-Control', 'private, no-store')
-  async enhanced(@Param('page') page: string, @Res() response: Response, @Param('sourceRevision') sourceRevision?: string) {
-    const image = await (await this.selected(sourceRevision)).image(page, true);
+  async enhanced(@Param('page') page: string, @Res() response: Response) {
+    const image = await this.textbook.image(page, true);
     response.setHeader('Content-Type', 'image/png');
     response.setHeader('X-Content-Type-Options', 'nosniff');
     response.setHeader('Cross-Origin-Resource-Policy', 'same-site');
@@ -100,7 +100,66 @@ export class TextbookController {
 
   @Get('pages/:page/image')
   @Header('Cache-Control', 'private, no-store')
-  async image(@Param('page') page: string, @Res() response: Response, @Param('sourceRevision') sourceRevision?: string) {
+  async image(@Param('page') page: string, @Res() response: Response) {
+    const image = await this.textbook.image(page);
+    response.setHeader('Content-Type', 'image/png');
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+    response.send(image);
+  }
+
+  private selected(sourceRevision?: string) { return sourceRevision === undefined ? Promise.resolve(this.textbook) : this.textbook.forRevision(sourceRevision); }
+  @Get('revisions/:sourceRevision/semantic/progress/:id')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionSourceProgressGet(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Param('sourceRevision') sourceRevision?: string,@Query('gradingVersion') gradingVersion?:unknown) { return this.sourceProgress.get(who.userId,id,await this.selected(sourceRevision),queryGradingVersion(gradingVersion)); }
+
+  @Put('revisions/:sourceRevision/semantic/progress/:id')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionSourceProgressSave(@CurrentAuth() who: AuthContext, @Param('id') id: string, @Body() dto: SourceProgressDto, @Param('sourceRevision') sourceRevision?: string) { return this.sourceProgress.save(who.userId,id,dto,await this.selected(sourceRevision)); }
+
+  @Get('revisions/:sourceRevision/semantic/manifest')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionSemanticManifest(@Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).semanticManifest(); }
+
+  @Get('revisions/:sourceRevision/semantic/choices/:id')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionSemanticChoices(@Param('id') id: string, @Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).semanticChoices(id); }
+
+  @Get('revisions/:sourceRevision/semantic/pages/:page')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionSemanticPage(@Param('page') page: string, @Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).semanticPage(page); }
+
+  @Get('revisions/:sourceRevision/semantic/figures/:id')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionSemanticFigure(@Param('id') id: string, @Res() response: Response, @Param('sourceRevision') sourceRevision?: string) {
+    const { data, mime } = await (await this.selected(sourceRevision)).semanticFigure(id);
+    response.setHeader('Content-Type', mime);
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+    response.send(data);
+  }
+
+  @Get('revisions/:sourceRevision/manifest')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionManifest(@Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).manifest(); }
+
+  @Get('revisions/:sourceRevision/pages/:page')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionPage(@Param('page') page: string, @Param('sourceRevision') sourceRevision?: string) { return (await this.selected(sourceRevision)).page(page); }
+
+  @Get('revisions/:sourceRevision/pages/:page/enhanced')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionEnhanced(@Param('page') page: string, @Res() response: Response, @Param('sourceRevision') sourceRevision?: string) {
+    const image = await (await this.selected(sourceRevision)).image(page, true);
+    response.setHeader('Content-Type', 'image/png');
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+    response.send(image);
+  }
+
+  @Get('revisions/:sourceRevision/pages/:page/image')
+  @Header('Cache-Control', 'private, no-store')
+  async revisionImage(@Param('page') page: string, @Res() response: Response, @Param('sourceRevision') sourceRevision?: string) {
     const image = await (await this.selected(sourceRevision)).image(page);
     response.setHeader('Content-Type', 'image/png');
     response.setHeader('X-Content-Type-Options', 'nosniff');

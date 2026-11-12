@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "kind": "SOURCE_ONLY_LINT_CLEANUP",
+  "rulesRelaxed": false,
+  "testCoverageReduced": false,
+  "changes": [
+    {
+      "path": "scripts/test-cbt-auto-restore.cjs",
+      "change": "remove unused fs import",
+      "beforeSourceSha256": "44e49f61876737683446df7e88dc3f18e00fe82cfe76b88f27401ef1c4730cd5",
+      "afterSourceSha256": "f1217967cebe0980d6216a4b015e671a4ec9c156eef414aef5244e1b742d60c3",
+      "runtimeImageFileChanged": false
+    },
+    {
+      "path": "scripts/test-cbt-round80.cjs",
+      "change": "remove unused fs import",
+      "beforeSourceSha256": "45cf36a7c625533adc85a2c52a3c4cf413b3d4615282ee2c081dae95a22f0c97",
+      "afterSourceSha256": "63a7f95d103be9d375e7618484b89471f44d2f2794b61b6ae2a14d6aa03e28e3",
+      "runtimeImageFileChanged": false
+    },
+    {
+      "path": "scripts/test-cbt-uninterrupted.cjs",
+      "change": "remove unused fs import",
+      "beforeSourceSha256": "db957f211a50b112812fd8537b040db2ce59ee9f22dc3f964cf0cda7eef390ad",
+      "afterSourceSha256": "f399f985f345bd79dd93737abfb2cd159f4e18be6e34a3d832b6c2e300a275ad",
+      "runtimeImageFileChanged": false
+    },
+    {
+      "path": "src/cbt/cbt.service.ts",
+      "change": "locked() local binding let to const only",
+      "beforeSourceSha256": "852159c933b358aa5af511e7dc9b36abb56e468755e84ceadfe17f640ec4f51d",
+      "afterSourceSha256": "9f0fb2d9344f02cf7a0d779963daa20663198c557bdae396124bc91dc4eb7c5f",
+      "runtimePath": "/app/dist/src/cbt/cbt.service.js",
+      "runtimeImageFileChanged": false,
+      "requiredRuntimeProof": "candidate and retained495 baseline inventory hash must be identical; never COPY this compiled file"
+    }
+  ],
+  "imageDeltaRemainsFourExistingGradingJs": true,
+  "productionQualification": false
+}

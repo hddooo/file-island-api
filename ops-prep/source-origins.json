@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "repository": "hddooo/file-island-api",
+      "commit": "0de6dc0d1c67963cc184b78d641133452c73f699"
+    },
+    {
+      "repository": "hddooo/file-island-api",
+      "commit": "23ff3bc2e3e115eb995981f1daaca93c75856158"
+    },
+    {
+      "repository": "hddooo/file-island-api",
+      "commit": "2eb5a03372accac368803d7486565505a61761d5"
+    }
+  ]
+}
