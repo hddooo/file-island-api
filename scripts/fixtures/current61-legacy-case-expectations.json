@@ -1,0 +1,151 @@
+{
+  "version": 1,
+  "kind": "EXACT_LEGACY_54_55_EXPECTATIONS",
+  "sourceFiles": [
+    {
+      "path": "scripts/functional-schema-profile.cjs",
+      "sha256": "986639442af622770feb015e45431607df6cdad0e7cc03453f77650e421dd2a7"
+    },
+    {
+      "path": "scripts/functional-api-test-container.cjs",
+      "sha256": "65f6def78ce69ae70161a17b973cde2aa83dd23642b15d2a45ee7b9a30909eb3"
+    },
+    {
+      "path": "scripts/functional-evidence.cjs",
+      "sha256": "4b24806f72b01481c0a5e98fb2999a0c42e9164d46a03ac407cd2bf2c9f2a857"
+    }
+  ],
+  "suites": [
+    "api-unit",
+    "api-integration",
+    "migration-compatibility",
+    "fe-unit",
+    "core-ui",
+    "deploy-controller"
+  ],
+  "profiles": {
+    "schema54": {
+      "requiredCases": {
+        "auth-session": [
+          "auth.test.js"
+        ],
+        "profile-contract": [
+          "profile-attempts.test.js",
+          "member-portal.test.js"
+        ],
+        "collection-concurrency": [
+          "coin-eggs.test.js"
+        ],
+        "server-hatch-clock": [
+          "coin-eggs.test.js"
+        ],
+        "xp-preservation": [
+          "coin-eggs.test.js"
+        ]
+      },
+      "suiteCases": {
+        "api-unit": [],
+        "api-integration": [
+          "auth-session",
+          "profile-contract",
+          "collection-concurrency",
+          "server-hatch-clock",
+          "xp-preservation"
+        ],
+        "migration-compatibility": [
+          "baseline-checksums",
+          "restore-and-upgrade",
+          "idempotent-migrations",
+          "legacy-xp-preserved",
+          "rollback-schema-compatible"
+        ],
+        "fe-unit": [],
+        "core-ui": [
+          "login-session-restore",
+          "mypage-profile",
+          "zero-coin-egg",
+          "unique-family",
+          "server-hatch-60s",
+          "partner-switch",
+          "equipped-only-xp",
+          "stored-xp-preserved",
+          "account-xp-sum",
+          "pending-features-locked"
+        ],
+        "deploy-controller": []
+      }
+    },
+    "schema55-qualification": {
+      "requiredCases": {
+        "auth-session": [
+          "auth.test.js"
+        ],
+        "profile-contract": [
+          "profile-attempts.test.js",
+          "member-portal.test.js"
+        ],
+        "collection-concurrency": [
+          "coin-eggs.test.js"
+        ],
+        "server-hatch-clock": [
+          "coin-eggs.test.js"
+        ],
+        "xp-preservation": [
+          "coin-eggs.test.js"
+        ],
+        "admin-partner-xp": [
+          "admin-partner-xp.test.js"
+        ],
+        "hall-public-profile": [
+          "hall-public-profile.test.js"
+        ],
+        "growth-xp-preservation": [
+          "qualification-api-cases.test.js"
+        ]
+      },
+      "suiteCases": {
+        "api-unit": [],
+        "api-integration": [
+          "auth-session",
+          "profile-contract",
+          "collection-concurrency",
+          "server-hatch-clock",
+          "xp-preservation",
+          "admin-partner-xp",
+          "hall-public-profile",
+          "growth-xp-preservation"
+        ],
+        "migration-compatibility": [
+          "baseline-checksums",
+          "restore-and-upgrade",
+          "idempotent-migrations",
+          "legacy-xp-preserved",
+          "rollback-schema-compatible",
+          "production-bootstrap55-rollback",
+          "default54-bootstrap-rejects55"
+        ],
+        "fe-unit": [],
+        "core-ui": [
+          "login-session-restore",
+          "mypage-profile",
+          "zero-coin-egg",
+          "unique-family",
+          "server-hatch-60s",
+          "partner-switch",
+          "equipped-only-xp",
+          "stored-xp-preserved",
+          "account-xp-sum",
+          "pending-features-locked"
+        ],
+        "deploy-controller": []
+      }
+    }
+  },
+  "unitExclusions": [
+    "catalog.test.js",
+    "quality-revision.test.js",
+    "source-answer-normalization.test.js",
+    "source-blank-progress.test.js",
+    "source-blank-workspace.test.js"
+  ]
+}

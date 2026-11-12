@@ -1,3 +1,13 @@
 * text=auto eol=lf
 ops-prep/current-runtime-fixture/sql/** -text
 ops-prep/current-runtime-fixture/privileges.sql -text
+
+test/fixtures/bootstrap54-locked.mjs -text
+test/fixtures/bootstrap55-locked.mjs -text
+test/fixtures/legacy-def9/test/fixtures/migration-manifest-20261030.json -text
+ops-prep/api-test-inventory.json -text
+ops-prep/functional-schema55-test-inventory.json -text
+ops-prep/functional-recipe.json -text
+ops-prep/functional-schema55-recipe.json -text
+test/fixtures/legacy-def9/ops-prep/fe-node-test-list.json -text
+test/fixtures/legacy-def9/ops-prep/deploy-node-test-list.json -text

@@ -35,9 +35,12 @@
         "collection-concurrency": "collection-concurrency",
         "server-hatch-clock": "server-hatch-clock",
         "xp-preservation": "xp-preservation",
-        "admin-partner-xp": "admin-partner-xp",
-        "hall-public-profile": "hall-public-profile",
-        "growth-xp-preservation": "growth-xp-preservation"
+        "growth-xp-preservation": "growth-xp-preservation",
+        "current61-schema-and-absent-columns": "current61-schema-and-absent-columns",
+        "current61-legacy-admin-xp": "current61-legacy-admin-xp",
+        "current61-hall-list-owner-learning": "current61-hall-list-owner-learning",
+        "current61-absent-endpoints-no-db-writes": "current61-absent-endpoints-no-db-writes",
+        "current61-preserved-schema-and-historical-ledger": "current61-preserved-schema-and-historical-ledger"
       }
     },
     {

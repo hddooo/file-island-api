@@ -462,6 +462,11 @@
         "sha256": "5554121796d276989f596d84e663ceb25450b40545773b82aa2feb027503ac8b"
       },
       {
+        "path": "test/integration/coin-eggs.test.ts",
+        "gitBlob": "b79c07f193c612516b3f28f460c6d8ec9e14bb9f",
+        "sha256": "b80fff39fcd45716811e0535673e61e1213feb11d2eb36a890330133dee6f9f6"
+      },
+      {
         "path": "test/integration/concurrency.test.ts",
         "gitBlob": "cd939bb518e82eaec7aab6b74208d42962a06b83",
         "sha256": "ca8878409bc1fd7dde17d1d2ffbdaa21e4501c4c5d79712cd9f04f4305092eba"
@@ -562,6 +567,11 @@
         "sha256": "b7a0af530d8bc59d836ec188eb78557f40fcacb02699166beb21accdafa60af0"
       },
       {
+        "path": "test/integration/qualification-api-cases.test.ts",
+        "gitBlob": "ba3a30c043e8f38fbb14ef6a779e590ecac918eb",
+        "sha256": "1c37e2d12f95e19ef06e7ab995aeee9ace0fb06a091f7daad5498bcf59b29bf1"
+      },
+      {
         "path": "test/integration/question-requests.test.ts",
         "gitBlob": "1602d500a6ca983813fccb7293323e133e1ccc39",
         "sha256": "4e8929693b9660e5b2912571a9100be44c0bfaaf2534496b6b81f836129d5ecf"
@@ -585,6 +595,11 @@
         "path": "test/integration/reward-access.test.ts",
         "gitBlob": "3e591ac0f84ebd43dfc51a8b56d6d4539f6ce0b1",
         "sha256": "5b4faf71261e219bbdc254fae44c98d0bd4e3c88f34a239f8d11093daef8893f"
+      },
+      {
+        "path": "test/integration/schema61-runtime-contract.test.ts",
+        "gitBlob": "0eeaf67a02c8bdf5f64af068dc1b28e5b3c6f229",
+        "sha256": "af56b76f785edfbaac61cbac24d61ae89b15a3a6f1ae0bde1e27d966499c4272"
       },
       {
         "path": "test/integration/shared-core-review.test.ts",

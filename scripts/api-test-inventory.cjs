@@ -28,5 +28,14 @@ function verify(root,commit,profile=P.SCHEMA54,pinnedInventorySha256){
  }).sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:0);
  return validate(inventory,actual,profile);
 }
-module.exports={FILE,COUNTS,validate,verify};
-if(require.main===module){try{const args=process.argv.slice(2);assert(args.length===0||(args.length===2&&args[0]==='--qualification-profile'));const profile=P.name(args[1]),root=path.resolve(__dirname,'..'),commit=C.git(root,['rev-parse','HEAD']).trim();verify(root,commit,profile);const counts=P.counts(profile);console.log(JSON.stringify({sourceCommit:commit,qualificationProfile:profile,unitFiles:counts.unit,integrationFiles:counts.integration,gitBlobBytesVerified:true,productionQualified:false}));}catch{console.error('Exact committed API test inventory verification failed');process.exitCode=1;}}
+function parseArgs(args){
+ assert(Array.isArray(args));
+ if(args.length===0)return {profile:P.SCHEMA54};
+ assert.equal(args[0],'--qualification-profile');
+ const profile=P.name(args[1]);
+ if(profile===P.SCHEMA61){assert.equal(args.length,4);assert.equal(args[2],'--inventory-sha256');assert(/^[a-f0-9]{64}$/.test(args[3]||''));return {profile,pinnedInventorySha256:args[3]};}
+ assert.equal(args.length,2);return {profile};
+}
+function runCli(args,root,git=C.git,verifyFn=verify){const {profile,pinnedInventorySha256}=parseArgs(args),commit=git(root,['rev-parse','HEAD']).trim(),inventory=verifyFn(root,commit,profile,pinnedInventorySha256),counts=P.counts(profile,inventory);return {sourceCommit:commit,qualificationProfile:profile,unitFiles:counts.unit,integrationFiles:counts.integration,gitBlobBytesVerified:true,productionQualified:false};}
+module.exports={FILE,COUNTS,validate,verify,parseArgs,runCli};
+if(require.main===module){try{console.log(JSON.stringify(runCli(process.argv.slice(2),path.resolve(__dirname,'..'))));}catch{console.error('Exact committed API test inventory verification failed');process.exitCode=1;}}

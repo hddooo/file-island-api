@@ -1,7 +1,4 @@
 FROM sha256:495cd87f834108a61ad81a53260d30a619f4ec4ee15b8d909a3cfc1ef768a4f6
 ARG SOURCE_COMMIT
 LABEL org.opencontainers.image.revision=$SOURCE_COMMIT
-COPY --chown=0:0 --chmod=0755 artifacts/source-blank-progress.js /app/dist/src/textbook/source-blank-progress.js
-COPY --chown=0:0 --chmod=0755 artifacts/textbook.controller.js /app/dist/src/textbook/textbook.controller.js
-COPY --chown=0:0 --chmod=0755 artifacts/history81.controller.js /app/dist/src/textbook/history81.controller.js
-COPY --chown=0:0 --chmod=0755 artifacts/history81.service.js /app/dist/src/textbook/history81.service.js
+COPY --chown=0:0 --chmod=0755 artifacts/source-blank-progress.js artifacts/textbook.controller.js artifacts/history81.controller.js artifacts/history81.service.js /app/dist/src/textbook/
