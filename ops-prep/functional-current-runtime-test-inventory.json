@@ -608,8 +608,8 @@
       },
       {
         "path": "test/integration/source-blank-progress.test.ts",
-        "gitBlob": "3f79d230fa81f14940cd0b6be3cb85a0ca49d1d9",
-        "sha256": "61bc6185c9e7c2a1957d52821107cffd21326591ad0df53aa1fb4119eb2fa956"
+        "gitBlob": "a9fa0bb0f81eb81adff6ee9c13cd7be3037dcff7",
+        "sha256": "27f5de1608086e546369c2cb2d369070fa8e90d7a7ca11d9567df17accd29c14"
       },
       {
         "path": "test/integration/startup-migrations.test.ts",

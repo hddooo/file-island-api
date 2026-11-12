@@ -69,10 +69,9 @@
       "name": "fe-unit",
       "steps": [
         {
-          "script": "scripts/run-functional-node-tests.cjs",
+          "script": "scripts/run-functional-fe-current61.cjs",
           "args": [
-            "frontend",
-            "ops-prep/fe-node-test-list.json"
+            "qualification-inputs/fe-unit.json"
           ],
           "timeoutMs": 3600000,
           "checkout": "api"

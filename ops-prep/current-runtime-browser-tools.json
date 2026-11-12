@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "imageId": "sha256:a59bb505af9ce5d08593e28f303192efaa564eb4e654553e0de7b7febc1e3076",
+  "os": "linux",
+  "architecture": "amd64",
+  "user": "pwuser",
+  "playwrightVersion": "1.64.1",
+  "toolsLockSha256": "cc2996e08a30daaf31668d6c864c1f2d01cb9af86c7e790313bcffdde8343dfc",
+  "dockerfileSha256": "9e990b44f1c1315ee8a98bc187ca84cdaa14e13c93f299eae0a17e3f5073d600",
+  "recipeCommit": "def9ba0506f83f50688f30bc0d7e7532a7d57be6",
+  "repository": "hddooo/file-island-api",
+  "recipePath": "ops-prep/Dockerfile.core-ui-tools.disabled"
+}

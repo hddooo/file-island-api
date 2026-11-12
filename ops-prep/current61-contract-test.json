@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "sourcePath": "test/integration/schema61-runtime-contract.test.ts",
+  "compiledPath": "test/integration/schema61-runtime-contract.test.js",
+  "nodeVersion": "v24.22.2",
+  "typescriptVersion": "5.9.3",
+  "newLine": "lf",
+  "sourceSha256": "af56b76f785edfbaac61cbac24d61ae89b15a3a6f1ae0bde1e27d966499c4272",
+  "compiledSha256": "4085d1aa051556682579ec2c04d9d41b4dd5082ec6dbd0fe1c1e79c2c6a7a38c"
+}

@@ -21,6 +21,7 @@ async function execute(input,{api,driver=nativeDriver(),quiet=false}={}){
  A(api&&typeof api.stage==='function');const c=api.enforceProducerBindings(api.validateConfig(input));A.equal(c.qualificationProfile,C.PROFILE);A(/^[a-f0-9]{64}$/.test(c.testInventorySha256||''));if(c.suites.includes('integration'))require('./current61-contract-host.cjs').pins(c);A(!fs.existsSync(c.outputDirectory),'Preserve old output');
  // Docker API environment overrides are forbidden for this local owned-resource profile.
  A(!process.env.DOCKER_HOST&&!process.env.DOCKER_CONTEXT,'Unexpected Docker endpoint override');
+ driver=require('./current61-phase-memory-gate.cjs').wrap(driver,c.suites.includes('integration')?'api-integration':'api-unit');
  const p=R.plan({token:crypto.randomBytes(16).toString('hex'),sourceCommit:c.sourceCommit,candidateImage:c.candidateImage}),life=lifecycle(p,driver),metadata={version:1,kind:'CURRENT61_API_EXECUTION_NOT_AUTHENTICATED',qualificationProfile:C.PROFILE,sourceCommit:c.sourceCommit,frontendCommit:c.frontendCommit,candidateImage:c.candidateImage,resources:p,productionWrites:false,productionQualified:false,phase:'preflight'};
  fs.mkdirSync(c.outputDirectory,{recursive:true});const save=()=>fs.writeFileSync(path.join(c.outputDirectory,'api-tests-metadata.json'),JSON.stringify(metadata,null,2)+'\n');save();
  try{

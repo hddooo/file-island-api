@@ -11,3 +11,4 @@ ops-prep/functional-recipe.json -text
 ops-prep/functional-schema55-recipe.json -text
 test/fixtures/legacy-def9/ops-prep/fe-node-test-list.json -text
 test/fixtures/legacy-def9/ops-prep/deploy-node-test-list.json -text
+scripts/fixtures/frontend-tools.lock.json -text

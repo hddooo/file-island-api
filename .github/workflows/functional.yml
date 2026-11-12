@@ -65,6 +65,8 @@ jobs:
         run: node --test scripts/api-test-inventory.test.cjs scripts/functional-evidence.test.cjs scripts/functional-api-tests.test.cjs scripts/functional-api-fixture.test.cjs scripts/functional-core-ui.test.cjs scripts/prepare-functional-plan.test.cjs scripts/functional-bootstrap55.test.cjs scripts/functional-schema-profile.test.cjs
       - name: Validate exact fixed current-runtime pure tests
         run: node scripts/run-current-runtime-pure-tests.cjs
+      - name: Validate fixed current61 storage, phase and FE host regressions
+        run: node --max-old-space-size=256 --test --test-concurrency=1 scripts/current61-contract-host.test.cjs scripts/current61-contract-proof.test.cjs scripts/current61-case-wiring.test.cjs scripts/current61-phase-memory-gate.test.cjs scripts/fe-unit-host.test.cjs scripts/workflow-cli.test.cjs scripts/current61-release-build-host.test.cjs
       - name: Verify current61 inventory against reviewed plan bindings
         shell: pwsh
         env:
