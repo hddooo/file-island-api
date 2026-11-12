@@ -10,12 +10,15 @@ import {projectRoot} from '../../src/common/project-root';
 import {History81Service} from '../../src/textbook/history81.service';
 import {HISTORY81_PDF,quizDigest,type Quiz81} from '../../src/textbook/history81-quiz';
 import {testConfig} from '../helpers/env';
+import {resetSchema,migrationsDir} from '../helpers/db';
 import {startApp,signup,signin,bearer,csrf} from '../helpers/app';
 
 test('opening real DB and HTTP: account/era isolation, split checks, races, retry, relogin and no exam writes',async()=>{
+ const current61=process.env.HANQ_QUAL_QUALIFICATION_PROFILE === 'schema61-local-private-retained-base';
+ if(current61){const reset=await resetSchema(testConfig());await reset.end();}
  const db=new DbService(testConfig());let app:Awaited<ReturnType<typeof startApp>>|undefined;
  try {
-  await migrate(db.pool,join(projectRoot(),'migrations'));app=await startApp();
+  await migrate(db.pool,current61 ? migrationsDir() : join(projectRoot(),'migrations'));app=await startApp();
   const id='81-2026:opening:synthetic-pair',items=[{id,kind:'fill-in',verification:{status:'source-verified'},blanks:[{id:id+':blank1',answerIds:['a1']},{id:id+':blank2',answerIds:['a2']}],answers:[{id:'a1',text:'first'},{id:'a2',text:'second'}],answer:{text:'first, second',orderMatters:true}}];
   const source={scriptSha256:'255c37fb68122a329cca00ae1c15035590b6a7b21f601e4a5b5f7515fdfbf695'};
   const quiz:Quiz81={schemaVersion:'hanq-source-quiz/1',source,items,version:quizDigest({source,items})};

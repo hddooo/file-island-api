@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import {readFileSync} from 'node:fs';
+import {join} from 'node:path';
 import { after, before, describe, it } from 'node:test';
 import type { Pool } from 'pg';
 import request from 'supertest';
@@ -49,7 +51,12 @@ describe('TOEIC notes: real PostgreSQL ownership, unique keys, transactions and 
   assert.ok(before.length>0);
   const rerun=await migrate(pool,migrationsDir());
   assert.deepEqual(rerun.applied,[]);
-  assert.equal(rerun.alreadyApplied,25);
+  if (process.env.HANQ_QUAL_QUALIFICATION_PROFILE === 'schema61-local-private-retained-base') {
+    const reviewed=JSON.parse(readFileSync(join(migrationsDir(),'../test/fixtures/migration-manifest-20261030.json'),'utf8'));
+    assert.equal(reviewed.migrations.length,61);
+    assert.equal(rerun.alreadyApplied,61);
+    assert.deepEqual((await pool.query('SELECT version,checksum FROM hanq.schema_migrations ORDER BY version')).rows,reviewed.migrations);
+  } else assert.equal(rerun.alreadyApplied,25);
   assert.deepEqual((await pool.query('SELECT user_id,id,revision,meaning FROM hanq.toeic_notes ORDER BY user_id,id')).rows,before);
  });
 

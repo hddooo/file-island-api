@@ -53,8 +53,57 @@ export interface Session {
 export const current61MembershipFixture = () => process.env.HANQ_QUAL_QUALIFICATION_PROFILE === 'schema61-local-private-retained-base';
 type MembershipFixture = { scope(config: AppConfig): unknown; verifyDatabase(pool: Pool, config: AppConfig): Promise<unknown> };
 const loadMembershipFixture = createRequire(__filename);
-/** Synthetic existing-member setup only. Does not emulate approval rewards or grant ADMIN.
- * Actual approval API/security/reward behavior remains covered by member-approval.test.ts. */
+/** Exactly one synthetic bootstrap administrator per owned DB. Never a production role seed. */
+const fixtureAdministrators = new Map<string, string>();
+async function approvedFixtureAdministrator(t: TestApp, pool: Pool, fixture: MembershipFixture): Promise<Session> {
+  fixture.scope(t.config);
+  await fixture.verifyDatabase(pool,t.config);
+  const database=t.config.database.database;
+  const token=process.env.HANQ_QUAL_ISOLATION_TOKEN!;
+  const email='qualification-admin.'+token+'@example.test';
+  const client=await pool.connect();
+  let locked=false;
+  try {
+    await client.query("SELECT pg_advisory_lock(hashtext('current61-fixture-admin'),hashtext(current_database()))");locked=true;
+    await fixture.verifyDatabase(pool,t.config);
+    const existing=await client.query<{id:string;approval_status:string}>('SELECT id,approval_status FROM hanq.users WHERE email_normalized=$1',[email]);
+    assert.ok(existing.rowCount===0 || existing.rowCount===1);
+    if(existing.rowCount===0){
+      // Schema reset invalidates the remembered identity; never blindly reuse a cached session.
+      fixtureAdministrators.delete(database);
+      const pending=await request(t.server).post('/api/v1/auth/signup').set(csrf).send({email,password:PASSWORD});
+      assert.equal(pending.status,201);assert.equal(pending.body.accessToken,undefined);assert.equal(pending.headers['set-cookie'],undefined);assert.deepEqual(pending.body,{status:'pending'});
+      await client.query('BEGIN');
+      try{
+        const rows=await client.query<{id:string;approval_status:string;created_at:Date}>('SELECT id,approval_status,created_at FROM hanq.users WHERE email_normalized=$1 FOR UPDATE',[email]);
+        assert.equal(rows.rowCount,1);const row=rows.rows[0];
+        assert.equal(row.approval_status,'pending');assert.equal(new Date(row.created_at).getTime(),t.clock.now().getTime());
+        for(const table of ['member_roles','session_families','growth_ledger'])assert.equal((await client.query('SELECT 1 FROM hanq.'+table+' WHERE user_id=$1',[row.id])).rowCount,0);
+        assert.equal((await client.query("UPDATE hanq.users SET approval_status='approved' WHERE id=$1 AND email_normalized=$2 AND approval_status='pending'",[row.id,email])).rowCount,1);
+        await client.query("INSERT INTO hanq.member_roles(user_id,role) VALUES($1,'ADMIN')",[row.id]);
+        await client.query('COMMIT');fixtureAdministrators.set(database,row.id);
+      }catch(error){await client.query('ROLLBACK');throw error;}
+    }
+    const admin=await client.query<{id:string;approval_status:string}>('SELECT id,approval_status FROM hanq.users WHERE email_normalized=$1',[email]);
+    assert.equal(admin.rowCount,1);const id=admin.rows[0].id;
+    assert.equal(id,fixtureAdministrators.get(database),'refuse an administrator not created by this fixture');
+    assert.equal(admin.rows[0].approval_status,'approved');
+    assert.deepEqual((await client.query('SELECT role FROM hanq.member_roles WHERE user_id=$1 ORDER BY role',[id])).rows,[{role:'ADMIN'}]);
+    const assertAdminRewards=async()=>{
+      assert.equal((await client.query("SELECT 1 FROM hanq.growth_ledger WHERE user_id=$1 AND event_key='signup'",[id])).rowCount,0,'bootstrap admin receives no fabricated signup grant');
+      // Only actual sign-in attendance is allowed: exact day key, matching attendance row and fixed reward ladder.
+      assert.equal((await client.query("SELECT 1 FROM hanq.growth_ledger g WHERE g.user_id=$1 AND (g.kind IS DISTINCT FROM 'attendance' OR g.attendance_day IS NULL OR g.event_key IS DISTINCT FROM 'attendance:'||g.attendance_day::text OR g.amount NOT IN (10,20,30,40,50) OR NOT EXISTS(SELECT 1 FROM hanq.attendance a WHERE a.user_id=g.user_id AND a.day=g.attendance_day))",[id])).rowCount,0,'only legitimate attendance rewards belong to bootstrap admin');
+    };
+    await assertAdminRewards();
+    const session=await signin(t,email);assert.equal(session.userId,id);
+    await assertAdminRewards();
+    const day=new Date(t.clock.now().getTime()+9*60*60*1000).toISOString().slice(0,10);
+    assert.equal((await client.query("SELECT 1 FROM hanq.growth_ledger WHERE user_id=$1 AND kind='attendance' AND event_key=$2 AND attendance_day=$3::date",[id,'attendance:'+day,day])).rowCount,1,'real sign-in awards today exactly once');
+    return session;
+  }finally{try{if(locked)await client.query("SELECT pg_advisory_unlock(hashtext('current61-fixture-admin'),hashtext(current_database()))");}finally{client.release();}}
+}
+/** Ordinary members use the real approval API, including its one-time signup reward.
+ * Extra fixture administrator affects global users/roles/session counts; member rows remain non-admin. */
 export async function signupResponse(t: TestApp, email: string, password = PASSWORD, displayName?: string) {
   const body = { email, password, ...(displayName === undefined ? {} : { displayName }) };
   if (!current61MembershipFixture()) return request(t.server).post('/api/v1/auth/signup').set(csrf).send(body);
@@ -76,6 +125,7 @@ export async function signupResponse(t: TestApp, email: string, password = PASSW
     assert.equal(pending.headers['access-control-allow-credentials'], 'true');
     assert.equal(pending.headers['cache-control'], 'no-store');
     assert.ok(pending.headers['x-content-type-options']);
+    let memberId: string;
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
@@ -85,10 +135,14 @@ export async function signupResponse(t: TestApp, email: string, password = PASSW
       assert.equal(row.approval_status, 'pending');
       assert.equal(new Date(row.created_at).getTime(), t.clock.now().getTime());
       for (const table of ['member_roles', 'session_families', 'growth_ledger']) assert.equal((await client.query('SELECT 1 FROM hanq.' + table + ' WHERE user_id=$1', [row.id])).rowCount, 0);
-      const updated = await client.query("UPDATE hanq.users SET approval_status='approved' WHERE id=$1 AND email_normalized=$2 AND approval_status='pending'", [row.id, normalized]);
-      assert.equal(updated.rowCount, 1);
+      memberId=row.id;
       await client.query('COMMIT');
     } catch (error) { await client.query('ROLLBACK'); throw error; } finally { client.release(); }
+    const admin=await approvedFixtureAdministrator(t,pool,fixture);
+    const decision=await request(t.server).post('/api/v1/ops/membership-requests/'+memberId+'/decision').set(bearer(admin.access)).send({decision:'approved'});
+    assert.equal(decision.status,201);assert.equal(decision.body.changed,true);
+    assert.equal((await pool.query('SELECT 1 FROM hanq.member_roles WHERE user_id=$1',[memberId])).rowCount,0,'normal member never becomes ADMIN');
+    assert.equal((await pool.query("SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id=$1 AND event_key='signup'",[memberId])).rows[0].n,1);
     const signed = await request(t.server).post('/api/v1/auth/signin').set(csrf).send({ email, password });
     assert.equal(signed.status, 200);
     assert.equal(typeof signed.body.accessToken, 'string');

@@ -8,9 +8,11 @@ import {projectRoot} from '../../src/common/project-root';
 import {artifactHash} from '../../src/textbook/private-script-artifact';
 import {migratePrivateScriptArtifacts,importPrivateStructure} from '../../src/db/private-script-artifact-import';
 import {testConfig} from '../helpers/env';
+import {resetSchema} from '../helpers/db';
 import {syntheticArtifact} from '../helpers/private-script-artifact';
 
 test('targeted private DB migration/import: no permission SQL, no existing edits, rerun/race/conflict safety',async()=>{
+ if (process.env.HANQ_QUAL_QUALIFICATION_PROFILE === 'schema61-local-private-retained-base') { const reset=await resetSchema(testConfig()); await reset.end(); }
  const db=new DbService(testConfig());
  try{
   // New isolated test DB only. Minimal prior ledger plus sentinel; never execute general migrator.

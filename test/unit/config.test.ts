@@ -3,6 +3,7 @@ import { X509Certificate } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { loadConfig, loadDatabaseConfig } from '../../src/config/config';
+import { testEnv } from '../helpers/env';
 import { parseDatabaseUrl } from '../../src/db/pg-url';
 import { isSupabaseHost, SUPABASE_CA_SHA256, supabaseCaPath } from '../../src/db/supabase-ca';
 
@@ -25,6 +26,20 @@ function throwsClean(fn: () => unknown, re: RegExp) {
 }
 
 describe('config fails closed', () => {
+  it('test helper pins ten-minute access TTL, honors overrides, and leaves production default at seven days', () => {
+    const previous = process.env.HANQ_TEST_DATABASE_URL;
+    process.env.HANQ_TEST_DATABASE_URL = 'postgresql://synthetic@127.0.0.1/ttl_fixture_test';
+    try {
+      assert.equal(testEnv().HANQ_ACCESS_TTL_SECONDS, '600');
+      assert.equal(loadConfig(testEnv()).jwt.accessTtlSec, 600);
+      assert.equal(testEnv({ HANQ_ACCESS_TTL_SECONDS: '1200' }).HANQ_ACCESS_TTL_SECONDS, '1200');
+      assert.equal(loadConfig(testEnv({ HANQ_ACCESS_TTL_SECONDS: '1200' })).jwt.accessTtlSec, 1200);
+      assert.equal(loadConfig(prod()).jwt.accessTtlSec, 7 * 86400);
+    } finally {
+      if (previous === undefined) delete process.env.HANQ_TEST_DATABASE_URL;
+      else process.env.HANQ_TEST_DATABASE_URL = previous;
+    }
+  });
   it('uses the existing public frontend by default without a Render asset ENV', () => {
     const c = loadConfig(prod());
     assert.equal(c.cbt?.assetDir, null);

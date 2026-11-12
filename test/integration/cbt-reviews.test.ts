@@ -13,9 +13,11 @@ import { testConfig } from '../helpers/env';
 describe('CBT server stars and partial reviews: isolated DB only',()=>{
  let pool:Pool,t:TestApp,A:Session,B:Session,full:string,signature:string,review:string;
  let questions:{question_id:string;version:string;option_ids:string[];correct_option_id:string}[];
+ const current61=process.env.HANQ_QUAL_QUALIFICATION_PROFILE==='schema61-local-private-retained-base';
+ const fullToken=randomUUID();
  const api=()=>request(t.server);
- const post=(path:string,body:object,s=A)=>api().post('/api/v1/cbt'+path).set(bearer(s.access)).send(body);
- const get=(path:string,s=A)=>api().get('/api/v1/cbt'+path).set(bearer(s.access));
+ const post=(path:string,body:object,s=A)=>api().post('/api/v1/cbt'+path).set(bearer(s.access)).set(current61?{'x-cbt-attempt-token':fullToken}:{}).send(current61&&path==='/runs/'+full+'/start'?{...body,attemptToken:fullToken}:body);
+ const get=(path:string,s=A)=>api().get('/api/v1/cbt'+path).set(bearer(s.access)).set(current61?{'x-cbt-attempt-token':fullToken}:{});
  const wrong=(n:number)=>questions[n].option_ids.find(x=>x!==questions[n].correct_option_id)!;
  const star=(position:number,starred:boolean)=>post('/runs/'+full+'/stars',{signature,position,starred});
  const makeReview=()=>post('/reviews',{round:79,idempotencyKey:randomUUID()});
@@ -25,6 +27,11 @@ describe('CBT server stars and partial reviews: isolated DB only',()=>{
   t=await startApp({HANQ_CBT_ASSET_DIR:dir});A=await signup(t);B=await signup(t);
   questions=(await pool.query('SELECT question_id,version,option_ids,correct_option_id FROM hanq.question_versions WHERE is_current AND exam_round=79 ORDER BY exam_number')).rows;
   const r=await post('/runs',{round:79,idempotencyKey:randomUUID(),answerMode:'batch'});assert.equal(r.status,201);full=r.body.run.id;
+  if(current61){
+   const ready=await get('/runs/'+full+'/stars');assert.equal(ready.status,409);assert.equal(ready.body.error.code,'attempt_session_required');
+   assert.equal((await post('/runs/'+full+'/start',{})).status,200);
+   const noToken=await api().get('/api/v1/cbt/runs/'+full+'/stars').set(bearer(A.access));assert.equal(noToken.status,409);assert.equal(noToken.body.error.code,'attempt_session_required');
+  }
   const s=await get('/runs/'+full+'/stars');assert.equal(s.status,200);signature=s.body.signature;
  });
  after(async()=>{if(t)await t.close();if(pool)await pool.end();});
@@ -53,7 +60,15 @@ describe('CBT server stars and partial reviews: isolated DB only',()=>{
  it('selects the union of real past wrong answers and stars, excluding unanswered items',async()=>{
   await star(3,true);assert.equal((await post('/runs/'+full+'/start',{})).status,200);
   const answers=questions.map((q,i)=>({position:i,optionId:i===1?wrong(i):i===2?null:q.correct_option_id}));
-  const final=await post('/runs/'+full+'/submit',{submissionKey:randomUUID(),answers,currentPosition:0});assert.equal(final.status,200);
+  const fullSubmission={submissionKey:randomUUID(),answers,currentPosition:0};
+  if(current61){
+   assert.equal((await post('/runs/'+full+'/submit',fullSubmission)).status,400);
+   assert.equal((await post('/runs/'+full+'/answer',{position:0,optionId:answers[0].optionId})).status,409);
+   const before=await pool.query('SELECT count(*)::int n FROM hanq.attempts WHERE cbt_run_id=$1',[full]);
+   assert.equal((await post('/runs/'+full+'/checkpoint',{version:1,answers,currentPosition:0})).status,200);
+   assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.attempts WHERE cbt_run_id=$1',[full])).rows[0].n,before.rows[0].n);
+  }
+  const final=await post('/runs/'+full+'/submit',current61?{submissionKey:fullSubmission.submissionKey}:fullSubmission);assert.equal(final.status,200);
   const key=randomUUID(),one=await post('/reviews',{round:79,idempotencyKey:key});assert.equal(one.status,201);review=one.body.run.id;
   assert.deepEqual(one.body.items.map((i:{number:number})=>i.number),[2,4]);assert.equal(one.body.run.kind,'review');
   assert.equal((await post('/reviews',{round:79,idempotencyKey:key})).body.run.id,review);

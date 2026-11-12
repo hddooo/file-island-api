@@ -1,7 +1,7 @@
 import type { INestApplication } from '@nestjs/common';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { appendFileSync, copyFileSync, cpSync, mkdirSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs';
+import { chmodSync, lstatSync, appendFileSync, copyFileSync, cpSync, mkdirSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, describe, it } from 'node:test';
@@ -95,6 +95,14 @@ describe('server startup applies pending migrations before serving (isolated *_t
 
   it('a changed applied migration (checksum mismatch) stops startup with the file name only', async () => {
     const dir = dirWith(ALL);
+    // Only this newly created temporary copy is writable; the exact source fixture stays read-only.
+    if (process.env.HANQ_QUAL_QUALIFICATION_PROFILE === 'schema61-local-private-retained-base') {
+      const copy=join(dir,'001_init.sql'), original=join(migrationsDir(),'001_init.sql');
+      const copied=lstatSync(copy), source=lstatSync(original);
+      assert.ok(copied.isFile() && !copied.isSymbolicLink() && copied.nlink===1);
+      assert.ok(copied.dev!==source.dev || copied.ino!==source.ino, 'never chmod the original fixture');
+      chmodSync(copy,0o600);
+    }
     appendFileSync(join(dir, '001_init.sql'), '\n-- edited\n');
     await assert.rejects(boot(dir), (e: unknown) => e instanceof StartupError && e.message === 'migration failed: Error: migration 001_init.sql was changed after being applied');
     assert.deepEqual(await applied(), ALL, 'history not rewritten');

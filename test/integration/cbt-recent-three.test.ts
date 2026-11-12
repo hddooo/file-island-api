@@ -2,13 +2,17 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { test } from 'node:test';
 import { Pool } from 'pg';
+import { resetSchema } from '../helpers/db';
+import { testConfig } from '../helpers/env';
 import { CbtRepository } from '../../src/cbt/cbt.repository';
 
 // Disposable synthetic database only: no application migration, user, or production data.
 test('owned runs keeps latest three final scores per round despite 100 newer runs', async () => {
   const url = process.env.HANQ_TEST_DATABASE_URL;
-  assert.ok(url?.endsWith('/recent_three_test'), 'requires dedicated disposable database');
-  const pool = new Pool({ connectionString: url });
+  const current61 = process.env.HANQ_QUAL_QUALIFICATION_PROFILE === 'schema61-local-private-retained-base';
+  if (!current61) assert.ok(url?.endsWith('/recent_three_test'), 'requires dedicated disposable database');
+  // Current61 uses the host-owned UUID database; resetSchema verifies its actual connection before resetting.
+  const pool = current61 ? await resetSchema(testConfig()) : new Pool({ connectionString: url });
   try {
     await pool.query(`CREATE SCHEMA hanq;
       CREATE FUNCTION hanq.wrong_history_visible(uuid,text,timestamptz) RETURNS boolean LANGUAGE sql AS 'SELECT true';

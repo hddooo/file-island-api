@@ -14,6 +14,7 @@ export function testEnv(overrides: Record<string, string> = {}): Record<string, 
   if (!url) throw new Error('HANQ_TEST_DATABASE_URL is required for integration tests (loopback host, database name ending in _test)');
   return {
     NODE_ENV: 'test',
+    HANQ_ACCESS_TTL_SECONDS: '600', // Existing integration expiry cases assume ten-minute access tokens.
     HANQ_CBT_PUBLIC_ASSET_BASE_URL: 'off', // tests never fetch operating public assets unless explicitly overridden
     HANQ_TEST_DATABASE_URL: url,
     HANQ_DB_SSL_MODE: 'disable',

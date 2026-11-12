@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { randomUUID, createHash } from 'node:crypto';
-import { cpSync, mkdtempSync, writeFileSync, appendFileSync, readFileSync, readdirSync } from 'node:fs';
+import { chmodSync, lstatSync, cpSync, mkdtempSync, writeFileSync, appendFileSync, readFileSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, describe, it } from 'node:test';
@@ -76,6 +76,14 @@ describe('migrations and seed (isolated *_test database)', () => {
   it('refuses an applied migration whose content changed', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'hanq-mig-'));
     cpSync(migrationsDir(), dir, { recursive: true });
+    // Only this newly created temporary copy is writable; the exact source fixture stays read-only.
+    if (process.env.HANQ_QUAL_QUALIFICATION_PROFILE === 'schema61-local-private-retained-base') {
+      const copy=join(dir,'001_init.sql'), original=join(migrationsDir(),'001_init.sql');
+      const copied=lstatSync(copy), source=lstatSync(original);
+      assert.ok(copied.isFile() && !copied.isSymbolicLink() && copied.nlink===1);
+      assert.ok(copied.dev!==source.dev || copied.ino!==source.ino, 'never chmod the original fixture');
+      chmodSync(copy,0o600);
+    }
     appendFileSync(join(dir, '001_init.sql'), '\n-- edited\n');
     await assert.rejects(migrate(pool, dir), /changed after being applied/);
   });
