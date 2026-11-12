@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "frontendCommit": "04369a1605c58250f6af0542dcc4382f89e4ae3d",
+  "frontendCommit": "e52d75a661b14c28d55737f16a961603d20d97cf",
   "image": "sha256:a59bb505af9ce5d08593e28f303192efaa564eb4e654553e0de7b7febc1e3076",
   "tools": {
     "node": "v26.13.0",
@@ -16751,9 +16751,9 @@
     },
     {
       "path": "scripts/test-header-parent-navigation.cjs",
-      "gitBlob": "953eeded3ca46dc9e7c4a7ea601bfc25788a8c71",
-      "size": 11376,
-      "sha256": "77e1c951e834585e36fe65ac3e722e5ae4aa345b8d8e56ba4d6757677f07bdbb"
+      "gitBlob": "0dcbeea6d5984c2dd1959f52192e4f0865c444ba",
+      "size": 13744,
+      "sha256": "8c9340c7a3ce01540b7c104171a01a91396734bb7a0a8749fa7af9af81f7617e"
     },
     {
       "path": "scripts/test-header-refinement.cjs",
@@ -17873,9 +17873,9 @@
     },
     {
       "path": "scripts/test-textbook-revisions.cjs",
-      "gitBlob": "2e3486abdbd7e50f5f0cb6a9da0f8b7ae0077a44",
-      "size": 11601,
-      "sha256": "12dad945bc20dff9b8d3dba9e264dbb0d2aaabb90ba7e244bde17e53c054d26f"
+      "gitBlob": "3733b1fc58cbc4afe4a72391f5c2c7532d0628c7",
+      "size": 11991,
+      "sha256": "efad5b9a4c648db7f91dc866123774a1650ed84f399f13c56f0798f3fb1efc52"
     },
     {
       "path": "scripts/test-textbook-section-partition.cjs",

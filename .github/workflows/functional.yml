@@ -62,7 +62,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - name: Validate producer, inventory and harness contracts
-        run: node --test scripts/api-test-inventory.test.cjs scripts/functional-evidence.test.cjs scripts/functional-api-tests.test.cjs scripts/functional-api-fixture.test.cjs scripts/functional-core-ui.test.cjs scripts/prepare-functional-plan.test.cjs scripts/functional-bootstrap55.test.cjs scripts/functional-schema-profile.test.cjs
+        run: node --max-old-space-size=256 --test --test-concurrency=1 scripts/api-test-inventory.test.cjs scripts/functional-evidence.test.cjs scripts/functional-api-tests.test.cjs scripts/functional-api-fixture.test.cjs scripts/functional-core-ui.test.cjs scripts/prepare-functional-plan.test.cjs scripts/functional-bootstrap55.test.cjs scripts/functional-schema-profile.test.cjs
       - name: Validate exact fixed current-runtime pure tests
         run: node scripts/run-current-runtime-pure-tests.cjs
       - name: Validate fixed current61 storage, phase and FE host regressions

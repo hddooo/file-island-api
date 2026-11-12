@@ -253,5 +253,6 @@
   "startArgv": [
     "node",
     "/run/hanq-production/bootstrap.mjs"
-  ]
+  ],
+  "privilegesSha256": "9fc57d632355720757da4ec9ba9a44fcb59bae296b295fb561e0a494039960c0"
 }
