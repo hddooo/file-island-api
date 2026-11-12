@@ -176,8 +176,8 @@
       },
       {
         "path": "test/unit/opening-history81.test.ts",
-        "gitBlob": "4725ba336da857e7ce3e4d07594c6e93a5f7f109",
-        "sha256": "e09a829d4ea019706f3baa16f27e37c586cd8d60a82a7b28164d53d5ff354706"
+        "gitBlob": "15105e9ef7db82f88aa43fc45d56315b404a637d",
+        "sha256": "c647059981f492a75c7a917ded7ea8fdd9a655e6f3ec4a89fcfa30cfe15915fa"
       },
       {
         "path": "test/unit/opening-script.test.ts",
@@ -341,8 +341,8 @@
       },
       {
         "path": "test/unit/toeic-lc-evidence.test.ts",
-        "gitBlob": "ac9d2c73a21077662340201da687c0d6eb30c53f",
-        "sha256": "9a7e4f3cf3d7235e2a5dff1daa8880ff87ac0da04709dd86269537e7ba39a4fe"
+        "gitBlob": "38dfcd527b5f4a1c186599894e65e1e9829c12ee",
+        "sha256": "c9b59140d5337cc0e4cb95ccdcd501fc97ceccfed72ae73c7dd63c0bb6418e74"
       },
       {
         "path": "test/unit/toeic-notes-http.test.ts",
@@ -361,13 +361,13 @@
       },
       {
         "path": "test/unit/toeic-part7-evidence.test.ts",
-        "gitBlob": "ac1c4825b8e02d49a35d33ebde27f5d13891d12e",
-        "sha256": "7bffb3a6063251ecb62c85f74fe4b2ffb0bfc7a749fcb6b726e970188980bb79"
+        "gitBlob": "5abc4a04302ded2cc7e663da46048eca8680f781",
+        "sha256": "65c4ff6ec4971be8b23469358c75457b27b1c19856eca6cfd588c092625a1ff6"
       },
       {
         "path": "test/unit/toeic-part7-translations.test.ts",
-        "gitBlob": "30146e6ba3f41866db129f63de03622699c3fcd4",
-        "sha256": "4124b5588b0cfd7714097d8195c454ec9389a61f7ba8daa9241097fbf820ea4f"
+        "gitBlob": "c97543c5a56e1ed95ea6f183d90eb35acd1b343c",
+        "sha256": "e3e979bfbed157af45e452220fa7b100b791f1c6dd3c29ceb69f04230691dcf9"
       },
       {
         "path": "test/unit/toeic-practice-group.test.ts",

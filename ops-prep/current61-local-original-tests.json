@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "kind": "LOCAL_ORIGINAL_CASE_LOCATION_NOT_CI_EVIDENCE",
+  "productionQualified": false,
+  "ciPrivateInputsAllowed": false,
+  "originalAssertionsMovedNotDeleted": true,
+  "tests": [
+    {
+      "unit": "test/unit/toeic-lc-evidence.test.ts",
+      "localOriginal": "test/local-original/toeic-lc-evidence.test.ts",
+      "originCommit": "efacae4e17588773cc7466f0782d0c3ca2ffa294",
+      "localOriginalSha256": "3ca935dec9779a455133a7d3022a15bc20b026e41a963729f0a778a9883a1f18",
+      "localOriginalGitBlob": "2de4cfd97f8f536c8716d314c421ea941eeba1cc",
+      "assertionsPreserved": true
+    },
+    {
+      "unit": "test/unit/toeic-part7-evidence.test.ts",
+      "localOriginal": "test/local-original/toeic-part7-evidence.test.ts",
+      "originCommit": "efacae4e17588773cc7466f0782d0c3ca2ffa294",
+      "localOriginalSha256": "cb3acc5099f25ac825681530263542651fa2bdc53b718e7e444e13a43785d512",
+      "localOriginalGitBlob": "9c69c308631e0e86a011d646e6086dbe85053159",
+      "assertionsPreserved": true
+    },
+    {
+      "unit": "test/unit/toeic-part7-translations.test.ts",
+      "localOriginal": "test/local-original/toeic-part7-translations.test.ts",
+      "originCommit": "efacae4e17588773cc7466f0782d0c3ca2ffa294",
+      "localOriginalSha256": "767383a1b179adabbc5acb35f7b93a78a6fad6bb4c81f268b88f423bd506fada",
+      "localOriginalGitBlob": "133479775bb794ec4b7f5fbec90896e4712cc9e3",
+      "assertionsPreserved": true
+    },
+    {
+      "unit": "test/unit/opening-history81.test.ts",
+      "localOriginal": "test/local-original/opening-history81.test.ts",
+      "originCommit": "f78814d44e528e363d23086f4414c919a2517ec8",
+      "localOriginalSha256": "b177f7afc22e265dc01f109a0e5854da09d8d2e226237173927aeaba252ec469",
+      "localOriginalGitBlob": "1ed11e4eaaba2a819c965eb5a60d695f0a8d8734",
+      "assertionsPreserved": true
+    }
+  ]
+}

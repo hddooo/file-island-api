@@ -68,9 +68,9 @@ export async function signupResponse(t: TestApp, email: string, password = PASSW
     assert.equal((await pool.query('SELECT id FROM hanq.users WHERE email_normalized=$1', [normalized])).rowCount, 0, 'Only a new synthetic account may be prepared');
     const pending = await request(t.server).post('/api/v1/auth/signup').set(csrf).send(body);
     assert.equal(pending.status, 201);
-    assert.deepEqual(pending.body, { status: 'pending' });
     assert.equal(pending.body.accessToken, undefined);
     assert.equal(pending.body.refreshToken, undefined);
+    assert.deepEqual(pending.body, { status: 'pending' });
     assert.equal(pending.headers['set-cookie'], undefined);
     assert.equal(pending.headers['access-control-allow-origin'], ORIGIN);
     assert.equal(pending.headers['access-control-allow-credentials'], 'true');
