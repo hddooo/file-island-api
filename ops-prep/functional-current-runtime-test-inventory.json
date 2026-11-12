@@ -106,8 +106,8 @@
       },
       {
         "path": "test/unit/goryeo-script.test.ts",
-        "gitBlob": "d200c90fe5802e2a83cc9808fd4c690237341c7c",
-        "sha256": "bbbfdf45a4501b7ebbb3019f0ceab120fbc54a74e58d13716399a9248fc02d80"
+        "gitBlob": "855484e74cab9ba058af3279357fbb78b03b2d8d",
+        "sha256": "ec9f0eb9dfb6175f1c5f00bfc937e946f9f99a636abed206fc71f430913fd1af"
       },
       {
         "path": "test/unit/grading-normalization-boundaries.test.ts",
@@ -131,8 +131,8 @@
       },
       {
         "path": "test/unit/history81.test.ts",
-        "gitBlob": "291ccab6bde8d9433f18ba8483b3c66542e7529c",
-        "sha256": "3d11d353f8826b984d090b3653467ce480ea80c0fa4c5d5ea7808858135c6753"
+        "gitBlob": "2283a08dbb38222559724af1c2dd65ae316e239e",
+        "sha256": "7293e272b19b3e7e3f35875aa003cf7f41057b5ea8124f53977257e71006bf2f"
       },
       {
         "path": "test/unit/hongmungwan.test.ts",
@@ -146,8 +146,8 @@
       },
       {
         "path": "test/unit/joseon-script.test.ts",
-        "gitBlob": "c6699af97a3789ceefab4fd2f82261f6084f8d96",
-        "sha256": "5ddfa6c81eea1ca23402efee24473d499c3bff46327d3fa0ac77d0285dd0f7f7"
+        "gitBlob": "9a9c3a01113ff135527785602bcd31c8c65dc8fd",
+        "sha256": "f65437d24c850bdefc32a9dd25b0eeaa4e1cb1569462efb08b90ef5aa73af932"
       },
       {
         "path": "test/unit/lc-audio-file.test.ts",
@@ -428,8 +428,8 @@
     "integration": [
       {
         "path": "test/integration/auth.test.ts",
-        "gitBlob": "45248bbacc9c88533b46c20754ce014102fa65f2",
-        "sha256": "3c72475b800321b53b229ec63da8b2d062b6df08cfb3f4fa1fd274edb0e312d4"
+        "gitBlob": "5c9b1c851431d8837a316ff97d31dc3e0c406f48",
+        "sha256": "378874ab823d9150f379be8716c7e6dccab14b5d03cfd331b02d8353ef780160"
       },
       {
         "path": "test/integration/battle-site.test.ts",

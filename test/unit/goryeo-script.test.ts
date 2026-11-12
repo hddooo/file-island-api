@@ -51,6 +51,10 @@ async function fixture() {
     HANQ_JWT_ACCESS_SECRET: randomBytes(32).toString('hex'), HANQ_JWT_REFRESH_SECRET: randomBytes(32).toString('hex') });
   const tokens = new TokenService(config), { token } = await tokens.signAccess(userId, sessionId, now);
   const auth: AuthService = Object.assign(Object.create(AuthService.prototype), { tokens, clock: { now: () => now },
+    users: { findById: async (pool: unknown, id: string) => {
+      assert(pool && typeof pool === 'object' && 'query' in pool); assert.equal(id, userId);
+      return { id: userId, approval_status: 'approved' as const };
+    } },
     sessions: new SessionsRepository(), db: { pool: { query: async (sql: string, values: unknown[]) => {
       assert.match(sql, /^SELECT 1 FROM hanq.session_families/);
       assert.deepEqual(values, [sessionId, userId, now]);

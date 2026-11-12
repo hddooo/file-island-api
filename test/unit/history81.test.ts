@@ -7,6 +7,8 @@ import {ValidationPipe} from '@nestjs/common';
 import request from 'supertest';
 import {History81Controller} from '../../src/textbook/history81.controller';
 import {History81Service} from '../../src/textbook/history81.service';
+import {TextbookService} from '../../src/textbook/textbook.service';
+import {SourceBlankProgressService} from '../../src/textbook/source-blank-progress';
 import {HISTORY81_PDF,projectHistory81} from '../../src/textbook/history81-quiz';
 import {sourceSlots,sourceGrade} from '../../src/textbook/source-blank-progress';
 import {DbService} from '../../src/db/db.service';
@@ -89,7 +91,7 @@ test('unsupported revision/era never consult source or DB, and missing data fail
 });
 test('HTTP guards, private errors, DTO owner/grade rejection, bounded save and revoked session',async()=>{
  const f=service();let revoked=false;const token='synthetic-test-session-1234567890';
- const module=await Test.createTestingModule({controllers:[History81Controller],providers:[ScriptHeadersGuard,JwtAuthGuard,TextbookMemberGuard,{provide:History81Service,useValue:f.api},{provide:AuthService,useValue:{authenticate:async(t:string)=>t===token&&!revoked?{userId:'a',sessionId:'synthetic'}:null}}]}).compile();
+ const module=await Test.createTestingModule({controllers:[History81Controller],providers:[ScriptHeadersGuard,JwtAuthGuard,TextbookMemberGuard,{provide:History81Service,useValue:f.api},{provide:TextbookService,useValue:{forRevision:()=>{throw new Error('Unexpected semantic route in scripted history fixture');}}},{provide:SourceBlankProgressService,useValue:{getWorkspace:()=>{throw new Error('Unexpected semantic workspace read in scripted history fixture');},saveWorkspace:()=>{throw new Error('Unexpected semantic workspace write in scripted history fixture');}}},{provide:AuthService,useValue:{authenticate:async(t:string)=>t===token&&!revoked?{userId:'a',sessionId:'synthetic'}:null}}]}).compile();
  const app=module.createNestApplication({logger:false});app.useGlobalFilters(new ApiExceptionFilter());app.useGlobalPipes(new ValidationPipe({transform:true,whitelist:true,forbidNonWhitelisted:true}));await app.init();
  try{const req=request(app.getHttpServer()),base=`/api/v1/textbook/revisions/${HISTORY81_PDF}/semantic`,route=base+'/workspaces/goryeo';
   for(const endpoint of [route,base+'/quizzes/goryeo']){await req.get(endpoint).expect(401).expect('Cache-Control','private, no-store').expect('X-Content-Type-Options','nosniff').expect('Cross-Origin-Resource-Policy','same-site');await req.get(endpoint).set('Authorization','Bearer invalid-token-1234567890').expect(401);await req.get(endpoint).set('Authorization','Bearer '+token).expect(200);}

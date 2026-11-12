@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "frontendCommit": "e52d75a661b14c28d55737f16a961603d20d97cf",
+  "frontendCommit": "dac755268adc17c8ac27cf8890a3e7a86ad71a1f",
   "image": "sha256:a59bb505af9ce5d08593e28f303192efaa564eb4e654553e0de7b7febc1e3076",
   "tools": {
     "node": "v26.13.0",
@@ -84,7 +84,9 @@
     "scripts/test-source-quiz-safe-emphasis.cjs",
     "scripts/home-frontend-cd/frontend-health.test.cjs",
     "scripts/home-frontend-cd/ci-step.test.cjs",
-    "scripts/home-frontend-cd/verify-artifact.test.cjs"
+    "scripts/home-frontend-cd/verify-artifact.test.cjs",
+    "scripts/test-opening-glossary-expansion-browser.cjs",
+    "scripts/test-opening-plain-glossary.cjs"
   ],
   "extraV2": [
     "scripts/test-era-quiz-fresh-entry.cjs",
@@ -179,9 +181,9 @@
     },
     {
       "path": "CHANGELOG.md",
-      "gitBlob": "fcad55801cafc2f33efd8d54828dfc3ad66c113e",
-      "size": 73840,
-      "sha256": "4c3a29b0f327ed2092812e87e8de5086528a82a26c40f6ca745e0c6212dd7306"
+      "gitBlob": "31293f44b6ef96e51b92e20426bb87211878b138",
+      "size": 74146,
+      "sha256": "851967aa46bf0b8796b6b81768a7cbcad824f182059309f43595c09215d4efeb"
     },
     {
       "path": "CHATGPT.md",
@@ -209,9 +211,9 @@
     },
     {
       "path": "RELEASE_VERSION",
-      "gitBlob": "a9b33b346ae1c16d65c340f49d745de10cbb71b1",
+      "gitBlob": "6345e2bf0f02e0ebddaff5017e895b66b4e58172",
       "size": 13,
-      "sha256": "9218bd9a7c91473c45ed544a3019f029d7b0132098e4b12080d8521204bbd892"
+      "sha256": "371c77ad2fe21e2fa2d085318960c6c85606dca83922beda905c9b6a464e7335"
     },
     {
       "path": "apple-touch-icon.png",
@@ -1522,22 +1524,22 @@
       "sha256": "cb41ed0a4684911874704861437516c92a08b9bd2ac35d0e74569ed8744993b1"
     },
     {
-      "path": "docs/versions/0.10.34-beta/plan.md",
-      "gitBlob": "0cd859cf37869b701f604ab16ff7f487bddb5b00",
+      "path": "docs/versions/0.10.35-beta/plan.md",
+      "gitBlob": "2c55b1495d7be0f96c7c7a08c05ff919fa1c3994",
       "size": 518,
-      "sha256": "3719f7acbeed2687d8eadb6995275c5544ea444f408b2288ed815577ed77bc35"
+      "sha256": "a7cd942580e83344cee5e705431929a28d2c6cedf40cc27fef92cbe74c4163d7"
     },
     {
-      "path": "docs/versions/0.10.34-beta/progress.md",
-      "gitBlob": "4cd90d20cb9e841596dfb2bd7a85d76e7cb7541f",
-      "size": 1028,
-      "sha256": "89c8ada33f96bfb85e79d561d5aa13f2faae86092cb6ac9861fe5b2594081a84"
+      "path": "docs/versions/0.10.35-beta/progress.md",
+      "gitBlob": "d661eb2c50abc7c6eaa094a46e2cac60ce5c8e4f",
+      "size": 1407,
+      "sha256": "07c3903189d4f0a7fff17fa98f63c5385214461820b7adfcdcf8bcbddff90df9"
     },
     {
-      "path": "docs/versions/0.10.34-beta/report.md",
-      "gitBlob": "47cb25caef859146d514cc82803d49e5ae128717",
+      "path": "docs/versions/0.10.35-beta/report.md",
+      "gitBlob": "9881e746c08bd5afe32dc1b8546a5834f7560add",
       "size": 2032,
-      "sha256": "39049a1a20a1af0d1743243ec47d85a4878cf728297f61f65d29af8281198ad7"
+      "sha256": "e860a6699610e0cd345ef80fb98389afaa6016fdd847d8b9543bbcf028d1588b"
     },
     {
       "path": "docs/versions/0.10.4-beta/plan.md",
@@ -10433,9 +10435,9 @@
     },
     {
       "path": "media/history81-glossary.js",
-      "gitBlob": "903867af16f87db2a624ae790fb5d2b77deb3e3b",
-      "size": 11796,
-      "sha256": "d40e6aa31cf1c99e73c6f35ba20d3810c2394b84b984d4209b80fa951f2f0e29"
+      "gitBlob": "c3e43d4200b3a7d617c3f70dc6b17b6f5e556449",
+      "size": 13603,
+      "sha256": "73abccbe053cc54b7b1d16f91abb1d16b9674e763773f488f2cb1080e3ab3800"
     },
     {
       "path": "media/history81-term-data.js",
@@ -10457,9 +10459,9 @@
     },
     {
       "path": "media/history81-verified-glossary.js",
-      "gitBlob": "5eab00f4043ef5b550f5dd089c2789b61c3a7368",
-      "size": 81750,
-      "sha256": "b1cfa7865ccc4f567d0026338790f62844360a3add1597f85c7e7784abb8d658"
+      "gitBlob": "7aed2ebf160452f0c0c6ca3d11a2c2286da5689b",
+      "size": 97674,
+      "sha256": "438db34c0f5dcb1a1a59579d5b7e2801398692ea629f76cc300784aa1b68f8bf"
     },
     {
       "path": "media/history81-workspace.js",
@@ -17027,9 +17029,9 @@
     },
     {
       "path": "scripts/test-history81-verified-glossary.cjs",
-      "gitBlob": "88cda8fd60e1109333e707848678aa58bea7b01e",
+      "gitBlob": "11ef6cdf14b436e9d6dd13a6a29040fa05984fd2",
       "size": 2578,
-      "sha256": "2aacfd04f31c7d76931868d1cbcc5a72020cb501bfec6ca541915ab62b67090f"
+      "sha256": "1ea700e07193f925b07f0d45567ae3693d5860560ffa5e6489dd8930dc8c7152"
     },
     {
       "path": "scripts/test-hongmungwan-answer-preview.cjs",
@@ -17410,10 +17412,22 @@
       "sha256": "1cfd838941843871e7589e8aed59373e48297e215780708ac6003a1f15e3d746"
     },
     {
+      "path": "scripts/test-opening-glossary-expansion-browser.cjs",
+      "gitBlob": "5018072cd60630e9fec284ee2f8b88dd8710447d",
+      "size": 3333,
+      "sha256": "059387f702ff8c7e7681cc616ef549e88299916468efbd2e86f8e6413b111e74"
+    },
+    {
       "path": "scripts/test-opening-json-mime-browser.cjs",
       "gitBlob": "7e38d4b756175fdc5ef6e028bd122d4d174c80ea",
       "size": 3084,
       "sha256": "157d4955904525242a7ad5c9bc3d9961abd0faf18d4f6b8582876e9911f5a61b"
+    },
+    {
+      "path": "scripts/test-opening-plain-glossary.cjs",
+      "gitBlob": "8cb3d5b1a34f33e04fd3f55ba4ab259ec53759ae",
+      "size": 1574,
+      "sha256": "a5a9955551593ee002e929007a5d2a6a1beb0878ec69fc21a38a3d04fef8f2c7"
     },
     {
       "path": "scripts/test-opening-routes.cjs",

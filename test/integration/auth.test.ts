@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
 import type { Pool } from 'pg';
 import request from 'supertest';
-import { bearer, csrf, PASSWORD, refreshCookie, signup, startApp, uniqueEmail, type TestApp } from '../helpers/app';
+import { bearer, csrf, PASSWORD, refreshCookie, signup, signupResponse, current61MembershipFixture, startApp, uniqueEmail, type TestApp } from '../helpers/app';
 import { freshDatabase } from '../helpers/db';
 import { ORIGIN, testConfig } from '../helpers/env';
 
@@ -18,10 +18,10 @@ describe('auth: signup / signin / cookies / CSRF / rotation / logout', () => {
     await pool.end();
   });
 
-  it('signup returns an access token in the body and the refresh token only as an HttpOnly cookie', async () => {
+  it(current61MembershipFixture() ? 'pending signup gives no session; synthetic approved member signs in with access token and HttpOnly refresh cookie' : 'signup returns an access token in the body and the refresh token only as an HttpOnly cookie', async () => {
     const email = uniqueEmail('signup');
-    const res = await request(t.server).post('/api/v1/auth/signup').set(csrf).send({ email, password: PASSWORD, displayName: '한동' });
-    assert.equal(res.status, 201);
+    const res = await signupResponse(t, email, PASSWORD, '한동');
+    assert.equal(res.status, current61MembershipFixture() ? 200 : 201);
     assert.equal(typeof res.body.accessToken, 'string');
     assert.equal(res.body.user.email, email);
     assert.equal(res.body.user.displayName, '한동');
@@ -43,7 +43,7 @@ describe('auth: signup / signin / cookies / CSRF / rotation / logout', () => {
   it('Secure cookie when configured (production forces it)', async () => {
     const s = await startApp({ HANQ_COOKIE_SECURE: 'true', HANQ_COOKIE_SAMESITE: 'strict' });
     try {
-      const res = await request(s.server).post('/api/v1/auth/signup').set(csrf).send({ email: uniqueEmail('secure'), password: PASSWORD });
+      const res = await signupResponse(s, uniqueEmail('secure'), PASSWORD);
       const raw = ([] as string[]).concat(res.headers['set-cookie'] as unknown as string[]).find((c) => c.startsWith('hanq_rt='))!;
       assert.match(raw, /;\s*Secure/i);
       assert.match(raw, /SameSite=Strict/i);

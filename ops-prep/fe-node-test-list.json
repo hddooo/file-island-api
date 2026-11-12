@@ -72,5 +72,7 @@
   "scripts/test-source-quiz-safe-emphasis.cjs",
   "scripts/home-frontend-cd/frontend-health.test.cjs",
   "scripts/home-frontend-cd/ci-step.test.cjs",
-  "scripts/home-frontend-cd/verify-artifact.test.cjs"
+  "scripts/home-frontend-cd/verify-artifact.test.cjs",
+  "scripts/test-opening-glossary-expansion-browser.cjs",
+  "scripts/test-opening-plain-glossary.cjs"
 ]
