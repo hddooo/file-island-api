@@ -1,3 +1,4 @@
+import {createRequire} from 'node:module';
 import {UsersRepository} from '../../src/auth/users.repository';
 import {PasswordService} from '../../src/auth/password.service';
 import assert from 'node:assert/strict';
@@ -250,6 +251,7 @@ describe('authenticated CBT (isolated *_test database)', () => {
   });
 
   it('create is idempotent per owner key (also concurrently); other owners are isolated; another round under the same key conflicts', async () => {
+    const A=await signup(t),B=await signup(t);
     const key = randomUUID();
     const many = await Promise.all(Array.from({ length: 6 }, () => create(A, 79, key)));
     for (const r of many) assert.equal(r.status, 201, JSON.stringify(r.body));
@@ -266,6 +268,7 @@ describe('authenticated CBT (isolated *_test database)', () => {
     const conflict = await create(A, 78, key);
     assert.equal(conflict.status, 409);
     assert.equal(conflict.body.error.code, 'idempotency_conflict');
+    const beforeReuse=await snapshot([...ids][0]);const reused=await create(A,79);assert.equal(reused.status,201);assert.equal(reused.body.run.id,[...ids][0]);assert.equal(reused.body.created,false);assert.equal(reused.body.reused,true);assert.equal(await snapshot([...ids][0]),beforeReuse);
   });
 
   it("checkpoint contract: exact owner and malformed IDs remain inaccessible",async()=>{
@@ -436,7 +439,12 @@ describe('authenticated CBT (isolated *_test database)', () => {
     const finishAtScore=async(who:Session,round:number,target:number)=>{const rows=await roundRows(round),choices=new Map<number,number[]>([[0,[]]]);for(let i=0;i<rows.length;i++)for(const [sum,indices]of [...choices]){const next=sum+rows[i].points;if(next<=target&&!choices.has(next))choices.set(next,[...indices,i]);}const selected=choices.get(target);assert(selected,'public catalog weights can express reviewed target');const id=(await create(who,round)).body.run.id;assert.equal((await start(who,id)).status,200);const answers=rows.map((q,position)=>({position,optionId:selected.includes(position)?q.correct_option_id:null}));assert.equal((await checkpoint(who,id,1,answers)).status,200);const result=await submit(who,id);assert.equal(result.status,200);assert.equal(result.body.run.result.score,target);assert.equal((await attemptsOf(id)).length,50);return{id,result};};
     for(const [score,reward]of [[59,-10],[60,3],[69,3],[70,5],[79,5],[80,10],[100,10]]){const who=await signup(t),one=await finishAtScore(who,79,score);assert.equal(one.result.body.run.result.rewardEligible,true);assert.equal(one.result.body.run.result.policyGrowthReward,reward);assert.equal(one.result.body.run.result.growthReward,reward);const first=await snapshot(one.id);assert.deepEqual((await submit(who,one.id)).body.run.result,one.result.body.run.result);assert.equal(await snapshot(one.id),first);assert.deepEqual((await pool.query('SELECT amount FROM hanq.growth_ledger WHERE cbt_run_id=$1',[one.id])).rows,[{amount:reward}]);if(score===80){const again=await finishAtScore(who,79,100);assert.equal(again.result.body.run.result.rewardEligible,false);assert.equal(again.result.body.run.result.growthReward,0);assert.deepEqual((await pool.query('SELECT amount FROM hanq.growth_ledger WHERE cbt_run_id=$1',[again.id])).rows,[{amount:0}]);const separate=await finishAtScore(who,78,100);assert.equal(separate.result.body.run.result.rewardEligible,true);assert.equal(separate.result.body.run.result.growthReward,10);}}
     // Explicit pre-reward legacy synthetic member: no historical ledger is removed or rewritten.
-    const legacyId=randomUUID(),email=uniqueEmail('cbt-floor'),now=clock.now();await new UsersRepository().insert(pool,{id:legacyId,emailNormalized:email.toLowerCase(),emailDisplay:email,passwordHash:await new PasswordService().hash(PASSWORD),displayName:'synthetic legacy floor',now});await pool.query("UPDATE hanq.users SET approval_status='approved' WHERE id=$1",[legacyId]);await pool.query('INSERT INTO hanq.attendance(user_id,day,created_at) VALUES($1,$2,$3)',[legacyId,new Date(now.getTime()+9*3600000).toISOString().slice(0,10),now]);const legacy=await signin(t,email);assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id=$1',[legacyId])).rows[0].n,0);const floor=await finishAtScore(legacy,79,0);assert.equal(floor.result.body.run.result.policyGrowthReward,-10);assert.equal(floor.result.body.run.result.growthReward,0);assert.equal(Number((await pool.query('SELECT coalesce(sum(amount),0)::text n FROM hanq.growth_ledger WHERE user_id=$1',[legacyId])).rows[0].n),0);
+    const legacyId=randomUUID(),email=uniqueEmail('cbt-floor'),now=clock.now();await new UsersRepository().insert(pool,{id:legacyId,emailNormalized:email.toLowerCase(),emailDisplay:email,passwordHash:await new PasswordService().hash(PASSWORD),displayName:'synthetic legacy floor',now});await pool.query("UPDATE hanq.users SET approval_status='approved' WHERE id=$1",[legacyId]);await pool.query('INSERT INTO hanq.attendance(user_id,day,created_at) VALUES($1,$2,$3)',[legacyId,new Date(now.getTime()+9*3600000).toISOString().slice(0,10),now]);const legacy=await signin(t,email);assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id=$1',[legacyId])).rows[0].n,0);// 052 backfill-equivalent projection for this single newly allocated legacy synthetic owner.
+    assert.equal((await pool.query('SELECT 1 FROM hanq.owned_digimon WHERE user_id=$1',[legacyId])).rowCount,0);
+    await pool.query("INSERT INTO hanq.owned_digimon(user_id,family,xp,stage,revision,equipped,first_partner) VALUES($1,'agumon',0,0,0,true,true)",[legacyId]);
+    assert.deepEqual((await pool.query('SELECT family,xp::text AS xp,equipped,first_partner FROM hanq.owned_digimon WHERE user_id=$1',[legacyId])).rows,[{family:'agumon',xp:'0',equipped:true,first_partner:true}]);
+    assert.equal((await pool.query('SELECT 1 FROM hanq.growth_ledger WHERE user_id=$1',[legacyId])).rowCount,0);
+    const floor=await finishAtScore(legacy,79,0);assert.equal(floor.result.body.run.result.policyGrowthReward,-10);assert.equal(floor.result.body.run.result.growthReward,0);assert.deepEqual((await pool.query('SELECT xp::text AS xp FROM hanq.owned_digimon WHERE user_id=$1 AND equipped',[legacyId])).rows,[{xp:'0'}]);assert.equal(Number((await pool.query('SELECT coalesce(sum(amount),0)::text n FROM hanq.growth_ledger WHERE user_id=$1',[legacyId])).rows[0].n),0);
 });
 
   it('existing wrong notes derive the CBT wrong answers; the existing premium gate is unchanged', async () => {
@@ -502,7 +510,18 @@ describe('authenticated CBT (isolated *_test database)', () => {
   it("checkpoint/submit race gives one immutable grading matching durable answers and one ledger row",async()=>{
  const who=await signup(t),rows=await roundRows(79),id=(await create(who,79)).body.run.id;await start(who,id);const answers=rows.map((q,position)=>({position,optionId:q.correct_option_id}));const raced=await Promise.all([checkpoint(who,id,1,answers),submit(who,id),submit(who,id)]);assert([200,409].includes(raced[0].status));if(raced[0].status===409)assert.equal(raced[0].body.error.code,'run_closed');assert.equal(raced[1].status,200);assert.equal(raced[2].status,200);const view=await get(who,id),stored=await saved(id),attempts=await attemptsOf(id);assert.equal(view.body.run.status,'final');assert.equal(attempts.length,50);let score=0;for(const [i,row]of rows.entries()){const a=attempts.find(x=>x.question_id===row.question_id)!;assert.equal(a.option_id,stored[i].optionId);assert.equal(a.correct,stored[i].optionId===row.correct_option_id);if(a.correct)score+=row.points;}assert.equal(view.body.run.result.score,score);assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.growth_ledger WHERE cbt_run_id=$1',[id])).rows[0].n,1);assert.deepEqual(raced[1].body.run.result,raced[2].body.run.result);
  // Distinct runs compete for the same owner's first-round reward.
- const owner=await signup(t),ids:string[]=[];for(let n=0;n<2;n++){const runId=(await create(owner,79)).body.run.id;ids.push(runId);assert.equal((await start(owner,runId)).status,200);assert.equal((await checkpoint(owner,runId,1,answers)).status,200);}
+
+ // Synthetic DB-valid owner-lock stress fixture, NOT two runs created by the public API or evidence of historical occurrence.
+ const owner=await signup(t),firstId=(await create(owner,79)).body.run.id;assert.equal((await start(owner,firstId)).status,200);assert.equal((await checkpoint(owner,firstId,1,answers)).status,200);
+ const stableFirst=await snapshot(firstId),reuse=await create(owner,79);assert.equal(reuse.body.run.id,firstId);assert.equal(reuse.body.created,false);assert.equal(reuse.body.reused,true);assert.equal(await snapshot(firstId),stableFirst);
+ const secondId=randomUUID(),secondToken=randomUUID(),ids=[firstId,secondId];assert.notEqual(firstId,secondId);tokens.set(secondId,secondToken);
+ const fixture=createRequire(__filename)('/run/current-runtime-fixture.cjs') as {scope(c:ReturnType<typeof testConfig>):unknown;verifyDatabase(p:Pool,c:ReturnType<typeof testConfig>):Promise<unknown>};fixture.scope(testConfig());await fixture.verifyDatabase(pool,testConfig());
+ const client=await pool.connect();try{await client.query('BEGIN');
+ assert.equal((await client.query('SELECT 1 FROM hanq.cbt_runs WHERE id=$1',[secondId])).rowCount,0);
+ assert.equal((await client.query("INSERT INTO hanq.cbt_runs SELECT (jsonb_populate_record(NULL::hanq.cbt_runs,to_jsonb(r)||jsonb_build_object('id',$2::uuid,'idempotency_key',$3::text,'attempt_token_hash',$4::text))).* FROM hanq.cbt_runs r WHERE id=$1 AND user_id=$5 AND status='active' AND attempt_policy='uninterrupted-v1'",[firstId,secondId,randomUUID(),sha256hex(secondToken),owner.userId])).rowCount,1);
+ assert.equal((await client.query("INSERT INTO hanq.cbt_run_items SELECT (jsonb_populate_record(NULL::hanq.cbt_run_items,to_jsonb(i)||jsonb_build_object('run_id',$2::uuid))).* FROM hanq.cbt_run_items i WHERE run_id=$1 AND user_id=$3 AND attempt_id IS NULL AND correct IS NULL",[firstId,secondId,owner.userId])).rowCount,50);
+ await client.query('COMMIT');}catch(error){await client.query('ROLLBACK');throw error;}finally{client.release();}
+ assert.equal(await snapshot(firstId),stableFirst);for(const runId of ids){const prepared=await get(owner,runId);assert.equal(prepared.status,200);assert.equal(prepared.body.run.status,'active');assert.equal(prepared.body.items.length,50);assert.deepEqual(await saved(runId),answers);assert.equal((await attemptsOf(runId)).length,0);assert.equal((await pool.query('SELECT 1 FROM hanq.growth_ledger WHERE cbt_run_id=$1',[runId])).rowCount,0);}
  const finals=await Promise.all(ids.map(runId=>submit(owner,runId)));assert.deepEqual(finals.map(r=>r.status),[200,200]);assert.deepEqual(finals.map(r=>r.body.run.result.rewardEligible).sort(),[false,true]);assert.deepEqual(finals.map(r=>r.body.run.result.growthReward).sort((a:number,b:number)=>a-b),[0,10]);
  for(const [i,runId]of ids.entries()){assert.equal(finals[i].body.run.result.score,100);assert.equal((await attemptsOf(runId)).length,50);const snap=await snapshot(runId);assert.deepEqual((await submit(owner,runId)).body.run.result,finals[i].body.run.result);assert.equal(await snapshot(runId),snap);}
  assert.deepEqual((await pool.query('SELECT amount FROM hanq.growth_ledger WHERE cbt_run_id=ANY($1::uuid[]) ORDER BY amount',[ids])).rows,[{amount:0},{amount:10}]);
@@ -598,7 +617,7 @@ describe('authenticated CBT (isolated *_test database)', () => {
   });
 
   it('rounds are validated exactly; a missing question makes the round unavailable (never filled in)', async () => {
-    A = await refresh(A);
+    const A=await signup(t);
     const victim = (await roundRows(70))[10];
     await pool.query('UPDATE hanq.question_versions SET is_current = false WHERE question_id = $1 AND version = $2', [victim.question_id, victim.version]);
     try {

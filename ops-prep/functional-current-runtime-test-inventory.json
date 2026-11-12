@@ -483,8 +483,8 @@
       },
       {
         "path": "test/integration/growth-floor.test.ts",
-        "gitBlob": "6e039142f4cd4e054dd87e7e819bbf4e64766dd0",
-        "sha256": "b38491b0be3eb18c08d2145d2f8926cce602e2bab514973da5dbd00240124d89"
+        "gitBlob": "89439deb00237b18b0cda7c4e7eb1585e8132650",
+        "sha256": "51e38b10c21f45aa10e11e368be321d1498075f0f7ac52f9304a052c60981576"
       },
       {
         "path": "test/integration/growth-history.test.ts",
@@ -573,8 +573,8 @@
       },
       {
         "path": "test/integration/question-requests.test.ts",
-        "gitBlob": "4de2f05286eee8c64d15c20864cd8407b51075ba",
-        "sha256": "f2b71abca6c724752c371dbbcd343ac85dd6906376ba202920a539b055aea9aa"
+        "gitBlob": "b007c94b908435c7e770bd887729d615225742cb",
+        "sha256": "410bca0ca39c3dfc19bc8df65634ad23a1bc2ff6db046008e4d990bc75b7cad3"
       },
       {
         "path": "test/integration/questions-http.test.ts",

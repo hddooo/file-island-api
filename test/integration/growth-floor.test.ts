@@ -42,8 +42,15 @@ it('legacy zero-balance user: concurrent deductions, immutable replay, CBT resul
  for(let n=0;n<2;n++){const r=await post(floorMock,false,keys[n]);assert.equal(r.body.replayed,true);const stored=await pool.query('SELECT amount FROM hanq.growth_ledger WHERE user_id=$1 AND attempt_id=$2',[id,r.body.attempt.id]);assert.equal(stored.rowCount,1);assert.equal(r.body.growth.delta,stored.rows[0].amount);assert.equal(r.body.growth.points,0);}
  const counts=await pool.query('SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id=$1',[id]);assert.equal(counts.rows[0].n,5);
  await fund();const created=await request(t.server).post('/api/v1/cbt/runs').set(bearer(s.access)).send({round:79,idempotencyKey:randomUUID(),answerMode:'batch'});assert.equal(created.status,201);const run=created.body.run.id;
- assert.equal((await request(t.server).post(`/api/v1/cbt/runs/${run}/start`).set(bearer(s.access)).send({})).status,200);
- const body={submissionKey:randomUUID(),currentPosition:49,answers:Array.from({length:50},(_,position)=>({position,optionId:null}))};const submit=()=>request(t.server).post(`/api/v1/cbt/runs/${run}/submit`).set(bearer(s.access)).send(body);
+ const current61=process.env.HANQ_QUAL_QUALIFICATION_PROFILE==='schema61-local-private-retained-base',attemptToken=randomUUID();
+ if(current61)assert.equal((await request(t.server).post(`/api/v1/cbt/runs/${run}/start`).set(bearer(s.access)).send({attemptToken})).status,200);
+ else assert.equal((await request(t.server).post(`/api/v1/cbt/runs/${run}/start`).set(bearer(s.access)).send({})).status,200);
+ const body={submissionKey:randomUUID(),currentPosition:49,answers:Array.from({length:50},(_,position)=>({position,optionId:null}))};if(current61){
+  const checkpoint=await request(t.server).post(`/api/v1/cbt/runs/${run}/checkpoint`).set(bearer(s.access)).set('x-cbt-attempt-token',attemptToken).send({version:1,currentPosition:body.currentPosition,answers:body.answers});
+  assert.equal(checkpoint.status,200);assert.equal(checkpoint.body.run.checkpointVersion,1);
+  assert.deepEqual((await pool.query('SELECT position,answer_option_id AS "optionId" FROM hanq.cbt_run_items WHERE run_id=$1 ORDER BY position',[run])).rows,body.answers);
+ }
+ const submit=()=>current61?request(t.server).post(`/api/v1/cbt/runs/${run}/submit`).set(bearer(s.access)).set('x-cbt-attempt-token',attemptToken).send({submissionKey:body.submissionKey}):request(t.server).post(`/api/v1/cbt/runs/${run}/submit`).set(bearer(s.access)).send(body);
  // All50 fixture answers are null: score0 falls below60 in the current
  // first-round bands, requesting -10; the independent opening3XP bounds it at -3.
  const final=await submit();assert.equal(final.status,200);assert.equal(final.body.run.result.score,0);assert.equal(final.body.run.result.answered,0);assert.equal(final.body.run.result.growthPolicy,'round-first-score-bands-v1');assert.equal(final.body.run.result.rewardEligible,true);assert.equal(final.body.run.result.policyGrowthReward,-10);assert.equal(final.body.run.result.growthReward,-3);assert.equal(await balance(),0);assert.deepEqual((await submit()).body.run.result,final.body.run.result);
