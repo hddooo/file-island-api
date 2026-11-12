@@ -10,12 +10,14 @@ import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { sourceSlots, type SourceItem } from '../../src/textbook/source-blank-progress';
 import { testConfig } from '../helpers/env';
+import {resetSchema,migrationsDir} from '../helpers/db';
+const current61=process.env.HANQ_QUAL_QUALIFICATION_PROFILE==='schema61-local-private-retained-base';
 import { bearer, csrf, signin, signup, startApp } from '../helpers/app';
 
 test('real loopback DB/API: additive migration, authenticated account isolation, draft/pause/relogin, race and retry; no exam records',async()=>{
- const config=testConfig(),pool=createPool(config.database);let app:Awaited<ReturnType<typeof startApp>>|undefined;
+ const config=testConfig(),pool=current61?await resetSchema(config):createPool(config.database);let app:Awaited<ReturnType<typeof startApp>>|undefined;
  try{
-  await migrate(pool,join(projectRoot(),'migrations'));app=await startApp();const a=await signup(app),b=await signup(app),route='/api/v1/textbook/semantic/progress/prehistory';
+  await migrate(pool,current61?migrationsDir():join(projectRoot(),'migrations'));app=await startApp();const a=await signup(app),b=await signup(app),route='/api/v1/textbook/semantic/progress/prehistory';
   await request(app.server).get(route).expect(401).expect('Cache-Control',/no-store/);
   await request(app.server).put(route).send({}).expect(401);
   const get=async(token:string)=>(await request(app!.server).get(route).set(bearer(token)).expect(200).expect('Cache-Control',/private, no-store/)).body;
@@ -59,9 +61,9 @@ import { History81Service } from '../../src/textbook/history81.service';
 import { HISTORY81_PDF } from '../../src/textbook/history81-quiz';
 
 test('real PG v2 storage: five HTTP routes complete, race/retry, preserve v1 rows and isolate accounts', async () => {
- const config=testConfig(),pool=createPool(config.database);let app:Awaited<ReturnType<typeof startApp>>|undefined;
+ const config=testConfig(),pool=current61?await resetSchema(config):createPool(config.database);let app:Awaited<ReturnType<typeof startApp>>|undefined;
  try {
-  await migrate(pool,join(projectRoot(),'migrations'));
+  await migrate(pool,current61?migrationsDir():join(projectRoot(),'migrations'));
   app=await startApp();const a=await signup(app),b=await signup(app);
   const items:SourceItem[]=[{id:'synthetic-pg-v2-one',kind:'fill-in',verification:{status:'source-verified'},answers:[{id:'a',text:'동의보감(광해군)'}],answer:{text:'동의보감(광해군)',orderMatters:false},blanks:[{id:'b',answerIds:['a']}]}];
   const textbook=app.app.get(TextbookService),history=app.app.get(History81Service);

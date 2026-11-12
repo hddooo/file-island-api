@@ -1,3 +1,4 @@
+const current61=process.env.HANQ_QUAL_QUALIFICATION_PROFILE==='schema61-local-private-retained-base';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -22,10 +23,13 @@ function forbiddenKeys(x: unknown, path = ''): string[] {
 
 describe('pre-grade question responses over HTTP (all 1490 real items)', () => {
   let t: TestApp;
+  let readAccess="";
+  const questionGet=(url:string)=>request(t.server).get(url).set(current61?bearer(readAccess):{});
   let pool: Pool;
   before(async () => {
     pool = await freshDatabase(testConfig());
     t = await startApp();
+    if(current61){readAccess=(await signup(t)).access;await request(t.server).get("/api/v1/questions").expect(401);await request(t.server).get("/api/v1/questions").set(bearer("synthetic-invalid-token")).expect(401);}
   });
   after(async () => {
     await t.close();
@@ -35,7 +39,7 @@ describe('pre-grade question responses over HTTP (all 1490 real items)', () => {
   it('GET /questions/:id for every item: no answer-bearing key, options only {id,text}', async () => {
     const leaks: string[] = [];
     for (const q of frontCatalog()) {
-      const r = await request(t.server).get(`/api/v1/questions/${q.questionId}`);
+      const r = await questionGet(`/api/v1/questions/${q.questionId}`);
       assert.equal(r.status, 200, q.questionId);
       assert.equal(r.body.version, q.version);
       leaks.push(...forbiddenKeys(r.body).map((p) => q.questionId + p));
@@ -49,7 +53,7 @@ describe('pre-grade question responses over HTTP (all 1490 real items)', () => {
     const compound = Object.values(rawQuiz.questions).filter((r) => r.compound != null);
     assert.equal(compound.length, 11);
     for (const raw of compound) {
-      const r = await request(t.server).get(`/api/v1/questions/${String(raw.id)}`);
+      const r = await questionGet(`/api/v1/questions/${String(raw.id)}`);
       const text = JSON.stringify(r.body);
       assert.equal(r.status, 200, String(raw.id));
       assert.ok(!text.includes('"compound"'), String(raw.id));
@@ -58,7 +62,7 @@ describe('pre-grade question responses over HTTP (all 1490 real items)', () => {
       assert.ok(!text.includes(JSON.stringify(raw.compound)), String(raw.id));
       for (const k of Object.keys(raw.compound as object)) assert.ok(!text.includes(`"${k}":`) || ['id', 'text', 'q', 'prompt', 'ask', 'chapter', 'shape', 'v', 'mode', 'options', 'relatedEras'].includes(k), `${String(raw.id)} exposes ${k}`);
     }
-    const one = await request(t.server).get('/api/v1/questions/legacy-joseon-late-012');
+    const one = await questionGet('/api/v1/questions/legacy-joseon-late-012');
     if (one.status === 200) assert.equal(one.body.item.compound, undefined);
   });
 
@@ -67,7 +71,7 @@ describe('pre-grade question responses over HTTP (all 1490 real items)', () => {
     for (const kind of ['quiz', 'mock']) {
       let after: string | null = null;
       do {
-        const r: { status: number; body: { items: Array<{ questionId: string }>; next: string | null } } = await request(t.server).get(`/api/v1/questions?kind=${kind}&limit=100${after ? `&after=${encodeURIComponent(after)}` : ''}`);
+        const r: { status: number; body: { items: Array<{ questionId: string }>; next: string | null } } = await questionGet(`/api/v1/questions?kind=${kind}&limit=100${after ? `&after=${encodeURIComponent(after)}` : ''}`);
         assert.equal(r.status, 200);
         for (const it of r.body.items) assert.deepEqual(forbiddenKeys(it), [], it.questionId);
         seen += r.body.items.length;

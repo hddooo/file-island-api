@@ -12,7 +12,7 @@ import { testConfig } from '../helpers/env';
 
 describe('CBT server stars and partial reviews: isolated DB only',()=>{
  let pool:Pool,t:TestApp,A:Session,B:Session,full:string,signature:string,review:string;
- let questions:{question_id:string;version:string;option_ids:string[];correct_option_id:string}[];
+ let questions:{question_id:string;version:string;option_ids:string[];correct_option_id:string;points:number}[];
  const current61=process.env.HANQ_QUAL_QUALIFICATION_PROFILE==='schema61-local-private-retained-base';
  const fullToken=randomUUID();
  const api=()=>request(t.server);
@@ -25,7 +25,7 @@ describe('CBT server stars and partial reviews: isolated DB only',()=>{
   pool=await freshDatabase(testConfig());const dir=mkdtempSync(join(tmpdir(),'hanq-review-assets-'));
   for(let n=1;n<=50;n++){const body=Buffer.from('WEBPVP8Ltest');const size=Buffer.alloc(4);size.writeUInt32LE(body.length);writeFileSync(join(dir,`79-${String(n).padStart(2,'0')}.webp`),Buffer.concat([Buffer.from('RIFF'),size,body]));}
   t=await startApp({HANQ_CBT_ASSET_DIR:dir});A=await signup(t);B=await signup(t);
-  questions=(await pool.query('SELECT question_id,version,option_ids,correct_option_id FROM hanq.question_versions WHERE is_current AND exam_round=79 ORDER BY exam_number')).rows;
+  questions=(await pool.query('SELECT question_id,version,option_ids,correct_option_id,points FROM hanq.question_versions WHERE is_current AND exam_round=79 ORDER BY exam_number')).rows;
   const r=await post('/runs',{round:79,idempotencyKey:randomUUID(),answerMode:'batch'});assert.equal(r.status,201);full=r.body.run.id;
   if(current61){
    const ready=await get('/runs/'+full+'/stars');assert.equal(ready.status,409);assert.equal(ready.body.error.code,'attempt_session_required');
@@ -93,10 +93,18 @@ describe('CBT server stars and partial reviews: isolated DB only',()=>{
   assert.equal((await post('/reviews/'+review+'/submit',{...body,answers:[body.answers[1],body.answers[0]]})).status,400);
   assert.equal((await post('/reviews/'+review+'/submit',{...body,answers:[{position:0,optionId:'foreign-option'},body.answers[1]]})).status,400);
   const before=await get('/runs/'+full);const growth=(await pool.query('SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id=$1',[A.userId])).rows[0].n;
+  const xpBefore=current61?Number((await pool.query('SELECT xp FROM hanq.owned_digimon WHERE user_id=$1 AND equipped',[A.userId])).rows[0].xp):0;
+  assert.ok(Number.isSafeInteger(xpBefore)&&xpBefore>=0);const expectedDeltas=[questions[1].points,Math.max(-questions[3].points,-(xpBefore+questions[1].points))];const expectedGrowth=expectedDeltas.reduce((a,b)=>a+b,0);
   const results=await Promise.all([post('/reviews/'+review+'/submit',body),post('/reviews/'+review+'/submit',body)]);assert.deepEqual(results.map(x=>x.status),[200,200]);
-  assert.deepEqual(results[0].body.run.result,{kind:'review',total:2,answered:2,correct:1,wrong:1,unanswered:0});
+  assert.deepEqual(results[0].body.run.result,{kind:'review',total:2,answered:2,correct:1,wrong:1,unanswered:0,...(current61?{growthPolicy:'per-question-original-points',growthReward:expectedGrowth}:{})});
   assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.attempts WHERE user_id=$1 AND cbt_review_id=$2',[A.userId,review])).rows[0].n,2);
-  assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id=$1',[A.userId])).rows[0].n,growth);
+  assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id=$1',[A.userId])).rows[0].n,growth+(current61?2:0));
+  if(current61){
+   const ledger=async()=>(await pool.query('SELECT a.question_id,g.amount,g.event_key,g.attempt_id FROM hanq.growth_ledger g JOIN hanq.attempts a ON a.id=g.attempt_id WHERE a.cbt_review_id=$1 ORDER BY a.question_id',[review])).rows;
+   const entries=await ledger();assert.equal(entries.length,2);assert.deepEqual(entries.map(x=>x.question_id),[questions[1].question_id,questions[3].question_id]);assert.deepEqual(entries.map(x=>x.amount),expectedDeltas);assert.equal(entries.reduce((n,x)=>n+x.amount,0),expectedGrowth);
+   assert.equal(Number((await pool.query('SELECT xp FROM hanq.owned_digimon WHERE user_id=$1 AND equipped',[A.userId])).rows[0].xp),xpBefore+expectedGrowth);
+   assert.deepEqual(results[1].body.run.result,results[0].body.run.result);assert.deepEqual((await post('/reviews/'+review+'/submit',body)).body.run.result,results[0].body.run.result);assert.deepEqual(await ledger(),entries);
+  }
   assert.deepEqual((await get('/runs/'+full)).body.run.result,before.body.run.result);
   assert.equal((await post('/reviews/'+review+'/submit',{...body,submissionKey:randomUUID()})).status,409);
   assert.equal((await post('/reviews/'+review+'/pause',{...body,checkpointVersion:1})).status,409);
@@ -119,7 +127,7 @@ describe('CBT server stars and partial reviews: isolated DB only',()=>{
   const id=next.body.run.id;await post('/reviews/'+id+'/start',{});
   const before=(await pool.query('SELECT count(*)::int n FROM hanq.attempts WHERE user_id=$1',[A.userId])).rows[0].n;
   const r=await post('/reviews/'+id+'/submit',{submissionKey:randomUUID(),currentPosition:0,answers:[{position:0,optionId:null},{position:1,optionId:null}]});
-  assert.deepEqual(r.body.run.result,{kind:'review',total:2,answered:0,correct:0,wrong:0,unanswered:2});
+  assert.deepEqual(r.body.run.result,{kind:'review',total:2,answered:0,correct:0,wrong:0,unanswered:2,...(current61?{growthPolicy:'per-question-original-points',growthReward:0}:{})});
   assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.attempts WHERE user_id=$1',[A.userId])).rows[0].n,before);
   assert.deepEqual((await makeReview()).body.items.map((i:{number:number})=>i.number),[2,4]);
   assert.equal((await get('/reviews',B)).body.reviews.length,0);

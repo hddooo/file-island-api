@@ -25,7 +25,7 @@ test('opening real DB and HTTP: account/era isolation, split checks, races, retr
   app.app.get(History81Service).quiz=async()=>quiz;
   const a=await signup(app),b=await signup(app),route='/api/v1/textbook/revisions/'+HISTORY81_PDF+'/semantic/workspaces/opening';
   const get=async(token:string)=>(await request(app!.server).get(route).set(bearer(token)).expect(200)).body;
-  await request(app.server).get(route).expect(401).expect('Cache-Control','private, no-store');
+  await request(app.server).get(route).expect(401).expect('Cache-Control',current61?'no-store':'private, no-store');
   const mutation={version:quiz.version,revision:0,mutationId:randomUUID(),cursor:0,status:'active',updates:[{itemId:id,values:['first','second'],submitted:false,checkedSlots:[true,false]}],selectedReviewQuestionIds:[id]};
   const races=await Promise.all([request(app.server).put(route).set(bearer(a.access)).send(mutation),request(app.server).put(route).set(bearer(a.access)).send({...mutation,mutationId:randomUUID()})]);
   assert.deepEqual(races.map(r=>r.status).sort(),[200,409]);

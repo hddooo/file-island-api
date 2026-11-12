@@ -10,15 +10,17 @@ import { createPool } from '../../src/db/db.service';
 import { migrate } from '../../src/db/migrator';
 import { projectRoot } from '../../src/common/project-root';
 import { testConfig } from '../helpers/env';
+import {resetSchema,migrationsDir} from '../helpers/db';
+const current61=process.env.HANQ_QUAL_QUALIFICATION_PROFILE==='schema61-local-private-retained-base';
 import { bearer, csrf, signup, startApp } from '../helpers/app';
 import { writeSyntheticRevision, OLD_PDF_SHA, NEW_PDF_SHA } from '../helpers/textbook-revision-fixture';
 const base='/api/v1/textbook',route=(sha:string,suffix:string)=>`${base}/revisions/${sha}/${suffix}`;
 
 test('real createApp/JWT/PG: concurrent immutable old/new source contexts preserve independent CAS, grading, resume and default144',async()=>{
- const root=await realpath(await mkdtemp(join(tmpdir(),'textbook-revision-http-test-'))),pool=createPool(testConfig().database);let app:Awaited<ReturnType<typeof startApp>>|undefined;
+ const root=await realpath(await mkdtemp(join(tmpdir(),'textbook-revision-http-test-'))),pool=current61?await resetSchema(testConfig()):createPool(testConfig().database);let app:Awaited<ReturnType<typeof startApp>>|undefined;
  try{
   const old=await writeSyntheticRevision(root,OLD_PDF_SHA,144),next=await writeSyntheticRevision(root,NEW_PDF_SHA,147);
-  await migrate(pool,join(projectRoot(),'migrations'));app=await startApp({HANQ_TEXTBOOK_DATA_DIR:old.raw,HANQ_TEXTBOOK_REVISIONS_DIR:root});const a=await signup(app),b=await signup(app),http=request(app.server);
+  await migrate(pool,current61?migrationsDir():join(projectRoot(),'migrations'));app=await startApp({HANQ_TEXTBOOK_DATA_DIR:old.raw,HANQ_TEXTBOOK_REVISIONS_DIR:root});const a=await signup(app),b=await signup(app),http=request(app.server);
   const get=async(path:string,token=a.access)=>(await http.get(path).set(bearer(token)).expect(200).expect('Cache-Control',/private, no-store/)).body;
   for(const sha of [OLD_PDF_SHA,NEW_PDF_SHA]){
    await http.get(route(sha,'semantic/workspaces/prehistory')).expect(401);await http.put(route(sha,'semantic/progress/prehistory')).send({}).expect(401);
@@ -54,7 +56,7 @@ test('real createApp/JWT/PG: concurrent immutable old/new source contexts preser
 });
 
 test('real createApp: absent optional revision root affects only new routes; legacy raw/semantic keep old source',async()=>{
- const root=await realpath(await mkdtemp(join(tmpdir(),'textbook-revision-unconfigured-test-'))),pool=createPool(testConfig().database);let app:Awaited<ReturnType<typeof startApp>>|undefined;
- try{const old=await writeSyntheticRevision(root,OLD_PDF_SHA,144);await migrate(pool,join(projectRoot(),'migrations'));app=await startApp({HANQ_TEXTBOOK_DATA_DIR:old.raw});const a=await signup(app),http=request(app.server);await http.get(route(NEW_PDF_SHA,'semantic/manifest')).set(bearer(a.access)).expect(503);await http.get(route('a'.repeat(64),'manifest')).set(bearer(a.access)).expect(404);assert.equal((await http.get(base+'/manifest').set(bearer(a.access)).expect(200)).body.source.sha256,OLD_PDF_SHA);assert.equal((await http.get(base+'/semantic/manifest').set(bearer(a.access)).expect(200)).body.source.sha256,OLD_PDF_SHA);
+ const root=await realpath(await mkdtemp(join(tmpdir(),'textbook-revision-unconfigured-test-'))),pool=current61?await resetSchema(testConfig()):createPool(testConfig().database);let app:Awaited<ReturnType<typeof startApp>>|undefined;
+ try{const old=await writeSyntheticRevision(root,OLD_PDF_SHA,144);await migrate(pool,current61?migrationsDir():join(projectRoot(),'migrations'));app=await startApp({HANQ_TEXTBOOK_DATA_DIR:old.raw});const a=await signup(app),http=request(app.server);await http.get(route(NEW_PDF_SHA,'semantic/manifest')).set(bearer(a.access)).expect(503);await http.get(route('a'.repeat(64),'manifest')).set(bearer(a.access)).expect(404);assert.equal((await http.get(base+'/manifest').set(bearer(a.access)).expect(200)).body.source.sha256,OLD_PDF_SHA);assert.equal((await http.get(base+'/semantic/manifest').set(bearer(a.access)).expect(200)).body.source.sha256,OLD_PDF_SHA);
  }finally{if(app)await app.close();await pool.end();await rm(root,{recursive:true,force:true});}
 });

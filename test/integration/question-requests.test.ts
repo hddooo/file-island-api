@@ -1,3 +1,4 @@
+const current61=process.env.HANQ_QUAL_QUALIFICATION_PROFILE==='schema61-local-private-retained-base';
 import 'reflect-metadata';
 import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';import {test} from 'node:test';import request from 'supertest';
 import {bearer,signup,startApp} from '../helpers/app';import {freshDatabase} from '../helpers/db';import {testConfig} from '../helpers/env';
@@ -52,8 +53,9 @@ test('private question request: owner isolation, replay-safe binary uploads and 
  assert.equal((await request(app.server).patch(ho).set(bearer(admin.access)).send({expectedRevision:5,status:'ready_for_publish',reviewNote:'History clean',cleanImageChecked:true})).status,200);
  const hd={expectedRevision:6,audience:'authenticated-members',mappings:[{number:1,cleanImageAssetId:hclean}],groups:[],historyClassification:{chapter:'joseon',era:'joseon'}};
  const publishedH=await request(app.server).post(ho+'/publish').set(bearer(admin.access)).send(hd);assert.equal(publishedH.status,201,JSON.stringify(publishedH.body));const qid=publishedH.body.publication.questionIds[0];
- assert.equal((await request(app.server).get('/api/v1/questions/'+qid)).status,404);
- const publicList=await request(app.server).get('/api/v1/questions').query({after:'request-',limit:100});assert(!publicList.body.items.some((x:{questionId:string})=>x.questionId===qid));
+ if(current61)assert.equal((await request(app.server).get('/api/v1/questions/'+qid)).status,401);
+ assert.equal((await request(app.server).get('/api/v1/questions/'+qid).set(current61?bearer(other.access):{})).status,404);
+ const publicList=await request(app.server).get('/api/v1/questions').query({after:'request-',limit:100}).set(current61?bearer(other.access):{});assert(!publicList.body.items.some((x:{questionId:string})=>x.questionId===qid));
  assert.equal((await request(app.server).get('/api/v1/published-history')).status,401);const history=await request(app.server).get('/api/v1/published-history/'+qid).set(bearer(other.access));assert.equal(history.status,200);assert.equal(history.body.item.visibility,'authenticated-members');assert.equal(history.body.item.answer,undefined);
  assert.equal((await request(app.server).get(history.body.item.image)).status,401);assert.equal((await request(app.server).get(history.body.item.image).set(bearer(other.access))).status,200);assert.equal((await request(app.server).get('/api/v1/published-question-assets/'+hc.body.id+'/'+ha).set(bearer(other.access))).status,404);
  const submission={submissionId:randomUUID(),questionId:qid,version:history.body.version,optionId:'3'};const graded=await request(app.server).post('/api/v1/attempts').set(bearer(other.access)).send(submission);assert.equal(graded.status,201,JSON.stringify(graded.body));assert.equal(graded.body.attempt.correct,true);assert.equal(graded.body.review.item.explanation,'History explanation');const replay=await request(app.server).post('/api/v1/attempts').set(bearer(other.access)).send(submission);assert.equal(replay.body.replayed,true);assert.equal(replay.body.attempt.id,graded.body.attempt.id);const progress=await request(app.server).post('/api/v1/quiz/progress').set(bearer(other.access)).send({questions:[{questionId:qid,version:history.body.version}]});assert.equal(progress.status,200);assert.equal(progress.body.answered,1);

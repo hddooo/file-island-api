@@ -22,6 +22,16 @@ describe('opt-in import of local browser attempts', () => {
 
   const key = () => randomBytes(32).toString('base64url');
   const localId = () => 'a' + randomBytes(8).toString('hex');
+  const current61=process.env.HANQ_QUAL_QUALIFICATION_PROFILE==='schema61-local-private-retained-base';
+  const growthSnapshot=async(userId:string)=>(await pool.query('SELECT to_jsonb(g) AS row FROM hanq.growth_ledger g WHERE user_id=$1 ORDER BY event_key',[userId])).rows;
+  const approvedGrowthSnapshot=async(userId:string)=>{
+    const day=new Date(t.clock.now().getTime()+9*60*60*1000).toISOString().slice(0,10);
+    assert.deepEqual((await pool.query('SELECT event_key,kind,amount,attendance_day::text AS day FROM hanq.growth_ledger WHERE user_id=$1 ORDER BY event_key',[userId])).rows,[
+      {event_key:'attendance:'+day,kind:'attendance',amount:10,day},
+      {event_key:'signup',kind:'signup',amount:1000,day:null},
+    ],'real approval signup1000 and first-day attendance10, exactly once each');
+    return growthSnapshot(userId);
+  };
 
   it('re-validates and re-grades every entry on the server; unknown references are reported as skipped', async () => {
     const s = await signup(t);
@@ -85,6 +95,7 @@ describe('opt-in import of local browser attempts', () => {
 
   it('the per-browser cap counts accepted unique attempts: resends are acknowledged and never charged, no growth points', async () => {
     const s = await signup(t), k = key();
+    const growthBefore=current61?await approvedGrowthSnapshot(s.userId):null;
     const old = [{ localId: localId(), mode: 'quiz', questionId: quiz[8].questionId, contentVersion: quiz[8].version, optionId: quiz[8].correctOptionId }];
     const send = (entries: unknown[]) => request(t.server).post('/api/v1/imports/local-attempts').set(bearer(s.access)).send({ importKey: k, entries });
     assert.equal((await send(old)).body.imported, 1);
@@ -103,11 +114,13 @@ describe('opt-in import of local browser attempts', () => {
     const again = await send([old[0], fresh[0]]);
     assert.deepEqual([again.body.imported, again.body.alreadyImported, again.body.skippedCount], [0, 2, 0], 'at the cap, retries still succeed');
     const growth = await pool.query(`SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id = $1`, [s.userId]);
-    assert.equal(growth.rows[0].n, 1, 'only the signup reward: imports never grant growth points');
+    if(current61)assert.deepEqual(await growthSnapshot(s.userId),growthBefore,'imports preserve every pre-existing signup/attendance ledger field and add nothing');
+    else assert.equal(growth.rows[0].n, 1, 'only the signup reward: imports never grant growth points');
   });
 
   it('automatic account sync: two keys of one owner (concurrent tabs) store one row per localId; another owner is separate', async () => {
     const s1 = await signup(t), s2 = await signup(t), id = localId();
+    const growthBefore=current61?[await approvedGrowthSnapshot(s1.userId),await approvedGrowthSnapshot(s2.userId)]:null;
     const e = [{ localId: id, mode: 'quiz', questionId: quiz[11].questionId, contentVersion: quiz[11].version, optionId: wrongOf(quiz[11]) }];
     const send = (s: typeof s1, k: string, body: Record<string, unknown> = { scope: 'account' }) => request(t.server).post('/api/v1/imports/local-attempts').set(bearer(s.access)).send({ importKey: k, entries: e, ...body });
     const [a, b] = await Promise.all([send(s1, key()), send(s1, key())]);
@@ -121,7 +134,8 @@ describe('opt-in import of local browser attempts', () => {
     assert.equal((await send(s2, key())).body.imported, 1, 'same localId on another account is its own record');
     assert.equal((await send(s1, key(), { scope: 'other' })).status, 400);
     const growth = await pool.query(`SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id = $1`, [s1.userId]);
-    assert.equal(growth.rows[0].n, 1, 'no growth points from sync');
+    if(current61)assert.deepEqual([await growthSnapshot(s1.userId),await growthSnapshot(s2.userId)],growthBefore,'sync preserves both owners complete ledger snapshots');
+    else assert.equal(growth.rows[0].n, 1, 'no growth points from sync');
   });
 
   it('caps entries per request and requires authentication', async () => {

@@ -1,3 +1,4 @@
+const current61=process.env.HANQ_QUAL_QUALIFICATION_PROFILE==='schema61-local-private-retained-base';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { after,before,it } from 'node:test';
@@ -18,5 +19,6 @@ it('existing recall items use existing free/premium access, grading, owner progr
  const scope=items.map(q=>({questionId:q.questionId,version:q.version}));const read=await request(t.server).post('/api/v1/quiz/progress').set(bearer(a.access)).send({questions:scope});assert.equal(read.status,200);assert.equal(read.body.answered,32);
  const other=await request(t.server).post('/api/v1/quiz/progress').set(bearer(b.access)).send({questions:scope});assert.equal(other.status,200);assert.equal(other.body.answered,0);
  const count=await pool.query('SELECT count(*)::int n FROM hanq.attempts WHERE user_id=$1 AND question_id LIKE $2',[a.userId,'z-joseon-recall-%']);assert.equal(count.rows[0].n,32);
- const pub=await request(t.server).get('/api/v1/questions/'+items[0].questionId);assert.equal(pub.status,200);assert.equal(pub.body.item.options.length,5);assert.ok(!JSON.stringify(pub.body).includes('"correct"'));
+ if(current61){assert.equal((await request(t.server).get('/api/v1/questions/'+items[0].questionId)).status,401);assert.equal((await request(t.server).get('/api/v1/questions/'+items[0].questionId).set(bearer('synthetic-invalid-token'))).status,401);}
+ const pub=await request(t.server).get('/api/v1/questions/'+items[0].questionId).set(current61?bearer(a.access):{});assert.equal(pub.status,200);assert.equal(pub.body.item.options.length,5);assert.ok(!JSON.stringify(pub.body).includes('"correct"'));
 });

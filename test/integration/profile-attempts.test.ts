@@ -1,3 +1,4 @@
+const current61=process.env.HANQ_QUAL_QUALIFICATION_PROFILE==='schema61-local-private-retained-base';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { after, before, describe, it } from 'node:test';
@@ -53,18 +54,21 @@ describe('profile (me only) and attempts (server grading, idempotence, ownership
   });
 
   it('public question endpoints never include answers or reviews', async () => {
-    const q = await request(t.server).get(`/api/v1/questions/${quiz[0].questionId}`);
+    const member=current61?await signup(t):null;
+    if(current61){await request(t.server).get('/api/v1/questions').expect(401);await request(t.server).get('/api/v1/questions').set(bearer('synthetic-invalid-token')).expect(401);}
+    const questionGet=(url:string)=>request(t.server).get(url).set(member?bearer(member.access):{});
+    const q = await questionGet(`/api/v1/questions/${quiz[0].questionId}`);
     assert.equal(q.status, 200);
     const text = JSON.stringify(q.body);
     for (const k of ['"correct"', '"answer"', '"review"', '"overview"', '"why"', '"cue"', '"compound"', '"sources"', '"legacy"']) assert.ok(!text.includes(k), k);
     assert.equal(q.body.version, quiz[0].version);
-    const list = await request(t.server).get('/api/v1/questions?kind=mock&limit=5');
+    const list = await questionGet('/api/v1/questions?kind=mock&limit=5');
     assert.equal(list.body.items.length, 5);
     assert.ok(list.body.next);
     assert.ok(!JSON.stringify(list.body).includes('"correct"'));
-    const page2 = await request(t.server).get(`/api/v1/questions?kind=mock&limit=5&after=${list.body.next}`);
+    const page2 = await questionGet(`/api/v1/questions?kind=mock&limit=5&after=${list.body.next}`);
     assert.notEqual(page2.body.items[0].questionId, list.body.items[0].questionId);
-    assert.equal((await request(t.server).get('/api/v1/questions/no-such-question')).status, 404);
+    assert.equal((await questionGet('/api/v1/questions/no-such-question')).status, 404);
   });
 
   it('grades on the server; a client "correct" flag is rejected outright', async () => {

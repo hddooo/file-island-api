@@ -453,13 +453,13 @@
       },
       {
         "path": "test/integration/cbt-reviews.test.ts",
-        "gitBlob": "0333eb79362fc1ef2cb8b863682ecae22fd97273",
-        "sha256": "4843a7768770b4fd463289dbe28760ad01d02def76dd94cecf57431dcdc1173a"
+        "gitBlob": "14d9a6f5497e03ffb44582f96d24fdded5fe5ec9",
+        "sha256": "5749f3ce0948cbb4f1f219562cecec1df27e71f1c89bfbfd9ba367fd0534c313"
       },
       {
         "path": "test/integration/cbt.test.ts",
-        "gitBlob": "bd7228d69e50f390d8406ff8718813f7c9c848c8",
-        "sha256": "5554121796d276989f596d84e663ceb25450b40545773b82aa2feb027503ac8b"
+        "gitBlob": "6d1e90c81df16809af72f7839e0ce3cc967171c2",
+        "sha256": "d10846189daf29bbc5f2d6da2fc129624c265fdd59a574938c99a54198393014"
       },
       {
         "path": "test/integration/coin-eggs.test.ts",
@@ -473,18 +473,18 @@
       },
       {
         "path": "test/integration/connection-quiz.test.ts",
-        "gitBlob": "ef360ee2a53b198f62deb629ab1adefeed474d2d",
-        "sha256": "e23f1832ce45c75c3a4b470ec1ecb0dbf13591b080f10ebbf505d936dff78140"
+        "gitBlob": "3cc8c4529cd6857757ec4be2b8b55b9d95e456f7",
+        "sha256": "7ca415992f8b8b3d10fb136fa1cf0840b9fc22b1e9b6c92ecf56840d03a2790b"
       },
       {
         "path": "test/integration/goryeo-recall.test.ts",
-        "gitBlob": "2cb9c641e485c4c1c5467697cde59dd3fabe2a89",
-        "sha256": "26c873f4dacf2e6ebd57b1e49915ee2bbeedf43614b7f1cfc218a6b333e78884"
+        "gitBlob": "a5e6258c5e705a6c9e79dc3bd5973e9e39652954",
+        "sha256": "27f3bbe5a9642aea98472fae57e8eccdc6036439418d0309c89d981048536e1e"
       },
       {
         "path": "test/integration/growth-floor.test.ts",
-        "gitBlob": "78a2184ac40ffba70b086dca12f8f0de872b8492",
-        "sha256": "1e55bcb436a8d62cf619c27405a96c3d38b4b71f7930eea946d88a06c01597de"
+        "gitBlob": "6e039142f4cd4e054dd87e7e819bbf4e64766dd0",
+        "sha256": "b38491b0be3eb18c08d2145d2f8926cce602e2bab514973da5dbd00240124d89"
       },
       {
         "path": "test/integration/growth-history.test.ts",
@@ -493,18 +493,18 @@
       },
       {
         "path": "test/integration/growth-preflight.test.ts",
-        "gitBlob": "474eca88a3d95b628f63f321e8e70c5d8ba23aa4",
-        "sha256": "8e9ce108f7cd7e1792d693c3d1c2a761cdabc02bb7d12e45f544aabcfaf4ed43"
+        "gitBlob": "a72c88819759b4df2cc22d518c015f39401b0d00",
+        "sha256": "1c18ba5109fc505b9d49cd2113e59d068f0ce4c15f5eebf4c3ed1f01703c49bb"
       },
       {
         "path": "test/integration/import.test.ts",
-        "gitBlob": "5b85b030cbdab53b381615c94873aaa7317fdd26",
-        "sha256": "ebdc63879d26ce760c464452fe3238992bd1dafd380b99bc3895a67c9b556edc"
+        "gitBlob": "970e83c8738ba025c7f2a76e74ce5a8b957b6854",
+        "sha256": "7ebd4080914f8b46568aa86faf8f7fde39482d5f7070550a74153bfc6023ee48"
       },
       {
         "path": "test/integration/joseon-recall.test.ts",
-        "gitBlob": "6a435ea085d32c1fd2a07fa0b26ed6e4a49de6b2",
-        "sha256": "112cf1380f6f9604e1752c5080e19b7add8d40925f559ccdcbc7dd90f9d55ec5"
+        "gitBlob": "d924b3774a207b4b708bf5ea77bbb5b7049e30fc",
+        "sha256": "9e69579d2aa6e687a875874252705531d51cc2d2f8988953f5c7e52306c16470"
       },
       {
         "path": "test/integration/learning-resets.test.ts",
@@ -513,8 +513,8 @@
       },
       {
         "path": "test/integration/manual-wrong-notes.test.ts",
-        "gitBlob": "5812735d9929b5c89829d22ecaaf97a5185befba",
-        "sha256": "ef1a9b681a1aff437b3f49cfddcb8f0834487a4d5691a47276c350900d323069"
+        "gitBlob": "8ac3125f4ee557a45e527821c11f02c240371857",
+        "sha256": "0fdd803d472aee90eb1948348d28dcfa019230951222df94d95a82d58d7f28a7"
       },
       {
         "path": "test/integration/member-approval.test.ts",
@@ -538,8 +538,8 @@
       },
       {
         "path": "test/integration/opening-history81.test.ts",
-        "gitBlob": "be6d98fd83faffb2a11fbf5f726d176396fc77fd",
-        "sha256": "30aacb3a79e63ab83f846488941d5b85bdcaee76588534fc45edfc9130d10da9"
+        "gitBlob": "aedbc37fdf11fbfe313565d627dca06abd269c74",
+        "sha256": "90ede1d2defb18a5b8103990c69511432672e84be52764a81dc5d43efbc8d6b8"
       },
       {
         "path": "test/integration/payments.test.ts",
@@ -563,8 +563,8 @@
       },
       {
         "path": "test/integration/profile-attempts.test.ts",
-        "gitBlob": "59fff76983dfb13fa7694766802733f8c7f4d2d7",
-        "sha256": "b7a0af530d8bc59d836ec188eb78557f40fcacb02699166beb21accdafa60af0"
+        "gitBlob": "a1b4c4da7b66420973ca059c448de78ac5741d0c",
+        "sha256": "1dd77d298cdafd8db4294435212ee3100b35be00a416f30c91ef3f9267568da6"
       },
       {
         "path": "test/integration/qualification-api-cases.test.ts",
@@ -573,13 +573,13 @@
       },
       {
         "path": "test/integration/question-requests.test.ts",
-        "gitBlob": "1602d500a6ca983813fccb7293323e133e1ccc39",
-        "sha256": "4e8929693b9660e5b2912571a9100be44c0bfaaf2534496b6b81f836129d5ecf"
+        "gitBlob": "4de2f05286eee8c64d15c20864cd8407b51075ba",
+        "sha256": "f2b71abca6c724752c371dbbcd343ac85dd6906376ba202920a539b055aea9aa"
       },
       {
         "path": "test/integration/questions-http.test.ts",
-        "gitBlob": "2b11f58c76051a848803eac44c7fa119120ea7f5",
-        "sha256": "1c02219c00b13a33ffb13875d1a35ed20664c580c0b6b49d9d61d7b0189c43de"
+        "gitBlob": "9efa3cce4e1b12dd97b934cb7dd79d72ba5cd98d",
+        "sha256": "38ad2d6ac28aa9f496a5ca65db403baad3495014367bfece0ce9d8bcf557cee1"
       },
       {
         "path": "test/integration/quiz-progress.test.ts",
@@ -608,8 +608,8 @@
       },
       {
         "path": "test/integration/source-blank-progress.test.ts",
-        "gitBlob": "a9fa0bb0f81eb81adff6ee9c13cd7be3037dcff7",
-        "sha256": "27f5de1608086e546369c2cb2d369070fa8e90d7a7ca11d9567df17accd29c14"
+        "gitBlob": "caf9dfc499b264a1a1b4b56ea46635f67068ef26",
+        "sha256": "d76083c032b048b78d90f05ad0a6daf87abcbe82df74b484151c6266c5fcc8a8"
       },
       {
         "path": "test/integration/startup-migrations.test.ts",
@@ -623,8 +623,8 @@
       },
       {
         "path": "test/integration/textbook-revision-routing.test.ts",
-        "gitBlob": "9d624eb4d808d053a33b68f8f2df29d7933ff32e",
-        "sha256": "c2d4055dedcd0527124693a098b714c85605e95e7597836565753985df0943d7"
+        "gitBlob": "a5929f5b160d5c3bdd46ef0a09cc7dc566f1685b",
+        "sha256": "58352b2c07410fb7ccd3984b51d24a7ae99c619abc1935610632a5bd31635cb0"
       },
       {
         "path": "test/integration/toeic-cbt.test.ts",
@@ -653,8 +653,8 @@
       },
       {
         "path": "test/integration/wrong-note-study.test.ts",
-        "gitBlob": "b2c7118c0563a7537b3687db20fe9f10d3cfaec2",
-        "sha256": "cc59528264955080ff51e5c28059e696c404c9800205f2a10c7e9eed5b96ed51"
+        "gitBlob": "98c2695a13386aad15a8a73ea6239147910ee833",
+        "sha256": "482617de31fe470cf9d41319506ad8597e7404df3b780e0a0f867f8c91d8ad81"
       },
       {
         "path": "test/integration/wrong-notes-premium.test.ts",

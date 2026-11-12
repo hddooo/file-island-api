@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
 import { randomUUID } from 'node:crypto';
 import { mkdtempSync,writeFileSync,rmSync,readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -18,6 +19,16 @@ after(async()=>{await t.close();await pool.end();rmSync(dir,{recursive:true,forc
 it('legacy zero-balance user: concurrent deductions, immutable replay, CBT result and ledger agree at floor0',async()=>{
  // Pre-003 users legitimately have no signup ledger. Fixture creates that state without mutating any historical ledger.
  const email=uniqueEmail('legacy'),id=randomUUID();await new UsersRepository().insert(pool,{id,emailNormalized:email.toLowerCase(),emailDisplay:email,passwordHash:await new PasswordService().hash(PASSWORD),displayName:'legacy test',now:new Date('2026-10-01')});
+ if(process.env.HANQ_QUAL_QUALIFICATION_PROFILE==='schema61-local-private-retained-base'){
+  const fixture=createRequire(__filename)('/run/current-runtime-fixture.cjs') as {verifyDatabase(pool:Pool,config:ReturnType<typeof testConfig>):Promise<unknown>};
+  await fixture.verifyDatabase(pool,testConfig());
+  const row=await pool.query('SELECT id,email_normalized,approval_status FROM hanq.users WHERE id=$1 AND email_normalized=$2',[id,email.toLowerCase()]);
+  assert.deepEqual(row.rows,[{id,email_normalized:email.toLowerCase(),approval_status:'pending'}]);
+  for(const table of ['member_roles','growth_ledger','session_families'])assert.equal((await pool.query('SELECT 1 FROM hanq.'+table+' WHERE user_id=$1',[id])).rowCount,0);
+  // Existing pre058 members were migrated to approved; this newly allocated synthetic legacy row reproduces that state only.
+  assert.equal((await pool.query("UPDATE hanq.users SET approval_status='approved' WHERE id=$1 AND email_normalized=$2 AND approval_status='pending'",[id,email.toLowerCase()])).rowCount,1);
+  for(const table of ['member_roles','growth_ledger'])assert.equal((await pool.query('SELECT 1 FROM hanq.'+table+' WHERE user_id=$1',[id])).rowCount,0);
+ }
  // This legacy fixture already attended before daily XP existed, so its empty ledger remains empty.
  await pool.query('INSERT INTO hanq.attendance(user_id,day,created_at) VALUES($1,$2,$3)',[id,new Date(t.clock.now().getTime()+9*3600000).toISOString().slice(0,10),t.clock.now()]);
  const s=await signin(t,email);await buyPremium(t,s);

@@ -1,3 +1,4 @@
+import {registerCurrent61CbtContract} from '../helpers/current61-cbt-contract';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { randomUUID } from 'node:crypto';
@@ -47,6 +48,7 @@ function assertNoStaticPaths(body: unknown) {
   assert.ok(!/(^|["/\\])(media|assets|public|images?)\//i.test(s), 'no static asset paths');
 }
 
+if(process.env.HANQ_QUAL_QUALIFICATION_PROFILE==='schema61-local-private-retained-base'){registerCurrent61CbtContract();}else{
 describe('authenticated CBT (isolated *_test database)', () => {
   let pool: Pool;
   let t: TestApp;
@@ -751,3 +753,5 @@ describe('authenticated CBT (isolated *_test database)', () => {
   });
 
 });
+
+}

@@ -1,3 +1,4 @@
+const current61=process.env.HANQ_QUAL_QUALIFICATION_PROFILE==='schema61-local-private-retained-base';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
@@ -20,7 +21,8 @@ it('all239 connection-source questions keep existing access, grading, owner prog
  const scope=items.map(q=>({questionId:q.questionId,version:q.version}));const read=await request(t.server).post('/api/v1/quiz/progress').set(bearer(a.access)).send({questions:scope});assert.equal(read.status,200);assert.equal(read.body.answered,239);
  const other=await request(t.server).post('/api/v1/quiz/progress').set(bearer(b.access)).send({questions:scope});assert.equal(other.status,200);assert.equal(other.body.answered,0);
  const count=await pool.query('SELECT count(*)::int n FROM hanq.attempts WHERE user_id=$1 AND question_id=ANY($2::text[])',[a.userId,[...ids]]);assert.equal(count.rows[0].n,239);
- const pub=await request(t.server).get('/api/v1/questions/'+items[0].questionId);assert.equal(pub.status,200);assert.equal(pub.body.item.options.length,5);assert.ok(!JSON.stringify(pub.body).includes('"correct"'));
+ if(current61){assert.equal((await request(t.server).get('/api/v1/questions/'+items[0].questionId)).status,401);assert.equal((await request(t.server).get('/api/v1/questions/'+items[0].questionId).set(bearer('synthetic-invalid-token'))).status,401);}
+ const pub=await request(t.server).get('/api/v1/questions/'+items[0].questionId).set(current61?bearer(a.access):{});assert.equal(pub.status,200);assert.equal(pub.body.item.options.length,5);assert.ok(!JSON.stringify(pub.body).includes('"correct"'));
 });
 it('source-reviewed peer choices are wrong, true answers are correct and identical retries add no attempts',async()=>{
  const profile=JSON.parse(readFileSync(join(process.env.HANQ_FRONT_DIR!,'scripts/fixtures/connection-choice-overrides.json'),'utf8')).profiles as Record<string,unknown>;
