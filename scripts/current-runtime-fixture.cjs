@@ -10,7 +10,7 @@ function scope(config,env=process.env){
  A.equal(d.database,'hanq_qual_'+token+'_test');A.equal(d.user,'fixture_'+token);return {database:d.database,user:d.user,host:d.host,port:5432,token};
 }
 function envConfig(env=process.env){const u=new URL(env.HANQ_TEST_DATABASE_URL);A.equal(u.protocol,'postgresql:');A.equal(u.search,'');A.equal(u.hash,'');return {env:'test',database:{host:u.hostname,port:Number(u.port||5432),database:decodeURIComponent(u.pathname.slice(1)),user:decodeURIComponent(u.username)}};}
-async function verifyDatabase(pool,config,env=process.env){const s=scope(config,env),actual=(await pool.query("SELECT current_database() AS database, current_user AS username, inet_server_addr()::text AS address, inet_server_port() AS port")).rows;A.deepEqual(actual,[{database:s.database,username:s.user,address:'127.0.0.1',port:5432}],'actual DB connection differs from owned fixture');return s;}
+async function verifyDatabase(pool,config,env=process.env){const s=scope(config,env),actual=(await pool.query("SELECT current_database() AS database, current_user AS username, host(inet_server_addr()) AS address, inet_server_port() AS port")).rows;A.deepEqual(actual,[{database:s.database,username:s.user,address:'127.0.0.1',port:5432}],'actual DB connection differs from owned fixture');return s;}
 function regular(file){const st=fs.lstatSync(file);A(st.isFile()&&!st.isSymbolicLink(),'regular fixture required');return fs.readFileSync(file);}
 function stage(manifest,directory,privilegesFile,{temporaryRoot=os.tmpdir(),env=process.env,config=envConfig(env)}={}){
  scope(config,env);const loaded=F.loadExactSql(manifest,directory),privileges=regular(privilegesFile);A.equal(C.hash(privileges),PRIVILEGES);
