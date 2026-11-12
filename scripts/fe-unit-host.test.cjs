@@ -17,3 +17,17 @@ function hostFixture({createFails=false,memoryLow=false}={}){const parent=fs.rea
 test('pure mocked host completes exact schedule and confirms exact owned cleanup',()=>{const f=hostFixture();try{const r=H.execute(f.c,{driver:f.driver,g:f.g,runNative:f.runNative});A.equal(r.invocations,78);A.equal(r.cleanupConfirmed,true);A.deepEqual(f.state(),{starts:1,removes:1,observed:null,memoryReads:3});}finally{f.cleanup();}});
 test('uncertain create never starts and cleans observed exact owned ID',()=>{const f=hostFixture({createFails:true});try{A.throws(()=>H.execute(f.c,{driver:f.driver,g:f.g,runNative:f.runNative}));A.equal(f.state().starts,0);A.equal(f.state().removes,1);A.equal(f.state().observed,null);const r=JSON.parse(fs.readFileSync(path.join(f.c.outputDirectory,'fe-unit-failure.json')));A.equal(r.rawLogExported,false);}finally{f.cleanup();}});
 test('native boundary memory gate blocks before native action or container creation',()=>{const f=hostFixture({memoryLow:true});let nativeCalls=0;try{A.throws(()=>H.execute(f.c,{driver:f.driver,g:f.g,runNative:()=>{nativeCalls++;throw Error('must not execute');}}));A.equal(nativeCalls,0);A.equal(f.state().starts,0);A.equal(f.state().removes,0);A.equal(JSON.parse(fs.readFileSync(path.join(f.c.outputDirectory,'fe-unit-failure.json'))).phase,'native-preflight');}finally{f.cleanup();}});
+
+test('Linux child uses pinned browser path without inheriting sensitive host environment',()=>{
+ const vm=require('node:vm'),realProcess=process,syntheticProcess={version:realProcess.version,execPath:realProcess.execPath,env:{DOCKER_HOST:'sensitive-docker-sentinel',HANQ_SECRET_SENTINEL:'sensitive-secret-sentinel',PLAYWRIGHT_BROWSERS_PATH:'/untrusted-host-browser'}};
+ const module={exports:{}},parent=path.resolve('synthetic-temp'),owned=path.join(parent,'hanq-fe-unit-fixed');let removed=0,calls=0;
+ const mockFs={realpathSync:()=>parent,mkdtempSync:()=>owned,mkdirSync:()=>{},copyFileSync:()=>{},symlinkSync:()=>{},rmSync:(target)=>{A.equal(target,owned);removed++;}};
+ const dependency=name=>name==='node:fs'?mockFs:name==='./fe-unit-contract.cjs'?{...C,verifyTree:()=>true}:require(name);
+ vm.runInNewContext(fs.readFileSync(path.join(__dirname,'fe-unit-linux-runner.cjs'),'utf8'),{require:dependency,module,process:syntheticProcess});
+ const p=pin();const result=module.exports.run(p,{temporaryRoot:parent,meta:()=>p.tools,spawn:(_exe,argv,options)=>{
+  calls++;A.equal(options.env.PLAYWRIGHT_BROWSERS_PATH,'/ms-playwright');A.equal(Object.hasOwn(options.env,'DOCKER_HOST'),false);A.equal(Object.hasOwn(options.env,'HANQ_SECRET_SENTINEL'),false);
+  A.equal(options.env.NODE_OPTIONS,'--max-old-space-size=384');A.equal(options.timeout,60000);A.equal(argv[0],'--max-old-space-size=384');
+  A.deepEqual(Object.keys(options.env).sort(),['PATH','HOME','TMPDIR','NODE_PATH','PLAYWRIGHT_BROWSERS_PATH','NODE_OPTIONS',...(options.env.SOURCE_GRADING_V2?['SOURCE_GRADING_V2']:[])].sort());
+  return {status:0,stdout:tap()};
+ }});A.equal(calls,C.schedule().filter(x=>x.mode!=='native24').length);A.equal(result.rows.length,calls);A.equal(removed,1);
+});

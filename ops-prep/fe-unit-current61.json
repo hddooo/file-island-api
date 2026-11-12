@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "frontendCommit": "dac755268adc17c8ac27cf8890a3e7a86ad71a1f",
+  "frontendCommit": "3fe40235ca3d1e6bca1fb09a1d21399b46e072e7",
   "image": "sha256:a59bb505af9ce5d08593e28f303192efaa564eb4e654553e0de7b7febc1e3076",
   "tools": {
     "node": "v26.13.0",
@@ -17413,9 +17413,9 @@
     },
     {
       "path": "scripts/test-opening-glossary-expansion-browser.cjs",
-      "gitBlob": "5018072cd60630e9fec284ee2f8b88dd8710447d",
-      "size": 3333,
-      "sha256": "059387f702ff8c7e7681cc616ef549e88299916468efbd2e86f8e6413b111e74"
+      "gitBlob": "65fa378c7f1656a28a9b05867280f5f4b2253ef8",
+      "size": 3377,
+      "sha256": "fa341a756e0faa282b88aca7dc4081ebf6bee77542039f792bc2744d3504d26b"
     },
     {
       "path": "scripts/test-opening-json-mime-browser.cjs",
