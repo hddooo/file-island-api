@@ -15,6 +15,17 @@ const invalid = () => new AppError(400, 'invalid_source_progress', 'Invalid sour
 const conflict = () => new AppError(409, 'source_progress_conflict', 'Reload the saved progress before continuing');
 const digest = (x: unknown) => createHash('sha256').update(JSON.stringify(x)).digest('hex');
 const normalized = (x: string) => x.normalize('NFC').replace(/\s+/g, '');
+function singleAnswerMatches(value: string, expected: string): boolean {
+ const cleaned=normalized(value), canonical=normalized(expected);
+ if(cleaned===canonical)return true;
+ // Explicit (=alias) permits either complete name; ordinary parentheses require both.
+ const alias=canonical.match(/^([\p{L}\p{N}]+)\(=([\p{L}\p{N}]+)\)$/u);
+ if(alias)return cleaned===alias[1]||cleaned===alias[2];
+ const parts=canonical.match(/^([\p{L}\p{N}]+)\(([\p{L}\p{N}]+)\)$/u);
+ if(!parts)return false;
+ const given=value.split(/[,/]/).map(normalized);
+ return given.length===2&&given[0]===parts[1]&&given[1]===parts[2];
+}
 export function sourceSlots(item: SourceItem): Slot[] { return item.kind === 'classification' ? item.responseSlots! : item.blanks.flatMap(b => b.parts || [b]); }
 export function sourceGrade(item: SourceItem, values: string[]): boolean {
  return sourceSlots(item).every((slot, i) => {
@@ -22,7 +33,7 @@ export function sourceGrade(item: SourceItem, values: string[]): boolean {
   if (item.answer.sequenceTokens && normalized(value) === normalized(item.answer.text)) return true;
   if (item.kind === 'sequence') return sequenceNumbersMatch(value,expected);
   if (expected.length>1 && !(slot.answer?.orderMatters ?? item.answer.orderMatters)) return multipleAnswerDetails(value,expected).correct;
-  if (expected.length === 1) return normalized(value) === normalized(expected[0]);
+  if (expected.length === 1) return singleAnswerMatches(value, expected[0]);
   const given = value.split(',').map(normalized), parts = expected.map(normalized);
   if (given.length !== parts.length || given.some(x => !x)) return false;
   if (!(slot.answer?.orderMatters ?? item.answer.orderMatters)) { given.sort(); parts.sort(); }
