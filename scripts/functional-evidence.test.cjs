@@ -7,7 +7,7 @@ test('Windows system BuildKit discovery path survives the isolated producer envi
 });
 function cleanupOwnedDirectory(dir){const base=path.resolve(os.tmpdir());const resolved=path.resolve(dir);assert(resolved.startsWith(base+path.sep));assert(/^functional-(process|failed)-test-/.test(path.basename(resolved)));fs.rmSync(resolved,{recursive:true,force:true});}
 function schema54Fixture(dir){
- const cp=require('node:child_process'),I=require('./image-build-contract.cjs'),M=require('./migration-build-profile.cjs'),root=path.resolve(__dirname,'..'),actual=I.git(root,['rev-parse','HEAD']).trim(),api=path.join(dir,'synthetic-schema54');
+ const cp=require('node:child_process'),I=require('./image-build-contract.cjs'),M=require('./migration-build-profile.cjs'),root=path.resolve(__dirname,'..'),actual=process.env.HANQ_FUNCTIONAL_QUALIFICATION_PROFILE==='schema61-local-private-retained-base'?require('./legacy-schema55-test-reference.cjs').select(root,process.env.HANQ_FUNCTIONAL_QUALIFICATION_PROFILE,I.git).commit:I.git(root,['rev-parse','HEAD']).trim(),api=path.join(dir,'synthetic-schema54');
  const names=I.git(root,['ls-tree','-r','--name-only',actual,'--','migrations']).trim().split('\n').filter(x=>/^migrations\/\d{3}_[a-z0-9_]+\.sql$/.test(x)&&!/^migrations\/056_/.test(x));
  fs.mkdirSync(api);for(const name of [...names,'migrations/repeatable/privileges.sql']){const target=path.join(api,name);fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,I.git(root,['show',actual+':'+name],true));}
  M.validateManifest({migrations:names.map(name=>({version:path.basename(name),checksum:C.hash(fs.readFileSync(path.join(api,name)))})),privilegesSha256:C.hash(fs.readFileSync(path.join(api,'migrations/repeatable/privileges.sql')))});
