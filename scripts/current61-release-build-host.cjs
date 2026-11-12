@@ -3,7 +3,7 @@
 // Offline proposal. No CLI: real execution requires explicit reviewed driver and frozen verifier.
 const A=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),cp=require('node:child_process'),{Transform}=require('node:stream'),{pipeline}=require('node:stream/promises');
 const DOCKER='C:/Program Files/Docker/Docker/resources/bin/docker.exe';
-function essentialEnv(source=process.env){const out={};for(const key of ['SystemRoot','WINDIR','TEMP','TMP','USERPROFILE','HOMEDRIVE','HOMEPATH','LOCALAPPDATA','APPDATA','PROGRAMDATA'])if(typeof source[key]==='string')out[key]=source[key];return out;}
+function essentialEnv(source=process.env){const out={ProgramFiles:'C:\\Program Files'};for(const key of ['SystemRoot','WINDIR','TEMP','TMP','USERPROFILE','HOMEDRIVE','HOMEPATH','LOCALAPPDATA','APPDATA','PROGRAMDATA'])if(typeof source[key]==='string')out[key]=source[key];return out;}
 const BASE='sha256:495cd87f834108a61ad81a53260d30a619f4ec4ee15b8d909a3cfc1ef768a4f6';
 const FILES=['source-blank-progress.js','textbook.controller.js','history81.controller.js','history81.service.js'];
 const RECIPE='ARG BASE_IMAGE\nFROM ${BASE_IMAGE}\nARG SOURCE_COMMIT\nLABEL org.opencontainers.image.revision=$SOURCE_COMMIT\nCOPY --chown=0:0 --chmod=0755 '+FILES.map(n=>'artifacts/'+n).join(' ')+' /app/dist/src/textbook/\n';
