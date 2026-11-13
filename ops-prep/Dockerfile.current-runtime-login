@@ -1,7 +1,8 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE} AS public_files
-COPY --chown=0:0 --chmod=0755 artifacts/textbook/ /tmp/public-five/textbook/
-COPY --chown=0:0 --chmod=0644 artifacts/premium/premium.controller.js /tmp/public-five/premium/premium.controller.js
+USER 0
+COPY --chown=0:0 --chmod=0755 artifacts/ /tmp/public-five/
+RUN ["node","-e","const fs=require('node:fs');fs.chmodSync('/tmp/public-five/premium/premium.controller.js',420);fs.utimesSync('/tmp/public-five',1794276323,1794276323)"]
 FROM ${BASE_IMAGE}
 ARG SOURCE_COMMIT
 LABEL org.opencontainers.image.revision=$SOURCE_COMMIT
