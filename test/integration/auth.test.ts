@@ -219,7 +219,9 @@ describe('auth: signup / signin / cookies / CSRF / rotation / logout', () => {
       assert.match(raw, /HttpOnly/i);
       assert.match(raw, /;\s*Secure/i);
       assert.match(raw, /SameSite=Lax/i);
-      const maxAge = Number(/Max-Age=(\d+)/i.exec(raw)?.[1]);
+      const expiresAt = Date.parse(/Expires=([^;]+)/i.exec(raw)?.[1] ?? '');
+      assert.ok(Number.isFinite(expiresAt), 'refresh cookie must contain a valid Expires date');
+      const maxAge = (expiresAt - enabled.clock.now().getTime()) / 1000;
       assert.ok(maxAge > 89 * 86400 && maxAge <= 90 * 86400);
       const out = await request(enabled.server).post('/api/v1/auth/logout').set(csrf).set('Cookie', cookie);
       assert.equal(out.status, 204);
@@ -238,7 +240,9 @@ describe('auth: signup / signin / cookies / CSRF / rotation / logout', () => {
       assert.equal(unchecked.status, 200);
       for (const response of [old, unchecked]) {
         const raw = ([] as string[]).concat(response.headers['set-cookie'] as unknown as string[]).find(c => c.startsWith('hanq_rt='))!;
-        const maxAge = Number(/Max-Age=(\d+)/i.exec(raw)?.[1]);
+        const expiresAt = Date.parse(/Expires=([^;]+)/i.exec(raw)?.[1] ?? '');
+        assert.ok(Number.isFinite(expiresAt), 'refresh cookie must contain a valid Expires date');
+        const maxAge = (expiresAt - enabled.clock.now().getTime()) / 1000;
         assert.ok(maxAge > 0 && maxAge <= enabled.config.jwt.refreshTtlSec);
         assert.ok(maxAge < 90 * 86400);
       }
