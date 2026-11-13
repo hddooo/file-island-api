@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "frontendCommit": "5af6018eff6f1b4c4c800fd630702ab491a6d30d",
+  "frontendCommit": "8938c0631108dbb907489a0ecd3f813127e5e7b1",
   "image": "sha256:a59bb505af9ce5d08593e28f303192efaa564eb4e654553e0de7b7febc1e3076",
   "tools": {
     "node": "v26.13.0",
@@ -3278,9 +3278,9 @@
     },
     {
       "path": "media/blank-recall.js",
-      "gitBlob": "88f979ff090857a8f39d07063bbcbb21b9cd7f1a",
-      "size": 9349,
-      "sha256": "082fe30b9e3eb291a1830daf08cce019c63a48572f13a2c9c36636b4f2ee9614"
+      "gitBlob": "c234f77ebe31d1cc3d7e911e7b37d04549bc261f",
+      "size": 10062,
+      "sha256": "8ffa4a0aecc5b5873c36544a41087d1582f2156df418c8a025a02fac201b6359"
     },
     {
       "path": "media/cbt-classification79.js",
@@ -12494,9 +12494,9 @@
     },
     {
       "path": "media/source-grading-v2.js",
-      "gitBlob": "119425d0fe5e5d4c37e7667378ff7f09059519a4",
-      "size": 28660,
-      "sha256": "acbcd07ac342a6d52860e654e50502aea33b154182493ba3cb127fe1c492952e"
+      "gitBlob": "25cf4b915974848507f92b884e358750959293d2",
+      "size": 29373,
+      "sha256": "e041825da97a29547a9890a1d806d63536391d051793b5785a5632172440d284"
     },
     {
       "path": "media/study-activity.js",
