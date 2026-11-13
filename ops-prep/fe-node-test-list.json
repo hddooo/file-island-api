@@ -74,5 +74,12 @@
   "scripts/home-frontend-cd/ci-step.test.cjs",
   "scripts/home-frontend-cd/verify-artifact.test.cjs",
   "scripts/test-opening-glossary-expansion-browser.cjs",
-  "scripts/test-opening-plain-glossary.cjs"
+  "scripts/test-opening-plain-glossary.cjs",
+  "scripts/test-joseon-quiz-scopes.cjs",
+  "scripts/test-joseon-quiz-scopes-browser.cjs",
+  "scripts/test-opening-expanded-tooltips.cjs",
+  "scripts/test-recall-parenthetical-answers.cjs",
+  "scripts/test-source-correct-answer-preview.cjs",
+  "scripts/test-source-skip-unanswered.cjs",
+  "scripts/test-source-arrow-navigation.cjs"
 ]

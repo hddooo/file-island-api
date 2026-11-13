@@ -31,3 +31,5 @@ test('Linux child uses pinned browser path without inheriting sensitive host env
   return {status:0,stdout:tap()};
  }});A.equal(calls,C.schedule().filter(x=>x.mode!=='native24').length);A.equal(result.rows.length,calls);A.equal(removed,1);
 });
+
+test('official FE ops list, harness list and frozen source pin match exactly',()=>{const ops=require('../ops-prep/fe-node-test-list.json'),frozen=require('../ops-prep/fe-unit-current61.json');A.deepEqual(ops,C.LIST);A.deepEqual(frozen.tests,C.LIST);A.equal(ops.length,83);});
