@@ -1,5 +1,8 @@
 ARG BASE_IMAGE
+FROM ${BASE_IMAGE} AS public_files
+COPY --chown=0:0 --chmod=0755 artifacts/textbook/ /tmp/public-five/textbook/
+COPY --chown=0:0 --chmod=0644 artifacts/premium/premium.controller.js /tmp/public-five/premium/premium.controller.js
 FROM ${BASE_IMAGE}
 ARG SOURCE_COMMIT
 LABEL org.opencontainers.image.revision=$SOURCE_COMMIT
-COPY --chown=0:0 --chmod=0755 artifacts/ /app/dist/src/
+COPY --from=public_files --chown=0:0 /tmp/public-five/ /app/dist/src/
