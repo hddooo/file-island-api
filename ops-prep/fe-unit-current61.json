@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "frontendCommit": "545dde6dba874a6f881f780feacbf31903aacd56",
+  "frontendCommit": "7ce61f2bbcf011646bd8db791d3abc2ff019374d",
   "image": "sha256:a59bb505af9ce5d08593e28f303192efaa564eb4e654553e0de7b7febc1e3076",
   "tools": {
     "node": "v26.13.0",
@@ -159,9 +159,9 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "gitBlob": "9575cdaba218bafd7dcffbaabc9773a4b296616a",
-      "size": 1118,
-      "sha256": "fde5dd28a1bb9c255922edc37328c65759e58b66446195420dfcf54ded18cf53"
+      "gitBlob": "0d5bdafee469d050649624472c34ee67d1cd5d5e",
+      "size": 989,
+      "sha256": "24d099097a956b10d25af9c0e78941d8cdcdaddebb636cf8fc42e54c9351fe9b"
     },
     {
       "path": ".github/workflows/home-frontend-cd.yml",
@@ -2967,9 +2967,9 @@
     },
     {
       "path": "index.html",
-      "gitBlob": "26da2075809e005540dc783bd66e08e89244bceb",
-      "size": 714681,
-      "sha256": "51325a21cfc25ba26a97ed6055ff07356a7fcd5b8b4212126779e94173207d23"
+      "gitBlob": "e1f46e0400a5bd0d46e64103969e760076d99e43",
+      "size": 714953,
+      "sha256": "076a74db85aa6ed9aad2f243ed6df32f8d2b8a18459f56d51aabe507926f2b74"
     },
     {
       "path": "inquiries/index.html",
@@ -13263,9 +13263,9 @@
     },
     {
       "path": "media/world-map.js",
-      "gitBlob": "05fbf37cb5a2b3435364d00bb58f2c6879fa9b65",
-      "size": 21438,
-      "sha256": "745fb3db4bcd0cb499c384c971c058c482cf012766a09fab084dde81e8abb866"
+      "gitBlob": "7f09f1f6319187801eebd210ec2b46f407acc4c0",
+      "size": 21452,
+      "sha256": "eece23a3b52d32c4e7df4b4271fbeff8e7d169e2079bccf6b3e02db5dd3de299"
     },
     {
       "path": "media/world-page-scenery.js",
