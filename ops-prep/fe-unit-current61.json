@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "frontendCommit": "04278343af5c3a7a7fc6e3375c10ffd06b2ea825",
+  "frontendCommit": "69d4541cc97d01a7001344533c5317c0dc80564f",
   "image": "sha256:a59bb505af9ce5d08593e28f303192efaa564eb4e654553e0de7b7febc1e3076",
   "tools": {
     "node": "v26.13.0",
@@ -16449,9 +16449,9 @@
     },
     {
       "path": "scripts/test-era-quiz-saved-history.cjs",
-      "gitBlob": "da4b3fb634468fbf6893e19084bff08555170dd5",
-      "size": 9468,
-      "sha256": "aefa78895af8274f185e591f4243e5c8700546eb3ef840a5e89d941a7f9da991"
+      "gitBlob": "2cec283c7a17dbd33c5811b0ae8288e59010f064",
+      "size": 9461,
+      "sha256": "1b8906011126ba4435084d7ec7a0176e1774de46ad893661d65e5a1d723ec9a2"
     },
     {
       "path": "scripts/test-era-quiz-sequential-browser.cjs",
