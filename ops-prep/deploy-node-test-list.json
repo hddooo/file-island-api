@@ -34,6 +34,7 @@
   "scripts/native-preflight.test.cjs",
   "scripts/offline-candidate.test.cjs",
   "scripts/offline-test-runner.test.cjs",
+  "scripts/opening-release-exception.test.cjs",
   "scripts/operational-safety.test.cjs",
   "scripts/policy-candidate.test.cjs",
   "scripts/production-ops-wiring.test.cjs",
