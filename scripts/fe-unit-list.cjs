@@ -44,6 +44,7 @@ module.exports=Object.freeze([
   "scripts/test-grammar-simple.cjs",
   "scripts/test-header-parent-navigation.cjs",
   "scripts/test-header-refinement.cjs",
+  "scripts/test-joseon-quiz-scopes-browser.cjs",
   "scripts/test-joseon-quiz-scopes.cjs",
   "scripts/test-lc-script-labels.cjs",
   "scripts/test-map-header-visuals.cjs",
