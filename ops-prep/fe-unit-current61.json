@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "frontendCommit": "8938c0631108dbb907489a0ecd3f813127e5e7b1",
+  "frontendCommit": "04278343af5c3a7a7fc6e3375c10ffd06b2ea825",
   "image": "sha256:a59bb505af9ce5d08593e28f303192efaa564eb4e654553e0de7b7febc1e3076",
   "tools": {
     "node": "v26.13.0",
@@ -11,6 +11,9 @@
   },
   "nativeNode": "v24.22.1",
   "tests": [
+    "scripts/home-frontend-cd/ci-step.test.cjs",
+    "scripts/home-frontend-cd/frontend-health.test.cjs",
+    "scripts/home-frontend-cd/verify-artifact.test.cjs",
     "scripts/test-account-ui.cjs",
     "scripts/test-api-timeout-10s.cjs",
     "scripts/test-app-version-build.cjs",
@@ -24,43 +27,10 @@
     "scripts/test-collection-battle-gate.cjs",
     "scripts/test-collection-life-loading.cjs",
     "scripts/test-collection-life.cjs",
+    "scripts/test-company-exam-images.cjs",
     "scripts/test-device-buttons.cjs",
     "scripts/test-device-place.cjs",
     "scripts/test-device-scroll.cjs",
-    "scripts/test-focused-grammar-content.cjs",
-    "scripts/test-frontend-release-lock.cjs",
-    "scripts/test-full-test-player.cjs",
-    "scripts/test-grammar-quick-recall.cjs",
-    "scripts/test-grammar-simple.cjs",
-    "scripts/test-header-parent-navigation.cjs",
-    "scripts/test-header-refinement.cjs",
-    "scripts/test-lc-script-labels.cjs",
-    "scripts/test-map-header-visuals.cjs",
-    "scripts/test-mypage.cjs",
-    "scripts/test-player-repeat-modes.cjs",
-    "scripts/test-portrait-pixel-audit.cjs",
-    "scripts/test-profile-navigation.cjs",
-    "scripts/test-rainbow-patrol.cjs",
-    "scripts/test-rainbow-station.cjs",
-    "scripts/test-remember-session.cjs",
-    "scripts/test-review-completion-cards.cjs",
-    "scripts/test-static-site-build.cjs",
-    "scripts/test-subject-player-menu.cjs",
-    "scripts/test-toeic-partial-readiness.cjs",
-    "scripts/test-toeic-practice-client.cjs",
-    "scripts/test-toeic-practice.cjs",
-    "scripts/test-toeic-recall.cjs",
-    "scripts/test-toeic-script-status.cjs",
-    "scripts/test-ui-lock-ownership.cjs",
-    "scripts/test-vocabulary-paraphrases.cjs",
-    "scripts/test-vocabulary-repartition.cjs",
-    "scripts/test-weakness-records-race.cjs",
-    "scripts/test-weakness-records.cjs",
-    "scripts/test-xp-label-separation.cjs",
-    "scripts/test-source-grading-v2-client.cjs",
-    "scripts/test-source-grading-v2-matcher.cjs",
-    "scripts/test-source-grading-v2-session.cjs",
-    "scripts/test-source-grading-v2-ui.cjs",
     "scripts/test-era-blank-manual-save.cjs",
     "scripts/test-era-blank-restart.cjs",
     "scripts/test-era-blank-test-removal.cjs",
@@ -78,22 +48,53 @@
     "scripts/test-era-repractice-grading.cjs",
     "scripts/test-era-repractice-ime.cjs",
     "scripts/test-era-repractice-session.cjs",
+    "scripts/test-focused-grammar-content.cjs",
+    "scripts/test-frontend-release-lock.cjs",
+    "scripts/test-full-test-player.cjs",
+    "scripts/test-grammar-quick-recall.cjs",
+    "scripts/test-grammar-simple.cjs",
+    "scripts/test-header-parent-navigation.cjs",
+    "scripts/test-header-refinement.cjs",
+    "scripts/test-joseon-quiz-scopes-browser.cjs",
+    "scripts/test-joseon-quiz-scopes.cjs",
+    "scripts/test-lc-script-labels.cjs",
+    "scripts/test-map-header-visuals.cjs",
+    "scripts/test-mypage.cjs",
+    "scripts/test-opening-expanded-tooltips.cjs",
+    "scripts/test-opening-glossary-expansion-browser.cjs",
+    "scripts/test-opening-plain-glossary.cjs",
+    "scripts/test-player-repeat-modes.cjs",
+    "scripts/test-portrait-pixel-audit.cjs",
+    "scripts/test-profile-navigation.cjs",
+    "scripts/test-rainbow-patrol.cjs",
+    "scripts/test-rainbow-station.cjs",
+    "scripts/test-recall-parenthetical-answers.cjs",
+    "scripts/test-remember-session.cjs",
+    "scripts/test-review-completion-cards.cjs",
+    "scripts/test-source-arrow-navigation.cjs",
+    "scripts/test-source-correct-answer-preview.cjs",
+    "scripts/test-source-grading-v2-client.cjs",
+    "scripts/test-source-grading-v2-matcher.cjs",
+    "scripts/test-source-grading-v2-session.cjs",
+    "scripts/test-source-grading-v2-ui.cjs",
     "scripts/test-source-quiz-answer-notation.cjs",
     "scripts/test-source-quiz-instructions.cjs",
     "scripts/test-source-quiz-prompt-styles.cjs",
     "scripts/test-source-quiz-safe-emphasis.cjs",
-    "scripts/home-frontend-cd/frontend-health.test.cjs",
-    "scripts/home-frontend-cd/ci-step.test.cjs",
-    "scripts/home-frontend-cd/verify-artifact.test.cjs",
-    "scripts/test-opening-glossary-expansion-browser.cjs",
-    "scripts/test-opening-plain-glossary.cjs",
-    "scripts/test-joseon-quiz-scopes.cjs",
-    "scripts/test-joseon-quiz-scopes-browser.cjs",
-    "scripts/test-opening-expanded-tooltips.cjs",
-    "scripts/test-recall-parenthetical-answers.cjs",
-    "scripts/test-source-correct-answer-preview.cjs",
     "scripts/test-source-skip-unanswered.cjs",
-    "scripts/test-source-arrow-navigation.cjs"
+    "scripts/test-static-site-build.cjs",
+    "scripts/test-subject-player-menu.cjs",
+    "scripts/test-toeic-partial-readiness.cjs",
+    "scripts/test-toeic-practice-client.cjs",
+    "scripts/test-toeic-practice.cjs",
+    "scripts/test-toeic-recall.cjs",
+    "scripts/test-toeic-script-status.cjs",
+    "scripts/test-ui-lock-ownership.cjs",
+    "scripts/test-vocabulary-paraphrases.cjs",
+    "scripts/test-vocabulary-repartition.cjs",
+    "scripts/test-weakness-records-race.cjs",
+    "scripts/test-weakness-records.cjs",
+    "scripts/test-xp-label-separation.cjs"
   ],
   "extraV2": [
     "scripts/test-era-quiz-fresh-entry.cjs",
@@ -6338,15 +6339,15 @@
     },
     {
       "path": "media/cbt-round-materials.js",
-      "gitBlob": "b418dc0f523af4f2da2435f2aa89fe14eb44bad3",
-      "size": 8406,
-      "sha256": "ba44599b03a754b509c631d64b22d364d5e7035d905fd1ab6ae9042413711873"
+      "gitBlob": "dcb84c5dc0658ec63f995b6d27c3d16ccd37b929",
+      "size": 8453,
+      "sha256": "6584326dcd4f1099d5d5241542a9cb36ad0d302b8bf3fd7728cbb97cc3c04c46"
     },
     {
       "path": "media/cbt-wrong-notebook.js",
-      "gitBlob": "3252f67ef914e34c37ba67c33b9dd9a262f6abda",
-      "size": 25568,
-      "sha256": "274206e6d01ae632247b60c4c7707aeff18e89fe1c63c47bcc5ea084b9311b60"
+      "gitBlob": "0877cfed369acadb7f42680a47282d1695087c15",
+      "size": 25617,
+      "sha256": "16bc46f1b31d4035f4e2d4ee2b9ea50e6966a9855bba33a336090432882a004e"
     },
     {
       "path": "media/cbt-wrong-pdf.js",
@@ -6626,9 +6627,9 @@
     },
     {
       "path": "media/company-mode.css",
-      "gitBlob": "ac796779f94067ea2fb5828723fc02a563a3a10b",
-      "size": 52784,
-      "sha256": "71e3b7721e542a503fa0ebc35d21fdd73c3049c333dbac1bd3c5657b6fbdade2"
+      "gitBlob": "9e45c5a12842f3d673755929ad9b5ae84fff47be",
+      "size": 53408,
+      "sha256": "fb0e9cb2ad0160ac3fe5e3325db0c0d991553f350c44a0764035cea4af1d1c86"
     },
     {
       "path": "media/completion-checks.css",
@@ -10928,9 +10929,9 @@
     },
     {
       "path": "media/learning-reader.js",
-      "gitBlob": "5aea6c876b04a34b4444247a14b420c6497ac4e3",
-      "size": 15554,
-      "sha256": "f2cbf1fb048633dda5a8c99ebd4ab8a978867f4e77d7110e7f72ad25e8aabd84"
+      "gitBlob": "db46cd385b9fb0e3cdf816ec638b9e98087ec3df",
+      "size": 15685,
+      "sha256": "6f1dd193a02ff5fe81ca712934a07a5e7f78ac2d5bf4ab78c09b39b7bc6e1fdb"
     },
     {
       "path": "media/learning-reset.js",
@@ -14335,6 +14336,18 @@
       "sha256": "f94b1da24c52cde47680d1fcb46dad78e5007e8d1c8e9e6383204cbd650db5e5"
     },
     {
+      "path": "scripts/qa-company-exam-images.cjs",
+      "gitBlob": "ef1a1c6667ceb9206e522031bb4393a4cb8fe0e6",
+      "size": 3894,
+      "sha256": "7f21c878cb6cc5004e1d67ce7e11b6765e41d8f73fa9898888fbd9c680c91add"
+    },
+    {
+      "path": "scripts/qa-company-exam-mounted.cjs",
+      "gitBlob": "31ef0a1dd7550bd7ad35557dbc2e638b27316095",
+      "size": 4192,
+      "sha256": "038b6db321ab88ffac216b1e1d24a4a438f547b150e6e3235ed4fb91ef6a4937"
+    },
+    {
       "path": "scripts/qa-concise-explanations.cjs",
       "gitBlob": "a9cfd87f5c6025942027a37c288eed16bd9416b4",
       "size": 2619,
@@ -16064,9 +16077,9 @@
     },
     {
       "path": "scripts/test-cbt-round-materials.cjs",
-      "gitBlob": "e546ffe7a218f05ac6cc936ddd3056f73e727a83",
-      "size": 3300,
-      "sha256": "09b785c22692760ca68bf669b682c6a89460d72692f52091b4771f3b221d5392"
+      "gitBlob": "454e4eb35b61eb069fc4db1678a563893b9106f5",
+      "size": 3360,
+      "sha256": "84c1a280489c3e4789549c25926518c3b250da8b97ead4be65d90b7d662e930c"
     },
     {
       "path": "scripts/test-cbt-round-menu.cjs",
@@ -16106,9 +16119,9 @@
     },
     {
       "path": "scripts/test-cbt-wrong-notebook.cjs",
-      "gitBlob": "64dda48da6d1c0585d0d7cc61fec1d6dc0d0d9c1",
-      "size": 18886,
-      "sha256": "de5d611c03e75119c7fc43b3f25ffca45f0b99173e466917892e5163402edd08"
+      "gitBlob": "929a32d99dbd66d341a8cf774e6920a83e9733c4",
+      "size": 19028,
+      "sha256": "2ed0ddae254f210551f9e7188bf0d1e8fe86fa6627d377eeb511f76b53eb7ea2"
     },
     {
       "path": "scripts/test-cbt-wrong-pdf.cjs",
@@ -16181,6 +16194,12 @@
       "gitBlob": "87f63f65b6a3c1424388407c818e389470fd80fa",
       "size": 3476,
       "sha256": "a40c2897c56b1717b3e41997971cae78af11c5b20e03eef6a29ba7853d5ec1fc"
+    },
+    {
+      "path": "scripts/test-company-exam-images.cjs",
+      "gitBlob": "6a545562f5b31a188ee4258aeca379a1fe3003b0",
+      "size": 2449,
+      "sha256": "68ff0d4c7d35961257922b5cf142b6e8c7b84e718ec06b44936d8973499eb762"
     },
     {
       "path": "scripts/test-company-grade-feedback.cjs",
