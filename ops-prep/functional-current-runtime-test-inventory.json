@@ -428,8 +428,8 @@
     "integration": [
       {
         "path": "test/integration/auth.test.ts",
-        "gitBlob": "5c9b1c851431d8837a316ff97d31dc3e0c406f48",
-        "sha256": "378874ab823d9150f379be8716c7e6dccab14b5d03cfd331b02d8353ef780160"
+        "gitBlob": "eb1a70eb41c4ff2330914b053efe397053583c03",
+        "sha256": "7a6d1b169283e0dd38116f71255eb5433adf3dfdcbb6a17aa67f1c6c6cb00fd7"
       },
       {
         "path": "test/integration/battle-site.test.ts",
