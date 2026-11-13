@@ -33,3 +33,43 @@ test('Linux child uses pinned browser path without inheriting sensitive host env
 });
 
 test('official FE ops list, harness list and frozen source pin match exactly',()=>{const ops=require('../ops-prep/fe-node-test-list.json'),frozen=require('../ops-prep/fe-unit-current61.json');A.deepEqual(ops,C.LIST);A.deepEqual(frozen.tests,C.LIST);A.equal(ops.length,84);});
+
+test('preparation child is fixed bounded and fail-closed; no caller commands or environment inherited',()=>{
+ const f=hostFixture();try{let calls=0;H.prepare({...f.c,command:'untrusted'},(exe,args,o)=>{calls++;A.equal(exe,process.execPath);A.deepEqual(args,['--max-old-space-size=256',require.resolve('./fe-unit-host.cjs'),'--prepare-child']);A.equal(o.timeout,600000);A.equal(o.maxBuffer,4096);A.equal(o.windowsHide,true);A.deepEqual(JSON.parse(o.input),f.c);A.deepEqual(o.env,H.env());return {status:0,stdout:'FE_PREPARED_V1\n',stderr:''};});A.equal(calls,1);
+ for(const result of [{status:1,stdout:'FE_PREPARED_V1\n'},{status:0,signal:'SIGTERM',stdout:'FE_PREPARED_V1\n'},{status:0,error:new Error('timeout'),stdout:'FE_PREPARED_V1\n'},{status:0,stdout:'FE_PREPARED'},{status:0,stdout:'FE_PREPARED_V1\nextra'},{status:0,stdout:'FE_PREPARED_V1\n',stderr:'warning'}])A.throws(()=>H.prepare(f.c,()=>result));
+ A.throws(()=>H.prepare({...f.c,apiRoot:'a'.repeat(17000)},()=>{throw Error('must not spawn');}));
+ }finally{f.cleanup();}
+});
+test('parent independently verifies tree IDs pin original bytes snapshot bytes and support after preparation',()=>{
+ const f=hostFixture();try{fs.mkdirSync(f.c.outputDirectory);H.snapshot(f.c,f.p,f.g);A.deepEqual(H.verifyPrepared(f.c,f.g),f.p);
+ const source=path.join(f.c.outputDirectory,'public-source'),support=path.join(f.c.outputDirectory,'support'),r=f.p.files.find(x=>x.path!=='.ci-tools/package-lock.json');
+ for(const file of [path.join(source,r.path),path.join(f.c.frontendRoot,r.path),path.join(support,H.SUPPORT[0]),path.join(support,'pin.json')]){const original=fs.readFileSync(file);fs.writeFileSync(file,'tampered');A.throws(()=>H.verifyPrepared(f.c,f.g));fs.writeFileSync(file,original);}
+ const extra=path.join(source,'extra.txt');fs.writeFileSync(extra,'x');A.throws(()=>H.verifyPrepared(f.c,f.g));fs.unlinkSync(extra);
+ A.throws(()=>H.verifyPrepared({...f.c,pinSha256:'0'.repeat(64)},f.g));
+ A.throws(()=>H.verifyPrepared(f.c,(root,args,...rest)=>args[0]==='ls-tree'?f.g(root,args,...rest).replace('100644 blob','120000 blob'):f.g(root,args,...rest)));
+ A.throws(()=>H.verifyPrepared(f.c,(root,args,...rest)=>args[0]==='ls-tree'?f.g(root,args,...rest).replace('c'.repeat(40),'f'.repeat(40)):f.g(root,args,...rest)));
+ A.deepEqual(H.verifyPrepared(f.c,f.g),f.p);
+ }finally{f.cleanup();}
+});
+test('streamed hash handles empty and multi-chunk bytes without readFileSync',()=>{
+ const f=hostFixture();try{const r=path.join(f.c.frontendRoot,'large.bin'),b=Buffer.alloc(65536*3+7,91);fs.writeFileSync(r,b);const read=fs.readFileSync;fs.readFileSync=()=>{throw Error('whole-file read forbidden');};try{A.deepEqual(H.fileDigest(f.c.frontendRoot,'large.bin'),{size:b.length,sha256:C.hash(b)});}finally{fs.readFileSync=read;}fs.writeFileSync(r,'');A.deepEqual(H.fileDigest(f.c.frontendRoot,'large.bin'),{size:0,sha256:C.hash('')});A.throws(()=>H.fileDigest(f.c.frontendRoot,'../api'));
+ }finally{f.cleanup();}
+});
+test('real preparation child rejects oversized or partial protocol without tests or snapshots',()=>{
+ const cp=require('node:child_process');for(const input of ['{','x'.repeat(16385)]){const r=cp.spawnSync(process.execPath,[require.resolve('./fe-unit-host.cjs'),'--prepare-child'],{input,encoding:'utf8',env:H.env(),windowsHide:true,timeout:10000,maxBuffer:4096});A.equal(r.status,1);A.equal(r.stdout,'');A.equal(r.stderr,'FE_PREPARATION_FAILED\n');}
+});
+
+test('preparation real child completes committed synthetic Git inventories and parent verifies independently',()=>{
+ const f=hostFixture(),cp=require('node:child_process');try{
+ const git=(root,args)=>cp.execFileSync('git',['-C',root,...args],{env:H.env(),encoding:'utf8',windowsHide:true,timeout:20000,maxBuffer:1024*1024});
+ for(const root of [f.c.apiRoot,f.c.frontendRoot])git(root,['init','-q']);
+ const commit=root=>{git(root,['add','.']);git(root,['-c','user.name=Fixture','-c','user.email=fixture@example.invalid','-c','commit.gpgsign=false','commit','-qm','synthetic preparation fixture']);return git(root,['rev-parse','HEAD']).trim();};
+ f.c.frontendCommit=commit(f.c.frontendRoot);f.p.frontendCommit=f.c.frontendCommit;
+ const blobs=new Map(git(f.c.frontendRoot,['ls-tree','-r',f.c.frontendCommit]).trim().split('\n').map(l=>{const m=/^100644 blob ([a-f0-9]{40})\t(.+)$/.exec(l);A(m);return [m[2],m[1]];}));for(const r of f.p.files)r.gitBlob=blobs.get(r.path);
+ fs.mkdirSync(path.join(f.c.apiRoot,'ops-prep'));fs.mkdirSync(path.join(f.c.apiRoot,'scripts'));const bytes=JSON.stringify(f.p);fs.writeFileSync(path.join(f.c.apiRoot,H.PIN),bytes);f.c.pinSha256=C.hash(bytes);for(const n of H.SUPPORT)fs.copyFileSync(path.join(__dirname,n),path.join(f.c.apiRoot,'scripts',n));f.c.apiCommit=commit(f.c.apiRoot);
+ fs.mkdirSync(f.c.outputDirectory);H.prepare(f.c);A.deepEqual(H.verifyPrepared(f.c),f.p);A.deepEqual(fs.readdirSync(f.c.outputDirectory).sort(),['public-source','support']);
+ }finally{f.cleanup();}
+});
+test('streamed file verifier rejects symlink before opening bytes',()=>{const f=hostFixture();const original=fs.lstatSync;try{const target=path.join(f.c.frontendRoot,f.p.files[0].path);fs.lstatSync=(p,...args)=>p===target?{isSymbolicLink:()=>true}:original(p,...args);A.throws(()=>H.fileDigest(f.c.frontendRoot,f.p.files[0].path),/Unexpected link/);}finally{fs.lstatSync=original;f.cleanup();}});
+
+test('streamed verifier detects NTFS inode differences beyond Number precision',()=>{const f=hostFixture(),ls=fs.lstatSync,fd=fs.fstatSync;try{const target=path.join(f.c.frontendRoot,f.p.files[0].path),withInode=(st,ino)=>Object.assign(Object.create(st),{ino});A.equal(Number(9007199254740992n),Number(9007199254740993n));fs.lstatSync=(p,o)=>{const st=ls(p,o);return p===target&&o?.bigint?withInode(st,9007199254740992n):st;};fs.fstatSync=(n,o)=>{const st=fd(n,o);return o?.bigint?withInode(st,9007199254740993n):st;};A.throws(()=>H.fileDigest(f.c.frontendRoot,f.p.files[0].path),/File changed/);}finally{fs.lstatSync=ls;fs.fstatSync=fd;f.cleanup();}});
