@@ -110,12 +110,13 @@ function suiteFromExecutions(name,b,steps,caseTitles){
  if(name==='migration-compatibility')receipt.migrationManifestSha256=b.migrationManifestSha256;
  return validateSuite(receipt,b);
 }
+function evidenceRuntimeBinding(b){if(b.qualificationProfile!==P.SCHEMA61)return {};must(hex.test(b.inspection?.currentRuntimeSha256),'verified current runtime hash required');return {currentRuntimeSha256:b.inspection.currentRuntimeSha256};}
 function compose(bindings,receipts,env){
  const b=validateBindings(bindings),producer=identity(env,b.apiCommit,b.qualificationProfile);
  P.producerProfile(b.qualificationProfile,env);
  must(Array.isArray(receipts)&&receipts.length===SUITES.length&&new Set(receipts.map(x=>x.name)).size===SUITES.length,'exactly six suites required');
  const suites=SUITES.map(name=>validateSuite(receipts.find(x=>x.name===name),b));
- return {version:2,kind:'functional-execution-evidence',...b,buildRunId:producer.runId,producer,executionPhase:'completed',workflowStatus:'in_progress',workflowConclusion:null,fork:false,productionWrites:false,productionQualified:false,authenticated:false,suites,completionRequirement:'Deployment requires independently authenticated completed/success current run AND exact attempt, plus authenticated artifact bytes. This receipt does not claim final workflow status.'};
+ return {version:2,kind:'functional-execution-evidence',...b,...evidenceRuntimeBinding(b),buildRunId:producer.runId,producer,executionPhase:'completed',workflowStatus:'in_progress',workflowConclusion:null,fork:false,productionWrites:false,productionQualified:false,authenticated:false,suites,completionRequirement:'Deployment requires independently authenticated completed/success current run AND exact attempt, plus authenticated artifact bytes. This receipt does not claim final workflow status.'};
 }
 function git(cwd,args){return cp.execFileSync('git',['-C',cwd,...args],{encoding:'utf8',windowsHide:true,maxBuffer:16*1024*1024}).trim();}
 function verifyInputBytes(b,roots){
@@ -149,4 +150,4 @@ function executePlan(plan,roots,env,observe=()=>{}){
   try{const results=suite.steps.map((step,index)=>{stepIndex=index;stage='step-source';const checkout=step.checkout||key;must(['api','frontend','deploy'].includes(checkout),'invalid script checkout');must(git(roots[checkout],['ls-files','--error-unmatch','--',step.script])===step.script,'untracked executable');stage='step-execution';observe({suite:suite.name,phase:'executing',stepIndex});return executeStep(step,roots[checkout],runtimeEnv);});stage='suite-contract';const receipt=suiteFromExecutions(suite.name,b,results,suite.caseTitles);observe({suite:suite.name,phase:'passed',tests:receipt.tests});return receipt;}catch(error){observe({suite:suite.name,phase:'failed',stage,stepIndex,failure:safeFailure(error)});throw error;}});
  return compose(b,receipts,env);
 }
-module.exports={RELEASE_EXCEPTION,releaseException,waivedMigration,REPOSITORY,WORKFLOW,SUITES,CASES,requiredCases,hash,manifestHash,validateBindings,identity,parseTap,executeStep,suiteFromExecutions,validateSuite,compose,verifyInputBytes,executePlan,safeFailure};
+module.exports={evidenceRuntimeBinding,RELEASE_EXCEPTION,releaseException,waivedMigration,REPOSITORY,WORKFLOW,SUITES,CASES,requiredCases,hash,manifestHash,validateBindings,identity,parseTap,executeStep,suiteFromExecutions,validateSuite,compose,verifyInputBytes,executePlan,safeFailure};
