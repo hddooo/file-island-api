@@ -5,6 +5,12 @@
       "name": "api-unit",
       "steps": [
         {
+          "script": "scripts/run-local-preflight.cjs",
+          "args": [],
+          "timeoutMs": 3600000,
+          "checkout": "api"
+        },
+        {
           "script": "scripts/run-functional-api-tests.cjs",
           "args": [
             "qualification-inputs/api-unit.json",

@@ -30,6 +30,7 @@
   "scripts/install-management.test.cjs",
   "scripts/install-safety.test.cjs",
   "scripts/legacy-root-recovery.test.cjs",
+  "scripts/local-execution-evidence.test.cjs",
   "scripts/native-install-context.test.cjs",
   "scripts/native-preflight.test.cjs",
   "scripts/offline-candidate.test.cjs",

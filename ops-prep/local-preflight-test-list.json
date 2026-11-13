@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "groups": [
+    [
+      "scripts/api-test-inventory.test.cjs",
+      "scripts/functional-evidence.test.cjs",
+      "scripts/functional-api-tests.test.cjs",
+      "scripts/functional-api-fixture.test.cjs",
+      "scripts/functional-core-ui.test.cjs",
+      "scripts/prepare-functional-plan.test.cjs",
+      "scripts/functional-bootstrap55.test.cjs",
+      "scripts/functional-schema-profile.test.cjs"
+    ],
+    [
+      "scripts/current61-contract-host.test.cjs",
+      "scripts/current61-contract-proof.test.cjs",
+      "scripts/current61-case-wiring.test.cjs",
+      "scripts/current61-phase-memory-gate.test.cjs",
+      "scripts/fe-unit-host.test.cjs",
+      "scripts/fe-unit-scopes-browser-preload.test.cjs",
+      "scripts/workflow-cli.test.cjs",
+      "scripts/current61-release-build-host.test.cjs",
+      "scripts/current-runtime-core-ui-membership-guard.test.cjs",
+      "scripts/current-runtime-five-file.test.cjs",
+      "scripts/functional-local-execution.test.cjs"
+    ]
+  ]
+}
