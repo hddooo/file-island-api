@@ -13,6 +13,9 @@ const BOOTSTRAP='acd7ff5192d5fd31995b75210a9e869723b6ecd2d52da634f0dc6a1bbd076e6
 const TARGET='/app/dist/src/textbook/source-blank-progress.js';
 const FOUR_PROFILE='schema61-four-existing-js-v1';
 const FOUR_PATHS=['source-blank-progress.js','textbook.controller.js','history81.controller.js','history81.service.js'].map(n=>'/app/dist/src/textbook/'+n);
+const FIVE_PROFILE='schema61-five-existing-js-login-v1';
+const FIVE_PATHS=[...FOUR_PATHS,'/app/dist/src/premium/premium.controller.js'];
+function filePaths(profile){A(profile===FOUR_PROFILE||profile===FIVE_PROFILE,'unknown fixed file-set profile');return profile===FIVE_PROFILE?FIVE_PATHS:FOUR_PATHS;}
 const sha=/^[a-f0-9]{40}$/,hex=/^[a-f0-9]{64}$/,digest=/^sha256:[a-f0-9]{64}$/;
 const hash=x=>crypto.createHash('sha256').update(x).digest('hex');
 function producer(env,commit){
@@ -53,9 +56,9 @@ function localPrivate(proof,pins,baselineInventory,candidateConfig){
  A(hex.test(pins.baselineInventorySha256||''));A.equal(stableDigest(baselineInventory),pins.baselineInventorySha256);A.equal(proof.baselineInventorySha256,pins.baselineInventorySha256,'stream-verified baseline inventory required');
  const privateFiles=baselineInventory.filter(r=>r.path.startsWith('/app/private-textbook-semantic-data/')&&r.type==='file');
  A.equal(privateFiles.length,298);A.equal(privateFiles.reduce((n,r)=>n+r.size,0),25667774);
- if(pins.fileSetProfile===FOUR_PROFILE){
-  A.equal(proof.fileSetProfile,FOUR_PROFILE);for(const key of ['allowedDeltaSha256','layerDeltaSha256']){A(hex.test(pins[key]||''));A.equal(proof[key],pins[key]);}
-  A.deepEqual(pins.verifiedFiles?.map(f=>f.path),FOUR_PATHS,'exact ordered four existing files required');A.deepEqual(proof.verifiedFiles,pins.verifiedFiles,'stream-verified file list differs from independent source pins');
+ if(pins.fileSetProfile===FOUR_PROFILE||pins.fileSetProfile===FIVE_PROFILE){
+  A.equal(proof.fileSetProfile,pins.fileSetProfile);for(const key of ['allowedDeltaSha256','layerDeltaSha256']){A(hex.test(pins[key]||''));A.equal(proof[key],pins[key]);}
+  A.deepEqual(pins.verifiedFiles?.map(f=>f.path),filePaths(pins.fileSetProfile),'exact ordered approved existing files required');A.deepEqual(proof.verifiedFiles,pins.verifiedFiles,'stream-verified file list differs from independent source pins');
   for(const f of pins.verifiedFiles){A.deepEqual(Object.keys(f).sort(),['path','beforeSha256','afterSha256','beforeSize','afterSize','mode','uid','gid'].sort());A(hex.test(f.beforeSha256)&&hex.test(f.afterSha256));A.notEqual(f.beforeSha256,f.afterSha256);A(Number.isSafeInteger(f.afterSize)&&f.afterSize>0);const matches=baselineInventory.filter(r=>r.path===f.path);A.equal(matches.length,1);const old=matches[0];A.equal(old.type,'file');A.equal(old.sha256,f.beforeSha256);A.equal(old.size,f.beforeSize);for(const k of ['mode','uid','gid'])A.equal(old[k],f[k],'unchanged file metadata required');}
  }else{A.equal(pins.fileSetProfile,undefined,'unknown file-set profile');A.equal(proof.gradingPath,TARGET);}
  A.equal(proof.productionEnabled,false);
@@ -63,5 +66,5 @@ function localPrivate(proof,pins,baselineInventory,candidateConfig){
  return {mode:'local-private-retained-base',baseImageId:BASE,privateBundleAbsent:false,privateBundlePresent:true,privateBundlePreserved:true,externalArchiveUploadAllowed:false,productionQualified:false};
 }
 function resolvedPins(p){for(const key of ['sourceCommit','frontendCommit','deployCommit'])A(sha.test(p[key]||''),'Unresolved '+key);for(const key of ['candidateImageId','imageConfigDigest'])A(digest.test(p[key]||''),'Unresolved '+key);for(const key of ['archiveSha256','controllerSha256','baselineInventorySha256','baselineAncestorObservationSha256','testInventorySha256','composeChainSha256','readonlyMountsSha256'])A(hex.test(p[key]||''),'Unresolved '+key);A.equal(p.qualificationProfile,PROFILE);return p;}
-module.exports={PROFILE,BRANCH,REF,REPOSITORY,WORKFLOW,BASE,LEDGER,TARGETED,EMBEDDED,BOOTSTRAP,TARGET,FOUR_PROFILE,FOUR_PATHS,hash,stableDigest,producer,schema,artifactPaths,inventory,localPrivate,resolvedPins};
+module.exports={PROFILE,BRANCH,REF,REPOSITORY,WORKFLOW,BASE,LEDGER,TARGETED,EMBEDDED,BOOTSTRAP,TARGET,FOUR_PROFILE,FOUR_PATHS,FIVE_PROFILE,FIVE_PATHS,filePaths,hash,stableDigest,producer,schema,artifactPaths,inventory,localPrivate,resolvedPins};
 

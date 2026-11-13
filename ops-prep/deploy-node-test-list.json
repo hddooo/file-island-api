@@ -21,5 +21,7 @@
   "archive-proof/native-roundtrip.test.cjs",
   "frozen-handle/frozen-handle.test.cjs",
   "archive-proof/qualification-inspector.test.cjs",
-  "scripts/offline-candidate.test.cjs"
+  "scripts/offline-candidate.test.cjs",
+  "archive-proof/five-profile.test.cjs",
+  "scripts/remember-policy.test.cjs"
 ]

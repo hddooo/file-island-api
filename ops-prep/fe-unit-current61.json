@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "frontendCommit": "3fe40235ca3d1e6bca1fb09a1d21399b46e072e7",
+  "frontendCommit": "1be77f5c0cae8718e6c649519e338a3e44f8f8d8",
   "image": "sha256:a59bb505af9ce5d08593e28f303192efaa564eb4e654553e0de7b7febc1e3076",
   "tools": {
     "node": "v26.13.0",
@@ -622,6 +622,12 @@
       "gitBlob": "181016cd83bb6ad1e6f989fe8bb1f6c64b0be999",
       "size": 2498,
       "sha256": "2e05757b4dcc931757e1908bc8e4afce849099b07273216c49c07eda5bd733fb"
+    },
+    {
+      "path": "docs/grading-v2/integrated-20261113.md",
+      "gitBlob": "078556bfa15ac24775272cc7164c6c1b367bc0dd",
+      "size": 948,
+      "sha256": "eed83df98c93e4afae0d373813c27fbb19bd021dfcaed623a61038f7b87d7def"
     },
     {
       "path": "docs/grammar-connectors-100-review.json",
@@ -3103,9 +3109,9 @@
     },
     {
       "path": "media/auth-digivice.css",
-      "gitBlob": "833547a54de8a9337ad6c22ffc8b28677959ca7a",
-      "size": 17510,
-      "sha256": "7552ec2da6f8984a115f53ff9414b338505ed2dfad495bea251744d5863ddc67"
+      "gitBlob": "0bbdb4babc5ffb792c29fdf0133346a16885b459",
+      "size": 18770,
+      "sha256": "9d0b4682999f89e8df6dd2b274e9497b72f01e818ca3c15dc7dc121b0adea689"
     },
     {
       "path": "media/auth-digivice.js",
@@ -3259,9 +3265,9 @@
     },
     {
       "path": "media/blank-recall.js",
-      "gitBlob": "941dc487c2b9f87de4f5d38550761b079acf25e7",
-      "size": 7220,
-      "sha256": "a7c1f0e091cb4f34e3ee9a9d31368098953869c5ed67b334a67dbce7bc9e85d8"
+      "gitBlob": "2ece5fb410f3245c5c36cf0b345068bc95962788",
+      "size": 8387,
+      "sha256": "3c9bf2806bc485742fd3c9b45a9c29e6a58477a47077d24f0a3206b9004c1e51"
     },
     {
       "path": "media/cbt-classification79.js",
@@ -6607,9 +6613,9 @@
     },
     {
       "path": "media/company-mode.css",
-      "gitBlob": "57236a6522efcc2049df3da6ed525e01845c8a00",
-      "size": 50776,
-      "sha256": "2683f3f9111337e9f9714fb581f3931610387a5294215255e4fd2974458fff22"
+      "gitBlob": "ac796779f94067ea2fb5828723fc02a563a3a10b",
+      "size": 52784,
+      "sha256": "71e3b7721e542a503fa0ebc35d21fdd73c3049c333dbac1bd3c5657b6fbdade2"
     },
     {
       "path": "media/completion-checks.css",
@@ -10123,9 +10129,9 @@
     },
     {
       "path": "media/general-typography.css",
-      "gitBlob": "0c540fdaaf2c0e1ab416cc0dd911df162e32e4c2",
-      "size": 6416,
-      "sha256": "d191da532482c953593a90f26c8890a9522251b60908e4d09fde2b6fe89f0386"
+      "gitBlob": "c472c075913e4490dcc215241f1a418d7c1fd480",
+      "size": 7123,
+      "sha256": "e14021391fbb8bcb8834ebf0bfcddc6a32cc57fdcf8ad86fe1aefc58b14f80a3"
     },
     {
       "path": "media/glossary-data.js",
@@ -10435,9 +10441,9 @@
     },
     {
       "path": "media/history81-glossary.js",
-      "gitBlob": "c3e43d4200b3a7d617c3f70dc6b17b6f5e556449",
-      "size": 13603,
-      "sha256": "73abccbe053cc54b7b1d16f91abb1d16b9674e763773f488f2cb1080e3ab3800"
+      "gitBlob": "a0cc375940e3e6626664add66eb0c4914eaf8655",
+      "size": 13666,
+      "sha256": "15a98ce937216aeeb1a800826c8d15aaad467978a0947162152d1cc9d298ae91"
     },
     {
       "path": "media/history81-term-data.js",
@@ -10459,9 +10465,9 @@
     },
     {
       "path": "media/history81-verified-glossary.js",
-      "gitBlob": "7aed2ebf160452f0c0c6ca3d11a2c2286da5689b",
-      "size": 97674,
-      "sha256": "438db34c0f5dcb1a1a59579d5b7e2801398692ea629f76cc300784aa1b68f8bf"
+      "gitBlob": "8fb82e26304a8fb5280ba971f0e996bc93b6bc48",
+      "size": 98212,
+      "sha256": "ceb4aad6654199d7557ea8afcccfc668c456ae0da3b3baec9c68ac409df67a14"
     },
     {
       "path": "media/history81-workspace.js",
@@ -11203,9 +11209,9 @@
     },
     {
       "path": "media/opening-script-reader.js",
-      "gitBlob": "631436af9ecd92f08c5bf4a757a152d9386eb562",
-      "size": 27838,
-      "sha256": "e882bec8a07942eb9972cf6eec294bbfb721b5eaab3c41ff0bc31ef195f1f432"
+      "gitBlob": "455439596bc0b4fd4eb85e140611987ce3c80b9c",
+      "size": 28198,
+      "sha256": "bd5210e683d16fba5d53bcb0fa954fad45aba2da915a470f17a0137d10ce7a37"
     },
     {
       "path": "media/opening-script-session.js",
@@ -12475,9 +12481,9 @@
     },
     {
       "path": "media/source-grading-v2.js",
-      "gitBlob": "ca58294b6cb89cbdf6d543051bd142aa57d679d2",
-      "size": 27489,
-      "sha256": "e47966a3d3c960a982a79143e079e61753f89d843ec79189f8d01b617809093c"
+      "gitBlob": "119425d0fe5e5d4c37e7667378ff7f09059519a4",
+      "size": 28660,
+      "sha256": "acbcd07ac342a6d52860e654e50502aea33b154182493ba3cb127fe1c492952e"
     },
     {
       "path": "media/study-activity.js",
@@ -12601,15 +12607,15 @@
     },
     {
       "path": "media/textbook-source-quiz.css",
-      "gitBlob": "b4b750bb40cab22a3ee44e75105867335068eddd",
-      "size": 42293,
-      "sha256": "318b596b24d03097628ad01c2a224ba3594241c4b27668f234cbc4418ac123b8"
+      "gitBlob": "640f0bf04fad72b922ad98af38aff3cd2c6305e0",
+      "size": 44204,
+      "sha256": "21c8b72ac9f762a80e9ed11b487fbd0965dcab20b3b32c3cd9866074f6e4647e"
     },
     {
       "path": "media/textbook-source-quiz.js",
-      "gitBlob": "5de75f4e3a7a02460caed3e9c8275b29452d90cf",
-      "size": 103742,
-      "sha256": "95bd9a7606638c4d72cf169a863cf1574277da4d114b13211339b2a26cb0fe9f"
+      "gitBlob": "2158fd0ecb43a6b4ced75518046ced842d6fe7b1",
+      "size": 104547,
+      "sha256": "4142cdc83336cc39a97fb41dcf10e62ac33777bcb6f8ef219af1000c9df38024"
     },
     {
       "path": "media/textbook-source-summary.js",

@@ -203,4 +203,47 @@ describe('auth: signup / signin / cookies / CSRF / rotation / logout', () => {
     const nf = await request(t.server).get('/api/v1/does-not-exist');
     assert.deepEqual(nf.body, { error: { code: 'not_found', message: 'Not found' } });
   });
+
+  it('remember opt-in exposes the capability, caps the cookie at 90 days and logout revokes it', async () => {
+    const enabled = await startApp({ HANQ_REMEMBER_ENABLED: 'true', HANQ_COOKIE_SECURE: 'true' });
+    try {
+      const account = await signup(enabled, uniqueEmail('remember'));
+      const plan = await request(enabled.server).get('/api/v1/premium/plan');
+      assert.equal(plan.status, 200);
+      assert.deepEqual(plan.body.auth.rememberMe, { available: true, maxDays: 90 });
+      const login = await request(enabled.server).post('/api/v1/auth/signin').set(csrf).send({ email: account.email, password: PASSWORD, rememberMe: true });
+      assert.equal(login.status, 200);
+      const cookie = refreshCookie(login)!;
+      assert.ok(cookie);
+      const raw = ([] as string[]).concat(login.headers['set-cookie'] as unknown as string[]).find(c => c.startsWith('hanq_rt='))!;
+      assert.match(raw, /HttpOnly/i);
+      assert.match(raw, /;\s*Secure/i);
+      assert.match(raw, /SameSite=Lax/i);
+      const maxAge = Number(/Max-Age=(\d+)/i.exec(raw)?.[1]);
+      assert.ok(maxAge > 89 * 86400 && maxAge <= 90 * 86400);
+      const out = await request(enabled.server).post('/api/v1/auth/logout').set(csrf).set('Cookie', cookie);
+      assert.equal(out.status, 204);
+      assert.equal((await request(enabled.server).post('/api/v1/auth/refresh').set(csrf).set('Cookie', cookie)).status, 401);
+      assert.equal((await request(enabled.server).get('/api/v1/me').set(bearer(login.body.accessToken))).status, 401);
+    } finally { await enabled.close(); }
+  });
+
+  it('enabling remember leaves existing and unchecked sessions on their legacy lifetime', async () => {
+    const account = await signup(t, uniqueEmail('legacy-remember'));
+    const enabled = await startApp({ HANQ_REMEMBER_ENABLED: 'true' });
+    try {
+      const old = await request(enabled.server).post('/api/v1/auth/refresh').set(csrf).set('Cookie', account.cookie);
+      assert.equal(old.status, 200);
+      const unchecked = await request(enabled.server).post('/api/v1/auth/signin').set(csrf).send({ email: account.email, password: PASSWORD, rememberMe: false });
+      assert.equal(unchecked.status, 200);
+      for (const response of [old, unchecked]) {
+        const raw = ([] as string[]).concat(response.headers['set-cookie'] as unknown as string[]).find(c => c.startsWith('hanq_rt='))!;
+        const maxAge = Number(/Max-Age=(\d+)/i.exec(raw)?.[1]);
+        assert.ok(maxAge > 0 && maxAge <= enabled.config.jwt.refreshTtlSec);
+        assert.ok(maxAge < 90 * 86400);
+      }
+      const unavailable = await request(t.server).post('/api/v1/auth/signin').set(csrf).send({ email: account.email, password: PASSWORD, rememberMe: true });
+      assert.equal(unavailable.status, 503);
+    } finally { await enabled.close(); }
+  });
 });

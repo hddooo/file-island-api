@@ -997,9 +997,79 @@ function separatedAnswersMatch(value:string,expected:string[],ordered:boolean):b
  if(!ordered){given.sort();parts.sort();}
  return given.every((part,index)=>part===parts[index]);
 }
+
+// User-approved answer shorthand, not a claim that these treaties are identical.
+const treatyAnswerAliases = [
+  [
+    [
+      "조일무역규칙 (조일통상장정)",
+      "조일무역규칙",
+      "조일통상장정"
+    ],
+    [
+      "조일"
+    ]
+  ],
+  [
+    [
+      "수호조규부록",
+      "조일수호조규부록"
+    ],
+    [
+      "조일수호조규",
+      "조일조규"
+    ]
+  ],
+  [
+    [
+      "개정된 통상장정"
+    ],
+    [
+      "개정된 조일통상장정",
+      "개정된 무역통상장정"
+    ]
+  ],
+  [
+    [
+      "조청상민수륙무역장정"
+    ],
+    [
+      "조청"
+    ]
+  ],
+  [
+    [
+      "조미수호통상조약"
+    ],
+    [
+      "조미"
+    ]
+  ],
+  [
+    [
+      "조프통상조약"
+    ],
+    [
+      "조프"
+    ]
+  ],
+  [
+    [
+      "조영통상조약"
+    ],
+    [
+      "조영"
+    ]
+  ]
+];
+function treatyAliasMatches(value:string,expected:string):boolean{
+ const clean=(s:string)=>String(s).normalize('NFC').replace(/\s+/g,'');
+ return treatyAnswerAliases.some(([keys,aliases])=>keys.some(key=>clean(key)===clean(expected))&&aliases.some(alias=>clean(alias)===clean(value)));
+}
+
 function singleAnswerMatches(value: string, expected: string): boolean {
  const cleaned=normalized(value), canonical=normalized(expected);
- if(cleaned===canonical)return true;
+ if(cleaned===canonical||treatyAliasMatches(value,expected))return true;
  const alias=canonical.match(/^([\p{L}\p{N}]+)\(=([\p{L}\p{N}]+)\)$/u);
  if(alias)return cleaned===alias[1]||cleaned===alias[2];
  // Project explicit parentheses to separators, retaining every source token in
