@@ -1,7 +1,7 @@
 'use strict';
 // Standalone proposal: no general runner or production resource guards are modified.
 const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto'),A=require('node:assert/strict'),C=require('./fe-unit-contract.cjs');
-const PIN='ops-prep/fe-unit-current61.json',SUPPORT=['fe-unit-list.cjs','fe-unit-contract.cjs','fe-unit-linux-runner.cjs'];
+const PIN='ops-prep/fe-unit-current61.json',SUPPORT=['fe-unit-list.cjs','fe-unit-contract.cjs','fe-unit-linux-runner.cjs','fe-unit-scopes-browser-preload.cjs'];
 function env(){return Object.fromEntries(Object.entries(process.env).filter(([k])=>/^(PATH|Path|SystemRoot|WINDIR|COMSPEC|TEMP|TMP|HOME|USERPROFILE)$/.test(k)));}
 function git(root,args,raw=false){return cp.execFileSync('git',['-C',root,...args],{encoding:raw?undefined:'utf8',env:env(),windowsHide:true,timeout:20000,maxBuffer:40*1024*1024});}
 function clean(root,commit,g=git){A.equal(g(root,['rev-parse','HEAD']).trim(),commit);A.equal(g(root,['status','--porcelain','--untracked-files=all']).trim(),'');}
