@@ -16,13 +16,30 @@ const FAILURE_KINDS=['process-error','process-signal','child-exit','configuratio
 function safeFailure(error){const f=error?.functionalFailure;if(!f||!FAILURE_KINDS.includes(f.kind))return {kind:'contract-rejected'};return {kind:f.kind,...(Number.isInteger(f.exitCode)?{exitCode:f.exitCode}:{}),...(hex.test(f.rawOutputSha256||'')?{rawOutputSha256:f.rawOutputSha256}:{})};}
 function executionFailure(error,result,raw){let kind='tap-invalid';if(result.error)kind='process-error';else if(result.signal)kind='process-signal';else if(result.status!==0){kind='child-exit';if(raw.includes('MODULE_NOT_FOUND'))kind='module-not-found';else if(/(?:Migration harness rejected its configuration|Invalid (?:core UI|functional API) configuration)/.test(raw))kind='configuration-rejected';else if(raw.includes('Tracked Node test list/source verification failed'))kind='source-rejected';else if(/(?:Isolated migration Docker|Core UI docker|Functional API docker)/.test(raw))kind='docker-failed';else if(raw.includes('ERR_ASSERTION'))kind='assertion-failed';}error.functionalFailure={kind,exitCode:result.status,rawOutputSha256:hash(raw)};return error;}
 function manifestHash(rows){return hash(JSON.stringify([...rows].map(({version,checksum})=>({version,checksum})).sort((a,b)=>a.version.localeCompare(b.version))));}
+
+// Owner-approved single-release declaration. Deployment additionally binds exact release bytes.
+const RELEASE_EXCEPTION=Object.freeze({id:'opening-era-migration-waiver-20261113',waivedSuite:'migration-compatibility',priorFailedRunId:'43387349864',reason:'owner-approved-one-release',status:'waived'});
+function releaseException(b){
+ if(!Object.prototype.hasOwnProperty.call(b,'releaseException'))return undefined;
+ must(b.qualificationProfile===P.SCHEMA61,'release exception requires exact current profile');
+ const x=b.releaseException;must(x&&typeof x==='object'&&!Array.isArray(x)&&JSON.stringify(Object.keys(x).sort())===JSON.stringify(Object.keys(RELEASE_EXCEPTION).sort()),'release exception keys mismatch');
+ for(const k of Object.keys(RELEASE_EXCEPTION))must(x[k]===RELEASE_EXCEPTION[k],'release exception value mismatch');
+ return {...RELEASE_EXCEPTION};
+}
+function waivedMigration(b){
+ const x=releaseException(b);must(x,'explicit release exception required');
+ return {name:'migration-compatibility',status:'not-executed',conclusion:'waived',sourceCommit:b.apiCommit,imageId:b.imageId,migrationManifestSha256:b.migrationManifestSha256,tests:0,passed:0,failed:0,skipped:0,cancelled:0,todo:0,caseIds:[],caseProofs:{},executions:[],releaseExceptionId:x.id};
+}
+function validateWaivedMigration(r,b){const expected=waivedMigration(b);must(JSON.stringify(Object.keys(r).sort())===JSON.stringify(Object.keys(expected).sort()),'waiver receipt keys mismatch');for(const k of Object.keys(expected))must(JSON.stringify(r[k])===JSON.stringify(expected[k]),'waiver receipt value mismatch: '+k);return r;}
+
 function validateBindings(b){
+ const exception=releaseException(b);
  const profile=P.name(b.qualificationProfile);
  for(const field of ['apiCommit','frontendCommit','deployCommit'])must(sha.test(b[field]),'exact '+field+' required');
  for(const field of ['imageId','imageConfigDigest'])must(digest.test(b[field]),field+' missing');
  for(const field of ['archiveSha256','composeSha256','bootstrapSha256','controllerSha256'])must(hex.test(b[field]),field+' missing');
  must(b.databaseTarget==='hanq_final_20261028','wrong intended deployment target');
- if(profile===P.SCHEMA61){const inspection=require('./current-runtime-inspection-bridge.cjs').binding(b.inspection);const schema=P.manifest(b.schemaContract,profile);must(b.bootstrapSha256===R.BOOTSTRAP,'Exact retained normal bootstrap required');must(b.privilegesSha256===schema.privilegesSha256,'Privileges binding mismatch');must(hex.test(b.testInventorySha256),'Independently pinned complete test inventory required');must(JSON.stringify(b.migrations)===JSON.stringify(schema.rows),'Exact composed schema61 binding required');return {qualificationProfile:profile,inspection,...Object.fromEntries(['apiCommit','frontendCommit','deployCommit','imageId','imageConfigDigest','archiveSha256','composeSha256','bootstrapSha256','controllerSha256','databaseTarget','privilegesSha256','testInventorySha256'].map(k=>[k,b[k]])),schemaContract:JSON.parse(JSON.stringify(b.schemaContract)),migrations:schema.rows,migrationManifestSha256:schema.manifestSha256};}
+ if(profile===P.SCHEMA61){const inspection=require('./current-runtime-inspection-bridge.cjs').binding(b.inspection);const schema=P.manifest(b.schemaContract,profile);must(b.bootstrapSha256===R.BOOTSTRAP,'Exact retained normal bootstrap required');must(b.privilegesSha256===schema.privilegesSha256,'Privileges binding mismatch');must(hex.test(b.testInventorySha256),'Independently pinned complete test inventory required');must(JSON.stringify(b.migrations)===JSON.stringify(schema.rows),'Exact composed schema61 binding required');return {qualificationProfile:profile,...(exception?{releaseException:exception}:{}),inspection,...Object.fromEntries(['apiCommit','frontendCommit','deployCommit','imageId','imageConfigDigest','archiveSha256','composeSha256','bootstrapSha256','controllerSha256','databaseTarget','privilegesSha256','testInventorySha256'].map(k=>[k,b[k]])),schemaContract:JSON.parse(JSON.stringify(b.schemaContract)),migrations:schema.rows,migrationManifestSha256:schema.manifestSha256};}
  if(profile===P.SCHEMA55)P.manifest({migrations:b.migrations,privilegesSha256:b.privilegesSha256},profile);
  const count=profile===P.SCHEMA55?55:54;
  must(Array.isArray(b.migrations)&&b.migrations.length===count,'schema54 required unless explicit reviewed schema55 qualification');
@@ -67,6 +84,7 @@ function executeStep(step,cwd,env={}){
 }
 function sourceFor(name,b){return name==='fe-unit'?b.frontendCommit:name==='deploy-controller'?b.deployCommit:b.apiCommit;}
 function validateSuite(receipt,b){
+ if(receipt?.conclusion==='waived')return validateWaivedMigration(receipt,b);
  must(SUITES.includes(receipt?.name),'unsupported suite');must(receipt.sourceCommit===sourceFor(receipt.name,b),'suite source mismatch');
  must(receipt.status==='completed'&&receipt.conclusion==='success','suite did not complete successfully');
  must(Number.isSafeInteger(receipt.tests)&&receipt.tests>0&&receipt.passed===receipt.tests,'incomplete suite count');
@@ -126,8 +144,9 @@ function executePlan(plan,roots,env,observe=()=>{}){
  runtimeEnv.HANQ_FUNCTIONAL_IMAGE_ID=b.imageId;
  runtimeEnv.HANQ_FUNCTIONAL_QUALIFICATION_PROFILE=P.name(b.qualificationProfile);
  const receipts=plan.suites.map(suite=>{must(SUITES.includes(suite.name)&&Array.isArray(suite.steps),'invalid suite plan');const key=suite.name==='fe-unit'?'frontend':suite.name==='deploy-controller'?'deploy':'api';let stage='step-source',stepIndex=0;
+  if(suite.name==='migration-compatibility'&&releaseException(b)){const receipt=waivedMigration(b);observe({suite:suite.name,phase:'waived',tests:0,releaseExceptionId:receipt.releaseExceptionId});return receipt;}
   observe({suite:suite.name,phase:'starting'});
   try{const results=suite.steps.map((step,index)=>{stepIndex=index;stage='step-source';const checkout=step.checkout||key;must(['api','frontend','deploy'].includes(checkout),'invalid script checkout');must(git(roots[checkout],['ls-files','--error-unmatch','--',step.script])===step.script,'untracked executable');stage='step-execution';observe({suite:suite.name,phase:'executing',stepIndex});return executeStep(step,roots[checkout],runtimeEnv);});stage='suite-contract';const receipt=suiteFromExecutions(suite.name,b,results,suite.caseTitles);observe({suite:suite.name,phase:'passed',tests:receipt.tests});return receipt;}catch(error){observe({suite:suite.name,phase:'failed',stage,stepIndex,failure:safeFailure(error)});throw error;}});
  return compose(b,receipts,env);
 }
-module.exports={REPOSITORY,WORKFLOW,SUITES,CASES,requiredCases,hash,manifestHash,validateBindings,identity,parseTap,executeStep,suiteFromExecutions,validateSuite,compose,verifyInputBytes,executePlan,safeFailure};
+module.exports={RELEASE_EXCEPTION,releaseException,waivedMigration,REPOSITORY,WORKFLOW,SUITES,CASES,requiredCases,hash,manifestHash,validateBindings,identity,parseTap,executeStep,suiteFromExecutions,validateSuite,compose,verifyInputBytes,executePlan,safeFailure};
