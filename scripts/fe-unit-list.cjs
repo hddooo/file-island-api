@@ -49,6 +49,7 @@ module.exports=Object.freeze([
   "scripts/test-map-header-visuals.cjs",
   "scripts/test-mypage.cjs",
   "scripts/test-opening-expanded-tooltips.cjs",
+  "scripts/test-opening-glossary-expansion-browser.cjs",
   "scripts/test-opening-plain-glossary.cjs",
   "scripts/test-player-repeat-modes.cjs",
   "scripts/test-portrait-pixel-audit.cjs",
