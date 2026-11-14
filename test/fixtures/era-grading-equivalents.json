@@ -1,0 +1,1165 @@
+{
+  "description": "Public historical terms and synthetic combinations only; no private quiz content or IDs.",
+  "vectors": [
+    {
+      "label": "samguk equivalent",
+      "expected": [
+        "광개토왕"
+      ],
+      "value": "광개토왕",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "samguk equivalent",
+      "expected": [
+        "광개토왕"
+      ],
+      "value": "광개토대왕",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "samguk equivalent",
+      "expected": [
+        "광개토대왕"
+      ],
+      "value": "광개토왕",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "samguk equivalent",
+      "expected": [
+        "광개토대왕"
+      ],
+      "value": "광개토대왕",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "samguk boundary",
+      "expected": [
+        "광개토왕"
+      ],
+      "value": "광개토",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "samguk boundary",
+      "expected": [
+        "광개토왕"
+      ],
+      "value": "장수왕",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "samguk boundary",
+      "expected": [
+        "광개토왕"
+      ],
+      "value": "광개토왕릉비",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "samguk NFC whitespace",
+      "expected": [
+        "광개토왕"
+      ],
+      "value": " 광개토대왕 ",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "samguk multi ordered",
+      "expected": [
+        "광개토왕",
+        "Fixture"
+      ],
+      "value": "광개토대왕/Fixture",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "samguk multi unordered",
+      "expected": [
+        "광개토왕",
+        "Fixture"
+      ],
+      "value": "Fixture,광개토대왕",
+      "correct": true,
+      "ordered": false
+    },
+    {
+      "label": "samguk missing field",
+      "expected": [
+        "광개토왕",
+        "Fixture"
+      ],
+      "value": "광개토대왕",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "samguk wrong order",
+      "expected": [
+        "광개토왕",
+        "Fixture"
+      ],
+      "value": "Fixture/광개토대왕",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "samguk repeated equivalent",
+      "expected": [
+        "광개토왕",
+        "Fixture"
+      ],
+      "value": "광개토왕/광개토대왕",
+      "correct": false,
+      "ordered": false
+    },
+    {
+      "label": "goryeo equivalent",
+      "expected": [
+        "보현십원가"
+      ],
+      "value": "보현십원가",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "goryeo equivalent",
+      "expected": [
+        "보현십원가"
+      ],
+      "value": "보현십종원왕가",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "goryeo equivalent",
+      "expected": [
+        "보현십종원왕가"
+      ],
+      "value": "보현십원가",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "goryeo equivalent",
+      "expected": [
+        "보현십종원왕가"
+      ],
+      "value": "보현십종원왕가",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "goryeo boundary",
+      "expected": [
+        "보현십원가"
+      ],
+      "value": "균여",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "goryeo boundary",
+      "expected": [
+        "보현십원가"
+      ],
+      "value": "제망매가",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "goryeo boundary",
+      "expected": [
+        "보현십원가"
+      ],
+      "value": "보현십원",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "goryeo NFC whitespace",
+      "expected": [
+        "보현십원가"
+      ],
+      "value": " 보현십종원왕가 ",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "goryeo multi ordered",
+      "expected": [
+        "보현십원가",
+        "Fixture"
+      ],
+      "value": "보현십종원왕가/Fixture",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "goryeo multi unordered",
+      "expected": [
+        "보현십원가",
+        "Fixture"
+      ],
+      "value": "Fixture,보현십종원왕가",
+      "correct": true,
+      "ordered": false
+    },
+    {
+      "label": "goryeo missing field",
+      "expected": [
+        "보현십원가",
+        "Fixture"
+      ],
+      "value": "보현십종원왕가",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "goryeo wrong order",
+      "expected": [
+        "보현십원가",
+        "Fixture"
+      ],
+      "value": "Fixture/보현십종원왕가",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "goryeo repeated equivalent",
+      "expected": [
+        "보현십원가",
+        "Fixture"
+      ],
+      "value": "보현십원가/보현십종원왕가",
+      "correct": false,
+      "ordered": false
+    },
+    {
+      "label": "colonial equivalent",
+      "expected": [
+        "3·1운동"
+      ],
+      "value": "3·1운동",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "colonial equivalent",
+      "expected": [
+        "3·1운동"
+      ],
+      "value": "삼일운동",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "colonial equivalent",
+      "expected": [
+        "삼일운동"
+      ],
+      "value": "3·1운동",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "colonial equivalent",
+      "expected": [
+        "삼일운동"
+      ],
+      "value": "삼일운동",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "colonial boundary",
+      "expected": [
+        "3·1운동"
+      ],
+      "value": "31운동",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "colonial boundary",
+      "expected": [
+        "3·1운동"
+      ],
+      "value": "3·1",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "colonial boundary",
+      "expected": [
+        "3·1운동"
+      ],
+      "value": "3·1독립선언서",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "colonial boundary",
+      "expected": [
+        "3·1운동"
+      ],
+      "value": "6·10만세운동",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "colonial NFC whitespace",
+      "expected": [
+        "3·1운동"
+      ],
+      "value": " 삼일운동 ",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "colonial multi ordered",
+      "expected": [
+        "3·1운동",
+        "Fixture"
+      ],
+      "value": "삼일운동/Fixture",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "colonial multi unordered",
+      "expected": [
+        "3·1운동",
+        "Fixture"
+      ],
+      "value": "Fixture,삼일운동",
+      "correct": true,
+      "ordered": false
+    },
+    {
+      "label": "colonial missing field",
+      "expected": [
+        "3·1운동",
+        "Fixture"
+      ],
+      "value": "삼일운동",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "colonial wrong order",
+      "expected": [
+        "3·1운동",
+        "Fixture"
+      ],
+      "value": "Fixture/삼일운동",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "colonial repeated equivalent",
+      "expected": [
+        "3·1운동",
+        "Fixture"
+      ],
+      "value": "3·1운동/삼일운동",
+      "correct": false,
+      "ordered": false
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6월항쟁"
+      ],
+      "value": "6월항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6월항쟁"
+      ],
+      "value": "6월민주항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6월항쟁"
+      ],
+      "value": "6월민주화항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6월항쟁"
+      ],
+      "value": "6·10항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6월민주항쟁"
+      ],
+      "value": "6월항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6월민주항쟁"
+      ],
+      "value": "6월민주항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6월민주항쟁"
+      ],
+      "value": "6월민주화항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6월민주항쟁"
+      ],
+      "value": "6·10항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6월민주화항쟁"
+      ],
+      "value": "6월항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6월민주화항쟁"
+      ],
+      "value": "6월민주항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6월민주화항쟁"
+      ],
+      "value": "6월민주화항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6월민주화항쟁"
+      ],
+      "value": "6·10항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6·10항쟁"
+      ],
+      "value": "6월항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6·10항쟁"
+      ],
+      "value": "6월민주항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6·10항쟁"
+      ],
+      "value": "6월민주화항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic equivalent",
+      "expected": [
+        "6·10항쟁"
+      ],
+      "value": "6·10항쟁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic boundary",
+      "expected": [
+        "6월항쟁"
+      ],
+      "value": "6·10만세운동",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "republic boundary",
+      "expected": [
+        "6월항쟁"
+      ],
+      "value": "6·29선언",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "republic boundary",
+      "expected": [
+        "6월항쟁"
+      ],
+      "value": "6·10",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "republic boundary",
+      "expected": [
+        "6월항쟁"
+      ],
+      "value": "5·18민주화운동",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "republic NFC whitespace",
+      "expected": [
+        "6월항쟁"
+      ],
+      "value": " 6월민주항쟁 ",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic multi ordered",
+      "expected": [
+        "6월항쟁",
+        "Fixture"
+      ],
+      "value": "6월민주항쟁/Fixture",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic multi unordered",
+      "expected": [
+        "6월항쟁",
+        "Fixture"
+      ],
+      "value": "Fixture,6월민주항쟁",
+      "correct": true,
+      "ordered": false
+    },
+    {
+      "label": "republic missing field",
+      "expected": [
+        "6월항쟁",
+        "Fixture"
+      ],
+      "value": "6월민주항쟁",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "republic wrong order",
+      "expected": [
+        "6월항쟁",
+        "Fixture"
+      ],
+      "value": "Fixture/6월민주항쟁",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "republic repeated equivalent",
+      "expected": [
+        "6월항쟁",
+        "Fixture"
+      ],
+      "value": "6월항쟁/6월민주항쟁",
+      "correct": false,
+      "ordered": false
+    },
+    {
+      "label": "opening phase",
+      "expected": [
+        "1차 갑오"
+      ],
+      "value": "제1차갑오개혁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "opening phase",
+      "expected": [
+        "1차 갑오"
+      ],
+      "value": "1차갑오개혁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "opening phase",
+      "expected": [
+        "1차 갑오"
+      ],
+      "value": "갑오개혁1",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "opening phase boundary",
+      "expected": [
+        "1차 갑오"
+      ],
+      "value": "1차",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening phase boundary",
+      "expected": [
+        "1차 갑오"
+      ],
+      "value": "2차",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening phase boundary",
+      "expected": [
+        "1차 갑오"
+      ],
+      "value": "제1차",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening phase boundary",
+      "expected": [
+        "1차 갑오"
+      ],
+      "value": "제2차",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening phase boundary",
+      "expected": [
+        "1차 갑오"
+      ],
+      "value": "갑오",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening phase boundary",
+      "expected": [
+        "1차 갑오"
+      ],
+      "value": "갑오개혁",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening phase boundary",
+      "expected": [
+        "1차 갑오"
+      ],
+      "value": "제2차갑오개혁",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening phase",
+      "expected": [
+        "2차 갑오"
+      ],
+      "value": "제2차갑오개혁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "opening phase",
+      "expected": [
+        "2차 갑오"
+      ],
+      "value": "2차갑오개혁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "opening phase",
+      "expected": [
+        "2차 갑오"
+      ],
+      "value": "갑오개혁2",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "opening phase boundary",
+      "expected": [
+        "2차 갑오"
+      ],
+      "value": "1차",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening phase boundary",
+      "expected": [
+        "2차 갑오"
+      ],
+      "value": "2차",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening phase boundary",
+      "expected": [
+        "2차 갑오"
+      ],
+      "value": "제1차",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening phase boundary",
+      "expected": [
+        "2차 갑오"
+      ],
+      "value": "제2차",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening phase boundary",
+      "expected": [
+        "2차 갑오"
+      ],
+      "value": "갑오",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening phase boundary",
+      "expected": [
+        "2차 갑오"
+      ],
+      "value": "갑오개혁",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening phase boundary",
+      "expected": [
+        "2차 갑오"
+      ],
+      "value": "제1차갑오개혁",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening multi phases",
+      "expected": [
+        "1차 갑오",
+        "2차 갑오"
+      ],
+      "value": "제1차갑오개혁/제2차갑오개혁",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "opening swapped phases",
+      "expected": [
+        "1차 갑오",
+        "2차 갑오"
+      ],
+      "value": "제2차갑오개혁/제1차갑오개혁",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening generic phases",
+      "expected": [
+        "1차 갑오",
+        "2차 갑오"
+      ],
+      "value": "1차/2차",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "explicit equivalent multi",
+      "expected": [
+        "Alpha(=Beta)",
+        "Gamma"
+      ],
+      "value": "Beta/Gamma",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "explicit equivalent multi",
+      "expected": [
+        "Alpha(=Beta)",
+        "Gamma"
+      ],
+      "value": "Beta,Gamma",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "explicit equivalent multi",
+      "expected": [
+        "Alpha(=Beta)",
+        "Gamma"
+      ],
+      "value": "Alpha(=Beta)/Gamma",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "explicit equivalent multi",
+      "expected": [
+        "Alpha(=Beta)",
+        "Gamma"
+      ],
+      "value": "Beta",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "explicit equivalent multi",
+      "expected": [
+        "Alpha(=Beta)",
+        "Gamma"
+      ],
+      "value": "Beta/Gamma/Extra",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "explicit equivalent multi",
+      "expected": [
+        "Alpha(=Beta)",
+        "Gamma"
+      ],
+      "value": "Beta//Gamma",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "explicit equivalent multi",
+      "expected": [
+        "Alpha(=Beta)",
+        "Gamma"
+      ],
+      "value": "/Beta/Gamma",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "explicit equivalent multi",
+      "expected": [
+        "Alpha(=Beta)",
+        "Gamma"
+      ],
+      "value": "Beta/Gamma/",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "explicit equivalent multi",
+      "expected": [
+        "Alpha(=Beta)",
+        "Gamma"
+      ],
+      "value": "Gamma/Beta",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "explicit equivalent multi",
+      "expected": [
+        "Alpha(=Beta)",
+        "Gamma"
+      ],
+      "value": "Beta/Beta",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "explicit equivalent multi",
+      "expected": [
+        "Alpha(=Beta)",
+        "Gamma"
+      ],
+      "value": "beta/Gamma",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "explicit equivalent multi",
+      "expected": [
+        "Alpha(=Beta)",
+        "Gamma"
+      ],
+      "value": "Bet/Gamma",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "explicit equivalent unordered",
+      "expected": [
+        "Alpha(=Beta)",
+        "Gamma"
+      ],
+      "value": "Gamma/Beta",
+      "correct": true,
+      "ordered": false
+    },
+    {
+      "label": "overlapping explicit alternatives",
+      "expected": [
+        "Alpha(=Beta)",
+        "Alpha"
+      ],
+      "value": "Alpha/Beta",
+      "correct": true,
+      "ordered": false
+    },
+    {
+      "label": "repeated canonical comma",
+      "expected": [
+        "Alpha",
+        "Alpha"
+      ],
+      "value": "Alpha,Alpha",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "repeated canonical slash",
+      "expected": [
+        "Alpha",
+        "Alpha"
+      ],
+      "value": "Alpha/Alpha",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "required parenthesis fields",
+      "expected": [
+        "Alpha(Beta)",
+        "Gamma"
+      ],
+      "value": "Alpha/Gamma",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "literal fraction",
+      "expected": [
+        "1/2",
+        "Gamma"
+      ],
+      "value": "1,2/Gamma",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "literal numeric comma",
+      "expected": [
+        "1,000",
+        "Gamma"
+      ],
+      "value": "1/000/Gamma",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "no new shorthand multi",
+      "expected": [
+        "조미수호통상조약",
+        "Fixture"
+      ],
+      "value": "조미/Fixture",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "no treaty conflation",
+      "expected": [
+        "조일수호조규부록",
+        "Fixture"
+      ],
+      "value": "조일수호조규/Fixture",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "samguk exact synthetic",
+      "expected": [
+        "samguk Fixture"
+      ],
+      "value": " samguk Fixture ",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "samguk fuzzy negative",
+      "expected": [
+        "samguk Fixture"
+      ],
+      "value": "samguk Fixtur",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "goryeo exact synthetic",
+      "expected": [
+        "goryeo Fixture"
+      ],
+      "value": " goryeo Fixture ",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "goryeo fuzzy negative",
+      "expected": [
+        "goryeo Fixture"
+      ],
+      "value": "goryeo Fixtur",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "joseon exact synthetic",
+      "expected": [
+        "joseon Fixture"
+      ],
+      "value": " joseon Fixture ",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "joseon fuzzy negative",
+      "expected": [
+        "joseon Fixture"
+      ],
+      "value": "joseon Fixtur",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "opening exact synthetic",
+      "expected": [
+        "opening Fixture"
+      ],
+      "value": " opening Fixture ",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "opening fuzzy negative",
+      "expected": [
+        "opening Fixture"
+      ],
+      "value": "opening Fixtur",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "colonial exact synthetic",
+      "expected": [
+        "colonial Fixture"
+      ],
+      "value": " colonial Fixture ",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "colonial fuzzy negative",
+      "expected": [
+        "colonial Fixture"
+      ],
+      "value": "colonial Fixtur",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "republic exact synthetic",
+      "expected": [
+        "republic Fixture"
+      ],
+      "value": " republic Fixture ",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "republic fuzzy negative",
+      "expected": [
+        "republic Fixture"
+      ],
+      "value": "republic Fixtur",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "other exact synthetic",
+      "expected": [
+        "other Fixture"
+      ],
+      "value": " other Fixture ",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "other fuzzy negative",
+      "expected": [
+        "other Fixture"
+      ],
+      "value": "other Fixtur",
+      "correct": false,
+      "ordered": true
+    }
+  ]
+}

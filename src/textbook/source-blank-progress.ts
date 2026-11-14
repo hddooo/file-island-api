@@ -989,13 +989,48 @@ export function sourcePolicyMatches(value:string,expected:string,policy:SourceAn
   return actual.every((part,index)=>part===selected[index]);
  });
 }
-function separatedAnswersMatch(value:string,expected:string[],ordered:boolean):boolean {
- // A slash/comma inside a canonical element may be a fraction or literal text.
+// Whole-term equivalents only; do not infer aliases from a shared prefix or date.
+// Public references (fixtures do not claim these terms occur in a private quiz):
+// https://contents.history.go.kr/mobile/ta/view.do?levelId=ta_m71_0030_0020_0010_0010
+// https://encykorea.aks.ac.kr/Article/E0023615
+// https://encykorea.aks.ac.kr/Article/E0026772
+// https://encykorea.aks.ac.kr/Article/E0068343
+const historicalAnswerEquivalents = [
+ ['광개토왕', '광개토대왕'],
+ ['보현십원가', '보현십종원왕가'],
+ ['3·1운동', '삼일운동'],
+ ['6월항쟁', '6월민주항쟁', '6월민주화항쟁', '6·10항쟁'],
+ // Existing phase-qualified opening-era forms; never accept just 1차 or 2차.
+ ['1차갑오', '1차갑오개혁', '갑오개혁1', '제1차갑오개혁', '제1차갑오'],
+ ['2차갑오', '2차갑오개혁', '갑오개혁2', '제2차갑오개혁', '제2차갑오']
+];
+function equivalentAnswerMatches(value: string, expected: string): boolean {
+ const given=normalized(value),canonical=normalized(expected);
+ if(given===canonical)return true;
+ if(historicalAnswerEquivalents.some(group=>group.includes(canonical)&&group.includes(given)))return true;
+ const alias=canonical.match(/^([\p{L}\p{N}]+)\(=([\p{L}\p{N}]+)\)$/u);
+ return !!alias&&(given===alias[1]||given===alias[2]);
+}
+function separatedAnswersMatch(value: string, expected: string[], ordered: boolean): boolean {
+ // Slash/comma inside a canonical element can be a fraction or literal text.
  if(expected.some(part=>/[,/]/.test(part)))return false;
- const given=value.split(/[,/]/).map(normalized),parts=expected.map(normalized);
- if(given.length!==parts.length||given.some(x=>!x)||new Set(given).size!==given.length)return false;
- if(!ordered){given.sort();parts.sort();}
- return given.every((part,index)=>part===parts[index]);
+ const given=value.split(/[,/]/).map(normalized);
+ if(given.length!==expected.length||given.some(part=>!part))return false;
+ if(ordered)return given.every((part,index)=>equivalentAnswerMatches(part,expected[index]));
+ // Assign each field once. Greedy matching can consume the only match for a
+ // later field when an explicit (=) alternative overlaps another answer.
+ const assigned: number[]=expected.map(()=>-1);
+ function assign(index: number, seen: Set<number>): boolean {
+  for(let target=0;target<expected.length;target++){
+   if(seen.has(target)||!equivalentAnswerMatches(given[index],expected[target]))continue;
+   seen.add(target);
+   if(assigned[target]===-1||assign(assigned[target],seen)){
+    assigned[target]=index;return true;
+   }
+  }
+  return false;
+ }
+ return given.every((_,index)=>assign(index,new Set<number>()));
 }
 
 // User-approved answer shorthand, not a claim that these treaties are identical.
@@ -1121,7 +1156,7 @@ function treatyAliasMatches(value:string,expected:string):boolean{
 
 function singleAnswerMatches(value: string, expected: string): boolean {
  const cleaned=normalized(value), canonical=normalized(expected);
- if(cleaned===canonical||treatyAliasMatches(value,expected))return true;
+ if(equivalentAnswerMatches(value,expected)||treatyAliasMatches(value,expected))return true;
  const alias=canonical.match(/^([\p{L}\p{N}]+)\(=([\p{L}\p{N}]+)\)$/u);
  if(alias)return cleaned===alias[1]||cleaned===alias[2];
  // Project explicit parentheses to separators, retaining every source token in
