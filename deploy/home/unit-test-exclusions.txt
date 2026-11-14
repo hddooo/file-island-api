@@ -1,0 +1,2 @@
+dist/test/unit/catalog.test.js
+dist/test/unit/quality-revision.test.js

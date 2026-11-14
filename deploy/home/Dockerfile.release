@@ -17,8 +17,12 @@ COPY migrations ./migrations
 # Tests that read the private quiz data use the copy already inside the base image.
 RUN ln -s /app/private-textbook-semantic-data /build/private-textbook-semantic-data
 # Unit tests gate the release: a failing test fails the build and nothing is deployed.
+# Two test files need data outside this repository (frontend checkout, revision originals); they are listed in unit-test-exclusions.txt.
+COPY deploy/home/unit-test-exclusions.txt /tmp/unit-test-exclusions.txt
 RUN ./node_modules/.bin/tsc -p tsconfig.json \
- && node --test --test-concurrency=1 "dist/test/unit/**/*.test.js"
+ && find dist/test/unit -name '*.test.js' | sort | grep -v -x -F -f /tmp/unit-test-exclusions.txt > /tmp/unit-tests.txt \
+ && test -s /tmp/unit-tests.txt \
+ && node --test --test-concurrency=1 $(cat /tmp/unit-tests.txt)
 RUN rm -rf dist && ./node_modules/.bin/tsc -p tsconfig.build.json
 
 FROM ${BASE_IMAGE}
