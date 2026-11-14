@@ -1,0 +1,31 @@
+# Push to the release branch -> build, unit-test, deploy on the home server, roll back if unhealthy.
+name: Home API deploy
+on:
+  push:
+    branches: [release/source-grading-current-runtime]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: home-api-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: github.repository == 'hddooo/file-island-api' && github.ref == 'refs/heads/release/source-grading-current-runtime'
+    runs-on: [self-hosted, Windows, X64, hanq-api-qualification]
+    timeout-minutes: 30
+    env:
+      HANQ_GIT_EXE: C:\Users\INNOGRID\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\git\cmd\git.exe
+    steps:
+      - name: Use the installed Git
+        shell: cmd
+        run: |
+          "%HANQ_GIT_EXE%" --version
+          if errorlevel 1 exit /b 1
+          echo C:\Users\INNOGRID\.cache\codex-runtimes\codex-primary-runtime\dependencies\native\git\cmd>>"%GITHUB_PATH%"
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Build, deploy and verify
+        shell: cmd
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File deploy\home\deploy.ps1

@@ -1,0 +1,28 @@
+# Home-server release image: compile this commit and lay the result over the pinned runtime base.
+# The base keeps node_modules, certs and private data that are not in Git; only /app/dist is replaced.
+ARG BASE_IMAGE
+
+FROM ${BASE_IMAGE} AS build
+USER root
+WORKDIR /build
+COPY package.json package-lock.json ./
+# Runtime dependencies come from the base image, so a dependency change needs a new base first.
+RUN node -e "const a=require('/app/package.json').dependencies,b=require('/build/package.json').dependencies;if(JSON.stringify(a)!==JSON.stringify(b)){console.error('Runtime dependencies changed: rebuild the runtime base image before releasing.');process.exit(1)}"
+RUN npm ci --no-audit --no-fund
+COPY tsconfig.json tsconfig.build.json ./
+COPY src ./src
+COPY scripts ./scripts
+COPY test ./test
+# Unit tests gate the release: a failing test fails the build and nothing is deployed.
+RUN npx tsc -p tsconfig.json \
+ && node --test --test-concurrency=1 "dist/test/unit/**/*.test.js"
+RUN rm -rf dist && npx tsc -p tsconfig.build.json
+
+FROM ${BASE_IMAGE}
+ARG SOURCE_COMMIT
+USER root
+RUN rm -rf /app/dist
+COPY --from=build --chown=0:0 /build/dist/ /app/dist/
+USER node
+LABEL org.opencontainers.image.revision=$SOURCE_COMMIT \
+      io.hanq.simple-cd=1
