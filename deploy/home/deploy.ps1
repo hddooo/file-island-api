@@ -64,7 +64,7 @@ $tag = "hanq-api-release:$short"
 $ctx = Join-Path $stateDir "context-$short.tar"
 Must $git @('-C', $repo, '-c', 'core.autocrlf=false', '-c', 'core.eol=lf', 'archive', '--format=tar', '-o', $ctx, $commit) 'Exporting source' | Out-Null
 Step "Building $tag on base $($cfg.baseImage)"
-$build = "docker build --quiet -f deploy/home/Dockerfile.release --build-arg BASE_IMAGE=$($cfg.baseImage) --build-arg SOURCE_COMMIT=$commit -t $tag - < `"$ctx`""
+$build = "docker build --progress=plain -f deploy/home/Dockerfile.release --build-arg BASE_IMAGE=$($cfg.baseImage) --build-arg SOURCE_COMMIT=$commit -t $tag - < `"$ctx`""
 $log = Join-Path $stateDir "build-$short.log"
 & cmd /c "$build > `"$log`" 2>&1"
 $buildCode = $LASTEXITCODE
