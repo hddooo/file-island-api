@@ -29,7 +29,7 @@ function validateSubmission(body: FullSourceAttempt) {
   const responses = new Map<string, string[]>();
   for (const response of body.responses) {
     if (!response || !exactKeys(response, ['itemId', 'values']) || typeof response.itemId !== 'string' || response.itemId.length < 1 || response.itemId.length > 200 || responses.has(response.itemId) ||
-        !Array.isArray(response.values) || response.values.length < 1 || response.values.length > 30 || response.values.some(value => typeof value !== 'string' || value.length > 2000 || !value.normalize('NFC').replace(/\s+/g, ''))) throw invalid();
+        !Array.isArray(response.values) || response.values.length < 1 || response.values.length > 30 || response.values.some(value => typeof value !== 'string' || value.length > 2000)) throw invalid();
     responses.set(response.itemId, response.values);
   }
   return responses;
@@ -43,7 +43,9 @@ export function gradeFullSourceAttempt(items: SourceItem[], version: string, bod
     const values = responses.get(item.id), slots = sourceSlots(item);
     if (item.verification.status !== 'source-verified' || !['blank', 'fill-in', 'sequence', 'classification'].includes(item.kind) ||
         !values || !slots.length || slots.length > 30 || values.length !== slots.length) throw invalid();
-    return { itemId: item.id, values: [...values], correct: sourceGrade(item, values, body.gradingVersion, version) };
+    // A submitted run may leave questions unanswered; a blank slot scores the item wrong, as on the statistics screen.
+    const answered = values.every(value => !!value.normalize('NFC').replace(/\s+/g, ''));
+    return { itemId: item.id, values: [...values], correct: answered && sourceGrade(item, values, body.gradingVersion, version) };
   });
   const correct = canonical.filter(response => response.correct).length;
   return { correct, total: items.length, xpAward: sourceAttemptXp(correct, items.length), canonical };

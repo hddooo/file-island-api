@@ -63,14 +63,16 @@ test('full completion grades every authoritative item and leaves input unchanged
   assert.deepEqual({ input, items }, before);
 });
 
-test('every slot of a multi-slot item is required, while a complete wrong answer still scores zero', () => {
+test('every slot of a multi-slot item must be present; a blank slot scores the item wrong; a complete wrong answer scores zero', () => {
   const item: SourceItem = { ...items[0], blanks: [
     { id: 'first-slot', answerIds: ['answer'] }, { id: 'second-slot', answerIds: ['second-answer'] },
   ], answers: [...items[0].answers, { id: 'second-answer', text: 'second synthetic answer' }] };
   const input = body({ responses: [{ itemId: item.id, values: ['synthetic answer', 'second synthetic answer'] }] });
   assert.equal(gradeFullSourceAttempt([item], version, input).correct, 1);
-  for (const values of [['synthetic answer'], ['synthetic answer', ''], ['synthetic answer', ' \n']]) {
-    assert.throws(() => gradeFullSourceAttempt([item], version, { ...input, responses: [{ itemId: item.id, values }] }), { code: 'invalid_source_attempt' });
+  assert.throws(() => gradeFullSourceAttempt([item], version, { ...input, responses: [{ itemId: item.id, values: ['synthetic answer'] }] }), { code: 'invalid_source_attempt' });
+  for (const values of [['synthetic answer', ''], ['synthetic answer', ' \n'], ['', '']]) {
+    const blank = gradeFullSourceAttempt([item], version, { ...input, responses: [{ itemId: item.id, values }] });
+    assert.deepEqual([blank.correct, blank.total, blank.xpAward], [0, 1, 0], 'unanswered slot counts as wrong');
   }
   const wrong = gradeFullSourceAttempt([item], version, { ...input, responses: [{ itemId: item.id, values: ['synthetic answer', 'wrong'] }] });
   assert.equal(wrong.correct, 0); assert.equal(wrong.total, 1); assert.equal(wrong.xpAward, 0);
@@ -87,10 +89,15 @@ test('partial, interrupted, practice, forged, duplicate and malformed completion
     { ...valid, responses: valid.responses.map((row, i) => i === 0 ? valid.responses[1] : row) },
     { ...valid, responses: valid.responses.map((row, i) => i === 0 ? { ...row, itemId: 'unknown' } : row) },
   ];
-  for (const values of [[], [''], [' \t\n'], ['a', 'b'], ['a'.repeat(2001)], [null]]) {
+  for (const values of [[], ['a', 'b'], ['a'.repeat(2001)], [null]]) {
     invalidBodies.push({ ...valid, responses: valid.responses.map((row, i) => i === 0 ? { ...row, values } : row) });
   }
   for (const input of invalidBodies) assert.throws(() => gradeFullSourceAttempt(items, version, input as FullSourceAttempt), { code: 'invalid_source_attempt' });
+  // An unanswered question in a submitted full run is recorded as wrong, not rejected.
+  for (const values of [[''], [' \t\n']]) {
+    const graded = gradeFullSourceAttempt(items, version, { ...valid, responses: valid.responses.map((row, i) => i === 0 ? { ...row, values } : row) });
+    assert.equal(graded.correct, items.length - 1);
+  }
   for (const roster of [[], [...items, items[0]], items.map((item, i) => i === 0 ? { ...item, verification: { status: 'unverified' } } : item), items.map((item, i) => i === 0 ? { ...item, blanks: [] } : item)]) {
     assert.throws(() => gradeFullSourceAttempt(roster, version, valid), { code: 'invalid_source_attempt' });
   }
