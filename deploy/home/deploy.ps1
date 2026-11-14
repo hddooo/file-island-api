@@ -55,6 +55,16 @@ if ($migrations -ne $cfg.approvedMigrationsTree) {
   Fail "migrations/ changed ($migrations). Apply and review the database change by hand, then update approvedMigrationsTree in $ConfigPath."
 }
 
+# Re-runs of an already deployed commit change nothing (a rebuild would get a new image id and restart the container).
+if (-not $BuildOnly) {
+  # Read labels as JSON: Windows PowerShell drops embedded double quotes in native arguments, so no quoted template keys.
+  $running = Run 'docker' @('inspect', $cfg.container, '--format', '{{json .Config.Labels}}')
+  if ($running.Code -eq 0 -and $running.Out.Count -gt 0) {
+    try { $labels = ($running.Out -join '') | ConvertFrom-Json } catch { $labels = $null }
+    if ($labels -and $labels.'org.opencontainers.image.revision' -eq $commit) { Step "Commit $short is already running; nothing to do"; exit 0 }
+  }
+}
+
 # The base is a local tag; make sure it still points at the image it was pinned to.
 $baseId = (@(Must 'docker' @('image', 'inspect', $cfg.baseImage, '--format', '{{.Id}}') 'Reading base image'))[0].Trim()
 if ($cfg.baseImageId -and $baseId -ne $cfg.baseImageId) { Fail "Base image tag $($cfg.baseImage) no longer points at $($cfg.baseImageId)." }
