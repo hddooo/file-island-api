@@ -44,12 +44,12 @@ New-Item -ItemType Directory -Force $stateDir | Out-Null
 
 $git = if ($env:HANQ_GIT_EXE) { $env:HANQ_GIT_EXE } else { 'git' }
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$commit = (Must $git @('-C', $repo, 'rev-parse', 'HEAD') 'Reading commit')[0].Trim()
+$commit = (@(Must $git @('-C', $repo, 'rev-parse', 'HEAD') 'Reading commit'))[0].Trim()
 $short = $commit.Substring(0, 12)
 Step "Commit $commit"
 
 # 1. Database safety gate: schema changes are never deployed automatically.
-$migrations = (Must $git @('-C', $repo, 'rev-parse', 'HEAD:migrations') 'Reading migrations tree')[0].Trim()
+$migrations = (@(Must $git @('-C', $repo, 'rev-parse', 'HEAD:migrations') 'Reading migrations tree'))[0].Trim()
 if ($migrations -ne $cfg.approvedMigrationsTree) {
   Fail "migrations/ changed ($migrations). Apply and review the database change by hand, then update approvedMigrationsTree in $ConfigPath."
 }
@@ -65,7 +65,7 @@ $log = Join-Path $stateDir "build-$short.log"
 $buildCode = $LASTEXITCODE
 Remove-Item $ctx -Force -ErrorAction SilentlyContinue
 if ($buildCode -ne 0) { Get-Content $log -Tail 60 | ForEach-Object { Write-Host $_ }; Fail 'Image build or unit tests failed' }
-$image = (Must 'docker' @('image', 'inspect', $tag, '--format', '{{.Id}}') 'Reading image id')[0].Trim()
+$image = (@(Must 'docker' @('image', 'inspect', $tag, '--format', '{{.Id}}') 'Reading image id'))[0].Trim()
 Step "Image $image"
 
 # 3. Smoke test without network or database: every application module must load.
@@ -74,7 +74,7 @@ Step 'Smoke test passed'
 if ($BuildOnly) { Step 'Build only: production was not touched'; exit 0 }
 
 # 4. Swap the image; everything else comes from the unchanged compose file.
-function Current-Image { (Must 'docker' @('inspect', $cfg.container, '--format', '{{.Image}}') 'Reading running container')[0].Trim() }
+function Current-Image { (@(Must 'docker' @('inspect', $cfg.container, '--format', '{{.Image}}') 'Reading running container'))[0].Trim() }
 function Start-Image([string]$id, [string]$name) {
   $override = Join-Path $stateDir "$name.override.json"
   $json = '{"services":{"' + $cfg.service + '":{"image":"' + $id + '"}}}'
