@@ -1,0 +1,140 @@
+API full blank-quiz history and XP candidate -- 2026-11-14
+
+Repository: hddooo/file-island-api
+Local review branch: codex/hanq-quiz-history-xp-20261114
+Base: 30e127f63df1e5ba155158ed78930f00cf27d74f
+Base branch: release/source-grading-current-runtime
+Status: source candidate only; NOT deployed and schema NOT applied.
+No existing release pins, workflows, grading aliases, source data, UI, S3,
+credentials, grants, or production records are changed.
+
+Why a schema proposal is necessary
+The existing growth ledger has no honest kind for full-source awards of
+0/1/5/10. Reusing practice/admin/attendance kinds would break its meaning and
+constraints. The additive SQL lives outside migrations and is not loaded by
+scripts/migrate.ts. Absent its table, the new endpoints fail closed with 503
+source_attempt_schema_not_ready. Actual credit is not enabled by this branch.
+Do not promote this SQL into migration tooling or execute it without separate
+schema approval and the remaining acceptance checks below.
+
+Client interface (independent from all practice/workspace saves)
+POST /api/v1/textbook/semantic/full-attempts/:id
+GET  /api/v1/textbook/semantic/full-attempts/:id?gradingVersion=2
+For a pinned source revision, prefix the same paths with
+/api/v1/textbook/revisions/:sourceRevision/semantic/full-attempts/:id
+(in place of /api/v1/textbook/semantic/full-attempts/:id).
+History81 joseon/goryeo/opening use the existing authoritative script loader.
+Both JWT/live-session authentication and TextbookMemberGuard are required.
+The authenticated user supplies ownership; responses are private/no-store.
+
+POST body:
+{
+  "attemptId": "one UUIDv4 generated once for this full attempt",
+  "mode": "full",
+  "status": "completed",
+  "version": "exact 64-character source version from the existing workspace",
+  "gradingVersion": 2,
+  "responses": [{"itemId": "every authoritative item once", "values": ["every required slot"]}]
+}
+Unknown fields, selected review subsets, practice/paused/active modes, empty
+slots, duplicate or unknown items, incomplete rosters and stale new submissions
+are rejected before completion storage. Server grading is unchanged and uses
+the explicit existing grading version; no client grades/XP/timestamps accepted.
+The API completion submission is the full-attempt boundary: it cannot prove
+the browser's earlier mode or unaided answering. The frontend must call it only
+after a completed full quiz, never on a practice save, interruption or pause.
+Do not create a fresh attemptId on retry. The existing quiz exposes answers;
+this feature is not an anti-cheating system or an attempt-start provenance log.
+
+POST returns {attempt,replayed}; attempt contains id, sequence (string), scope,
+correct, total, xpAward and completedAt. One item is correct only if all its
+required answer slots pass the unchanged grader. XP uses integer comparisons:
+correct*100 >= total*80:10; >=total*70:5; >=total*60:1; otherwise:0.
+No rounded display percentage affects the award. Existing partner attribution
+and XP application triggers process exactly one dedicated ledger event.
+
+GET returns {items,latest}. items contains at most five newest completions;
+latest is items[0] or null, even when its score is below an older score.
+Scope is authenticated owner + quiz id + source version + grading version +
+source revision. "Latest overall score" here means the newest total score for
+that selected full quiz, NOT an aggregate across eras, sources or grading modes.
+The UI must request the same gradingVersion; omitted GET version retains the
+existing API convention of v1. Source-version changes create a separate scope.
+
+Queue and retry invariants
+Latest-five is a read projection, not deletion. Minimal immutable receipts
+(hash/counts/scope/time; no raw responses) survive display eviction so an old
+retry cannot mint another reward. No legacy retention/backfill/cleanup runs.
+Exact retries canonicalize response ordering and UUID casing, return the
+original owned receipt, and do not regrade even after a source change/outage.
+Changed content or scope under a used id conflicts. Different users cannot
+read another user's receipt. New attempts always load/validate the full server
+source. Owner row is locked first; receipt and ledger insert share one
+transaction. Same-owner completions serialize and seq DESC orders committed
+history. Failed or uncertain clients must retry the SAME id and payload.
+
+Validation executed in the isolated Linux checkout
+- npm ci --ignore-scripts with a sandbox-local cache; package lock unchanged.
+- npm run build and npm run typecheck: passed.
+- Targeted ESLint on every changed TypeScript/CJS file: passed.
+- Targeted unit/HTTP/regression suites: 26 passed, zero skipped/failed.
+- Optional in-memory PGlite 0.3.14 PostgreSQL engine harness: 40 checks passed.
+  Exercises actual legacy 042/046/048/049 constraints, actual 052 partner
+  attribution/application functions on synthetic storage, proposal DDL,
+  generated XP thresholds, unchanged legacy truth table/seed row, owner/amount
+  foreign keys, duplicate prevention, append-only receipt protection, latest
+  lower score, newest five, durable old receipt, real repository SQL roundtrip
+  and transaction rollback. This engine has ONE backend; it does not establish
+  real multi-client locking behavior or runtime-role privileges.
+- Two actual Codex subagents independently reviewed architecture and API
+  behavior and contributed synthetic tests. No private fixtures were used.
+
+Reproduction from the candidate checkout
+npm ci --ignore-scripts --cache <sandbox-cache> --no-audit --no-fund
+npm run build
+npm run typecheck
+node_modules/.bin/tsc -p tsconfig.json
+node --test --test-concurrency=1 dist/test/unit/source-full-attempt.test.js dist/test/unit/source-attempt-repository.test.js dist/test/unit/source-blank-completion.test.js dist/test/unit/source-grading-namespace.test.js dist/test/unit/growth-history.test.js
+For optional synthetic SQL validation, install @electric-sql/pglite@0.3.14 in a
+separate sandbox tools directory, not in this repository or a runtime host.
+PGLITE_MODULE=<absolute sandbox module path> node test/manual/source-attempt-schema.cjs
+The SQL harness never accepts a database URL and creates only an in-memory DB.
+
+Remaining acceptance before integration/activation
+1. Review/approve additive schema and scoped latest-five/minimal-receipt policy.
+   Check full actual current schema, app role ownership/default privileges and
+   identity sequence access in an isolated production-equivalent PostgreSQL
+   instance. Do not add grants or weaken constraints as an automatic fix.
+2. Run real PostgreSQL multi-client tests: hold owner lock and prove second
+   client waits; simultaneous same-id/same-body => one award plus replay;
+   same-id/different-body => one success plus conflict; distinct ids => ordered
+   newest five; owner isolation; reward failure rolls back both rows; lost
+   client response before/after commit => same-id retry resolves without another
+   award. Include equipped-partner changes under the shared lock order.
+3. Wire the independent frontend full-quiz completion path to the explicit API,
+   preserve a stable attemptId across retries, and verify practice/interruption
+   never invokes it. Confirm selected-quiz scope/product interpretation.
+4. Run the authorized native Windows/full-fixture qualification only through
+   its approved path. It has NOT been run here. No r3 deployment approval or
+   operational integrity blocker is cleared by these synthetic tests.
+
+Rollback/stop criteria
+Stop activation for schema drift, unknown migration state, missing permissions,
+unexpected legacy mutation, source mismatch, duplicate reward, ownership leak,
+unproven concurrency, or uncertain commit outcome. Do not auto-retry with a new
+id or alter hashes to pass a gate. Before activation, discard/revert candidate
+code with no production effect. After an independently approved activation,
+disable/revert the new routes, retain receipts/ledger and additive schema, and
+use only a separately approved compensating XP procedure if needed. Never
+DELETE legacy or awarded data, blindly down-migrate constraints, or deduct XP
+automatically. An older binary may hide the new ledger reason in its view.
+
+Remote persistence inspection
+The API's release and default branches contain only workflow_dispatch workflows;
+the candidate changes no workflows, and no push/deployment trigger was found.
+Repository rulesets GET returned []. Classic branch-protection inspection
+returned HTTP403 Resource not accessible by integration; slash-containing
+candidate branch inspection was rejected by the connector URL validator.
+Consequently no remote branch/push was attempted: current complete branch-rule
+verification was unavailable. Sources, a local commit, patch and ZIP are retained
+in the verified workspace for root integration. No PR or dispatch was created.

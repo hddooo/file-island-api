@@ -14,6 +14,9 @@ import { OpeningScriptService } from './opening-script.service';
 import { OpeningStructureService } from './opening-structure.service';
 import { History81Controller } from './history81.controller';
 import { History81Service } from './history81.service';
+import { SourceAttemptController } from './source-attempt.controller';
+import { SourceAttemptService } from './source-attempt.service';
+import { SourceAttemptRepository } from './source-attempt-repository';
 
-@Module({ controllers: [TextbookController, JoseonScriptController, GoryeoScriptController, OpeningScriptController, History81Controller], providers: [TextbookMemberGuard, TextbookService, SourceBlankProgressService, JoseonScriptService, ScriptHeadersGuard, GoryeoScriptService, OpeningScriptService, OpeningStructureService, History81Service] })
+@Module({ controllers: [TextbookController, JoseonScriptController, GoryeoScriptController, OpeningScriptController, History81Controller, SourceAttemptController], providers: [TextbookMemberGuard, TextbookService, SourceBlankProgressService, JoseonScriptService, ScriptHeadersGuard, GoryeoScriptService, OpeningScriptService, OpeningStructureService, History81Service, SourceAttemptService, SourceAttemptRepository] })
 export class TextbookModule {}

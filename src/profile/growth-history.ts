@@ -3,8 +3,8 @@ import { AppError } from '../common/app-error';
 /** Read-only view of the append-only growth ledger (migration 003). No new table, column, index or grant. */
 export const GROWTH_HISTORY_DEFAULT_LIMIT = 20;
 export const GROWTH_HISTORY_MAX_LIMIT = 50;
-export type GrowthReason = 'signup' | 'wrong-note-study' | 'practice-quiz' | 'practice-mock' | 'cbt-exam' | 'toeic-answer' | 'battle' | 'admin-adjustment' | 'attendance';
-const REASONS: readonly string[] = ['signup', 'wrong-note-study', 'practice-quiz', 'practice-mock', 'cbt-exam', 'toeic-answer', 'battle', 'admin-adjustment', 'attendance']; // practice-*: 008 · cbt-exam: 009
+export type GrowthReason = 'signup' | 'wrong-note-study' | 'practice-quiz' | 'practice-mock' | 'cbt-exam' | 'toeic-answer' | 'battle' | 'admin-adjustment' | 'attendance' | 'source-full-quiz';
+const REASONS: readonly string[] = ['signup', 'wrong-note-study', 'practice-quiz', 'practice-mock', 'cbt-exam', 'toeic-answer', 'battle', 'admin-adjustment', 'attendance', 'source-full-quiz']; // practice-*: 008 · cbt-exam: 009
 
 /** Ledger keys are server-written ('signup', 'study:<run uuid>'); the cursor only ever carries a key the server returned. */
 const EVENT_KEY = /^[A-Za-z0-9:_-]{1,80}$/;
