@@ -1,4 +1,5 @@
 export const ROUND_MS=30_000, START_MS=3_000, READY_POP_MS=1_000, BETWEEN_MS=4_000, GRACE_MS=10_000, LIVE_MS=5_000, TIE_MS=0;
+export const HISTORY_EXTRA_MS=30_000, HISTORY_RESPONSE_MS=5_000;
 export type Side='left'|'right';
 export interface Fighter {name:string;character:string;characterName:string;technique:string;hp:number;maxHp:number;atk:number;def:number;stageIndex:number;luk:number;}
 // Static HP/ATK/DEF = round([50,10,5] * 1.5^stage). Other battle rules are unchanged.
@@ -29,3 +30,6 @@ export function score(bundle:Bundle,s:BundleSubmission|null){return s?bundle.ite
 export function bundleAttack(bundle:Bundle,a:BundleSubmission|null,b:BundleSubmission|null){const ac=score(bundle,a),bc=score(bundle,b);if(!ac&&!bc)return{attacker:null as Side|null,reason:'neither_correct'};if(ac!==bc)return{attacker:(ac>bc?'left':'right')as Side,reason:'more_correct'};if(a&&b&&Math.abs(a.at-b.at)<=TIE_MS)return{attacker:null as Side|null,reason:'simultaneous'};return{attacker:(a&&(!b||a.at<b.at)?'left':'right')as Side,reason:'faster_correct'};}
 
 export function evasionPercent(defender:Fighter,attacker:Fighter,rates:number[]){return rates[defender.stageIndex-1]/attacker.stageIndex;}
+
+// Original bundle timings stay intact for TOEIC and private bot practice.
+export function roundDuration(bundle:Bundle,practice=false){return bundle.durationMs+(bundle.part===0&&!practice?HISTORY_EXTRA_MS:0);}

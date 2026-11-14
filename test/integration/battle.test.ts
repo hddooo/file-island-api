@@ -21,7 +21,7 @@ describe('opt-in battle API with separate learning records',()=>{
   await request(t.server).post('/api/v1/battle/matches/'+id+'/accept').set(bearer(b.access)).send({}).expect(201);
   await request(t.server).post('/api/v1/battle/matches/'+id+'/ready').set(bearer(a.access)).send({round:1,clientTime:0}).expect(400);
   await request(t.server).post('/api/v1/battle/matches/'+id+'/ready').set(bearer(a.access)).send({round:1}).expect(201);
-  const start=await request(t.server).post('/api/v1/battle/matches/'+id+'/ready').set(bearer(b.access)).send({round:1}).expect(201);assert.equal(start.body.deadline-start.body.start,30000);assert.equal(start.body.start-start.body.initialReadyUntil,3000);assert.equal(start.body.initialReadyUntil-start.body.serverNow,1000);assert(!JSON.stringify(start.body.question).includes('"answer"'));
+  const start=await request(t.server).post('/api/v1/battle/matches/'+id+'/ready').set(bearer(b.access)).send({round:1}).expect(201);assert.equal(start.body.deadline-start.body.start,60000);assert.equal(start.body.start-start.body.initialReadyUntil,3000);assert.equal(start.body.initialReadyUntil-start.body.serverNow,1000);assert(!JSON.stringify(start.body.question).includes('"answer"'));
   const ended=await request(t.server).post('/api/v1/battle/matches/'+id+'/forfeit').set(bearer(a.access)).send({}).expect(201);assert.equal(ended.body.winner,'right');assert.equal(ended.body.status,'finished');assert.deepEqual((await pool.query("SELECT user_id,event_key,amount FROM hanq.growth_ledger WHERE kind<>'battle' ORDER BY user_id,event_key")).rows,before);
  });
  it('keeps practice private and XP-free without creating a bot account',async()=>{

@@ -19,7 +19,7 @@ test('mock live payload hides answer and explanation for both sides including re
  const match={id:'synthetic',subject:'history',state,created_at:new Date(100000),expires_at:new Date(200000)};
  const view=svc as unknown as {view(m:unknown,s:'left'|'right',n:number):{question:{images:string[];items:{choices:unknown[]}[]};deadline:number;start:number};advance(s:unknown,n:number,g:boolean):void};
  for(const side of ['left','right'] as const){const d=view.view(match,side,100000);assert(!JSON.stringify(d.question).includes('answer'));assert(!JSON.stringify(d.question).includes('SECRET'));assert.equal(d.question.items[0].choices.length,5);assert.equal(d.question.images.length,2);}
- assert.equal(state.start,null);state.ready.right=true;view.advance(state,100000,false);const left=view.view(match,'left',100001),right=view.view(match,'right',100050);assert.equal(left.start,right.start);assert.equal(left.deadline,right.deadline);assert.equal(left.deadline-left.start,30000);
+ assert.equal(state.start,null);state.ready.right=true;view.advance(state,100000,false);const left=view.view(match,'left',100001),right=view.view(match,'right',100050);assert.equal(left.start,right.start);assert.equal(left.deadline,right.deadline);assert.equal(left.deadline-left.start,60000);
 });
 
 test('image preparation has one bounded timeout, no timer starts from one acknowledgment, and disconnect grace stays bounded',()=>{
