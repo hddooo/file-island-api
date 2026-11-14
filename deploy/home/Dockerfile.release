@@ -8,15 +8,15 @@ WORKDIR /build
 COPY package.json package-lock.json ./
 # Runtime dependencies come from the base image, so a dependency change needs a new base first.
 RUN node -e "const a=require('/app/package.json').dependencies,b=require('/build/package.json').dependencies;if(JSON.stringify(a)!==JSON.stringify(b)){console.error('Runtime dependencies changed: rebuild the runtime base image before releasing.');process.exit(1)}"
-RUN npm ci --no-audit --no-fund
+RUN npm ci --include=dev --no-audit --no-fund
 COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
 COPY scripts ./scripts
 COPY test ./test
 # Unit tests gate the release: a failing test fails the build and nothing is deployed.
-RUN npx tsc -p tsconfig.json \
+RUN ./node_modules/.bin/tsc -p tsconfig.json \
  && node --test --test-concurrency=1 "dist/test/unit/**/*.test.js"
-RUN rm -rf dist && npx tsc -p tsconfig.build.json
+RUN rm -rf dist && ./node_modules/.bin/tsc -p tsconfig.build.json
 
 FROM ${BASE_IMAGE}
 ARG SOURCE_COMMIT
