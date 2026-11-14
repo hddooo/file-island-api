@@ -996,9 +996,14 @@ export function sourcePolicyMatches(value:string,expected:string,policy:SourceAn
 // https://encykorea.aks.ac.kr/Article/E0026772
 // https://encykorea.aks.ac.kr/Article/E0068343
 const historicalAnswerEquivalents = [
- ['광개토왕', '광개토대왕'],
+ ['광개토왕', '광개토대왕', '광개토태왕'],
  ['보현십원가', '보현십종원왕가'],
- ['3·1운동', '삼일운동'],
+ ['3·1운동', '삼일운동', '3.1운동', '3ㆍ1운동'],
+ // Same body under its common short name (learner answers 2026-11-15); not a different organisation.
+ ['황국중앙총상회', '황국총상회'],
+ // Legacy semantic-quiz answers whose parenthesis is part of one term, typed as one word.
+ ['조선(후기)', '조선후기'],
+ ['민립대학설립(건립)운동', '민립대학설립운동', '민립대학건립운동'],
  ['6월항쟁', '6월민주항쟁', '6월민주화항쟁', '6·10항쟁'],
  // Existing phase-qualified opening-era forms; never accept just 1차 or 2차.
  ['1차갑오', '1차갑오개혁', '갑오개혁1', '제1차갑오개혁', '제1차갑오'],
