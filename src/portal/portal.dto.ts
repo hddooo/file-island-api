@@ -1,6 +1,6 @@
 import {IsString,MinLength,MaxLength,IsUUID,IsOptional,IsInt,Min,Max,IsIn} from 'class-validator';
 import {Type} from 'class-transformer';
-export class PageQuery{@IsOptional() @Type(()=>Number) @IsInt() @Min(1) @Max(100000) page=1;@IsOptional() @IsString() @MaxLength(120) search='';}
+export class PageQuery{@IsOptional() @Type(()=>Number) @IsInt() @Min(1) @Max(5000) page=1;@IsOptional() @IsString() @MaxLength(120) search='';}
 export class LoginAnalyticsQuery{@IsOptional() @Type(()=>Number) @IsIn([7,30]) days=7;}
 export class InquiryDto{@IsUUID() requestId:string;@IsString() @MinLength(1) @MaxLength(120) title:string;@IsString() @MinLength(1) @MaxLength(4000) body:string;}
 export class MessageDto{@IsUUID() requestId:string;@IsString() @MinLength(1) @MaxLength(4000) body:string;}
