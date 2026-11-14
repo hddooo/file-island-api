@@ -13,6 +13,9 @@ COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
 COPY scripts ./scripts
 COPY test ./test
+COPY migrations ./migrations
+# Tests that read the private quiz data use the copy already inside the base image.
+RUN ln -s /app/private-textbook-semantic-data /build/private-textbook-semantic-data
 # Unit tests gate the release: a failing test fails the build and nothing is deployed.
 RUN ./node_modules/.bin/tsc -p tsconfig.json \
  && node --test --test-concurrency=1 "dist/test/unit/**/*.test.js"
