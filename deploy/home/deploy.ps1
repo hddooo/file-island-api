@@ -5,7 +5,8 @@ Home-server API release: build this commit, start it, check health, roll back on
   deploy.ps1 -BuildOnly   build and smoke-test the image only; production is not touched
 
 Machine settings live outside Git in %LOCALAPPDATA%\HanQDeploy\simple-cd\config.json:
-  baseImage               runtime base image id (node_modules, certs, private data)
+  baseImage               local tag of the runtime base image (node_modules, certs, private data)
+  baseImageId             image id that tag must point at (optional but recommended)
   composeFile             resolved compose file of the running API (image is overridden per release)
   project / service / container
   healthUrl               e.g. http://127.0.0.1:8080/api/v1/health
@@ -53,6 +54,10 @@ $migrations = (@(Must $git @('-C', $repo, 'rev-parse', 'HEAD:migrations') 'Readi
 if ($migrations -ne $cfg.approvedMigrationsTree) {
   Fail "migrations/ changed ($migrations). Apply and review the database change by hand, then update approvedMigrationsTree in $ConfigPath."
 }
+
+# The base is a local tag; make sure it still points at the image it was pinned to.
+$baseId = (@(Must 'docker' @('image', 'inspect', $cfg.baseImage, '--format', '{{.Id}}') 'Reading base image'))[0].Trim()
+if ($cfg.baseImageId -and $baseId -ne $cfg.baseImageId) { Fail "Base image tag $($cfg.baseImage) no longer points at $($cfg.baseImageId)." }
 
 # 2. Build from the exact committed bytes (LF line endings), never from the working folder.
 $tag = "hanq-api-release:$short"
