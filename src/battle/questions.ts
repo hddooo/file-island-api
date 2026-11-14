@@ -26,15 +26,15 @@ import type {Bundle,BattleItem} from './rules';
 import {audioInfo} from './audio';
 export async function bundles(q:Queryable,subject:string,limit=Number.MAX_SAFE_INTEGER):Promise<Bundle[]> {
  if(subject==='history'){
-  const short:Bundle[]=(await questions(q,subject)).map(x=>({key:x.key,version:x.version,part:0,prompt:x.prompt,passage:null,items:[{id:'1',number:1,prompt:x.prompt,choices:x.choices,answer:x.answer,explanation:x.explanation}],durationMs:30_000,audio:null,images:[]}));
   const rows=(await q.query<{question_id:string;version:string;public_payload:{image?:string;commonImage?:string;exam?:number;number?:number;options?:Choice[]};correct_option_id:string;review_payload:{overview?:{reason?:string[];clue?:string[]};legacy?:{why?:string;remember?:string}}}>("SELECT question_id,version,public_payload,correct_option_id,review_payload FROM hanq.question_versions WHERE is_current AND kind=$1 ORDER BY question_id",['mock'])).rows;
   const exams:Bundle[]=[];
   for(const r of rows){const p=r.public_payload,choices=p.options||[],images=[p.commonImage,p.image].filter((x):x is string=>!!x);if(!p.image||!images.every(x=>/^media\/exam(?:-expanded)?\/\d{2}-(?:\d{2}|common\d{2}-\d{2})\.webp$/.test(x))||choices.length!==5||!choices.some(c=>c.id===r.correct_option_id))continue;
    const prompt='실전 모의고사 · 제'+p.exam+'회 '+p.number+'번',explanation=[...(r.review_payload.overview?.reason||[]),...(r.review_payload.overview?.clue||[]),r.review_payload.legacy?.why,r.review_payload.legacy?.remember].filter(Boolean).join('\n');
    exams.push({key:r.question_id,version:r.version,part:0,prompt,passage:null,items:[{id:'1',number:p.number||1,prompt,choices:choices.map(c=>({...c})),answer:r.correct_option_id,explanation:explanation||'저장된 해당 버전의 공식 정답 기준입니다.'}],durationMs:30_000,audio:null,images});
   }
-  // Alternate shuffled families so the large short-question bank cannot bury the mock exams.
-  shuffle(exams);const first=randomInt(2)===0?[short,exams]:[exams,short],mixed:Bundle[]=[];for(let i=0;i<Math.max(short.length,exams.length);i++)for(const group of first)if(group[i])mixed.push(group[i]);return mixed.slice(0,limit);
+  // New history battles use only registered original exam images; never substitute OCR quizzes.
+  if(exams.length<2)throw new AppError(503,'battle_questions_unavailable','원본 이미지가 등록된 한국사 실전모의고사 문제가 부족합니다.');
+  return shuffle(exams).slice(0,limit);
  }
  const bank:Bundle[]=[];
  const rows=(await q.query<{id:string;version:string;content:{groups:{id:string;script?:string;scriptStatus?:string;questionNumbers:number[];audioUrl?:string;passage?:string}[];questions:{part:number;number:number;groupId:string;stem?:string;answerVerified:boolean;correctOptionId:string;choices:Choice[];explanation?:string;answerStatus?:string;photoUrl?:string}[]}}>('SELECT DISTINCT ON(source_key) id,version,content FROM hanq.toeic_cbt_collections WHERE user_id=(SELECT owner_id FROM hanq.toeic_member_notebook WHERE singleton=true) ORDER BY source_key,created_at DESC,id DESC')).rows;
