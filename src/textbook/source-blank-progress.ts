@@ -1174,6 +1174,13 @@ function singleAnswerMatches(value: string, expected: string): boolean {
  return given.length===parts.length&&given.every((part,i)=>part===parts[i]);
 }
 export function sourceSlots(item: SourceItem): Slot[] { return item.kind === 'classification' ? item.responseSlots! : item.blanks.flatMap(b => b.parts || [b]); }
+function decadeAnswerMatches(value: string, expected: string): boolean {
+ // Directional notation tolerance for an explicit canonical decade only.
+ // Never infer a decade from an exact year, era name, range or composite.
+ const canonical=normalized(expected).match(/^([1-9][0-9]{1,2}0)년대$/);
+ const given=normalized(value).match(/^([1-9][0-9]{1,2}0)(?:년|년도|년대)?$/);
+ return !!canonical&&!!given&&canonical[1]===given[1];
+}
 export function sourceGrade(item: SourceItem, values: string[],gradingVersion:GradingVersion=2,sourceVersion?:string): boolean {
  return sourceSlots(item).every((slot, i) => {
   const value = values[i], expected = slot.answerIds.map(id => item.answers.find(a => a.id === id)!.text);
@@ -1186,7 +1193,7 @@ export function sourceGrade(item: SourceItem, values: string[],gradingVersion:Gr
    if(gradingVersion===1)return normalized(value)===normalized(expected[0]);
    if(normalized(value)===normalized(expected[0]))return true;
    const policy=sourceAnswerPolicies.find(p=>p.sourceVersion===sourceVersion&&p.itemId===item.id&&p.answerId===slot.answerIds[0]&&p.slotIds.includes(slot.id)&&p.ordered===ordered&&p.expectedNormalizedSHA===createHash('sha256').update(normalized(expected[0])).digest('hex'));
-   return policy?sourcePolicyMatches(value,expected[0],policy):singleAnswerMatches(value,expected[0]);
+   return policy?sourcePolicyMatches(value,expected[0],policy):singleAnswerMatches(value,expected[0])||(item.kind==='fill-in'&&item.answers.length===1&&item.blanks.length===1&&!item.blanks[0].parts&&!item.answer.sequenceTokens&&decadeAnswerMatches(value,expected[0]));
   }
   const given = value.split(',').map(normalized), parts = expected.map(normalized);
   if (given.length !== parts.length || given.some(x => !x)) return false;
