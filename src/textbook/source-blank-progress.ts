@@ -1026,9 +1026,59 @@ const historicalAnswerEquivalents = [
  ['1차갑오', '1차갑오개혁', '갑오개혁1', '제1차갑오개혁', '제1차갑오'],
  ['2차갑오', '2차갑오개혁', '갑오개혁2', '제2차갑오개혁', '제2차갑오']
 ];
+// Audited exact canonical aliases; no title, country, suffix or punctuation stripping.
+const auditedCanonicalAliases: [string,string[]][] = [
+ [
+  "직지심체요절",
+  [
+   "직지",
+   "직지심경",
+   "불조직지심체요절"
+  ]
+ ],
+ [
+  "광주학생항일운동",
+  [
+   "광주학생독립운동",
+   "광주학생운동"
+  ]
+ ],
+ [
+  "부마항쟁",
+  [
+   "부마민주항쟁"
+  ]
+ ],
+ [
+  "북로군정서군",
+  [
+   "북로군정서"
+  ]
+ ],
+ [
+  "헌의6조",
+  [
+   "헌의육조"
+  ]
+ ],
+ [
+  "13도창의군",
+  [
+   "십삼도창의군"
+  ]
+ ],
+ [
+  "태조왕건",
+  [
+   "왕건",
+   "고려태조왕건"
+  ]
+ ]
+];
 function equivalentAnswerMatches(value: string, expected: string): boolean {
  const given=normalized(value),canonical=normalized(expected);
  if(given===canonical||dateEventAnswerMatches(value,expected))return true;
+ if(auditedCanonicalAliases.some(([answer,aliases])=>canonical===answer&&aliases.includes(given)))return true;
  if(historicalAnswerEquivalents.some(group=>group.includes(canonical)&&group.includes(given)))return true;
  const alias=canonical.match(/^([\p{L}\p{N}]+)\(=([\p{L}\p{N}]+)\)$/u);
  return !!alias&&(given===alias[1]||given===alias[2]);
