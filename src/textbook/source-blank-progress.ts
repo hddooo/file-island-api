@@ -989,6 +989,23 @@ export function sourcePolicyMatches(value:string,expected:string,policy:SourceAn
   return actual.every((part,index)=>part===selected[index]);
  });
 }
+// Only explicit event names opt into date notation. Never strip digits from an
+// arbitrary answer. Bare dates are separately gated to a single ordinary blank.
+function dateEventAnswerMatches(value: string, expected: string, allowShort = false): boolean {
+ const given=normalized(value),canonical=normalized(expected);
+ const events=[
+  ['5', '18', '민주화운동', true],
+  ['4', '19', '혁명', true],
+  ['6', '3', '시위', true],
+  ['3', '1', '운동', true],
+  ['6', '10', '만세운동', false]
+ ] as const;
+ return events.some(([month,day,name,short])=>{
+  const forms=[month+'·'+day,month+'.'+day,month+'ㆍ'+day,month+day];
+  if(!forms.some(date=>canonical===date+name))return false;
+  return forms.some(date=>given===date+name || (allowShort&&short&&given===date));
+ });
+}
 // Whole-term equivalents only; do not infer aliases from a shared prefix or date.
 // Public references (fixtures do not claim these terms occur in a private quiz):
 // https://contents.history.go.kr/mobile/ta/view.do?levelId=ta_m71_0030_0020_0010_0010
@@ -1004,14 +1021,14 @@ const historicalAnswerEquivalents = [
  // Legacy semantic-quiz answers whose parenthesis is part of one term, typed as one word.
  ['조선(후기)', '조선후기'],
  ['민립대학설립(건립)운동', '민립대학설립운동', '민립대학건립운동'],
- ['6월항쟁', '6월민주항쟁', '6월민주화항쟁', '6·10항쟁'],
+ ['6월항쟁', '6월민주항쟁', '6월민주화항쟁', '6·10항쟁', '6.10항쟁', '6ㆍ10항쟁', '610항쟁'],
  // Existing phase-qualified opening-era forms; never accept just 1차 or 2차.
  ['1차갑오', '1차갑오개혁', '갑오개혁1', '제1차갑오개혁', '제1차갑오'],
  ['2차갑오', '2차갑오개혁', '갑오개혁2', '제2차갑오개혁', '제2차갑오']
 ];
 function equivalentAnswerMatches(value: string, expected: string): boolean {
  const given=normalized(value),canonical=normalized(expected);
- if(given===canonical)return true;
+ if(given===canonical||dateEventAnswerMatches(value,expected))return true;
  if(historicalAnswerEquivalents.some(group=>group.includes(canonical)&&group.includes(given)))return true;
  const alias=canonical.match(/^([\p{L}\p{N}]+)\(=([\p{L}\p{N}]+)\)$/u);
  return !!alias&&(given===alias[1]||given===alias[2]);
@@ -1193,7 +1210,7 @@ export function sourceGrade(item: SourceItem, values: string[],gradingVersion:Gr
    if(gradingVersion===1)return normalized(value)===normalized(expected[0]);
    if(normalized(value)===normalized(expected[0]))return true;
    const policy=sourceAnswerPolicies.find(p=>p.sourceVersion===sourceVersion&&p.itemId===item.id&&p.answerId===slot.answerIds[0]&&p.slotIds.includes(slot.id)&&p.ordered===ordered&&p.expectedNormalizedSHA===createHash('sha256').update(normalized(expected[0])).digest('hex'));
-   return policy?sourcePolicyMatches(value,expected[0],policy):singleAnswerMatches(value,expected[0])||(item.kind==='fill-in'&&item.answers.length===1&&item.blanks.length===1&&!item.blanks[0].parts&&!item.answer.sequenceTokens&&decadeAnswerMatches(value,expected[0]));
+   return policy?sourcePolicyMatches(value,expected[0],policy):singleAnswerMatches(value,expected[0])||(item.kind==='fill-in'&&item.answers.length===1&&item.blanks.length===1&&!item.blanks[0].parts&&!item.answer.sequenceTokens&&(decadeAnswerMatches(value,expected[0])||dateEventAnswerMatches(value,expected[0],true)));
   }
   const given = value.split(',').map(normalized), parts = expected.map(normalized);
   if (given.length !== parts.length || given.some(x => !x)) return false;

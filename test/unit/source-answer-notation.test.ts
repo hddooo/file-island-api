@@ -16,7 +16,7 @@ for(const v of ['백운동서원 (=소수서원)','백운동서원','소수서�
 for(const v of ['백운동','소수','백운동서원/소수서원','백운동서원,소수서원','백운동서원(소수서원)','소수서원,기타'])cases.push([alias,[v],false]);
 cases.push([item(['동의보감 (광해군)','백운동서원 (=소수서원)']),['동의보감, 광해군','소수서원'],true]);
 cases.push([item(['동의보감 (광해군)','백운동서원 (=소수서원)']),['동의보감','소수서원'],false]);
-for(const [canonical,response] of [['3·1 운동','31운동'],['가/나','가,나'],['가,나','가/나'],['가(나/다)','가/나/다'],['가(=나/다)','나'],['가(나)','나']])cases.push([item([canonical]),[response],false]);
+for(const [canonical,response] of [['가/나','가,나'],['가,나','가/나'],['가(나/다)','가/나/다'],['가(=나/다)','나'],['가(나)','나']])cases.push([item([canonical]),[response],false]);
 cases.push([item(['가','나'],false,'fill-in',false),['나, 가'],true],[item(['가','나'],false),['나, 가'],false],[item(['동의보감 (광해군)','기타'],false),['동의보감,광해군,기타'],false]);
 cases.push([item(['①','②','③'],false,'sequence'),['1,2,3'],true],[item(['①','②','③'],false,'sequence'),['1/2/3'],false],[item(['①','②','③'],false,'sequence'),['2,1,3'],false]);
 test('source notation grading and both mutation paths agree, preserving exact values and canonical source',()=>{
