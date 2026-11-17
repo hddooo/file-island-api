@@ -18,12 +18,13 @@ import {
 } from './cbt-policy';
 import { CbtRepository, type CbtItemRow, type CbtRunRow } from './cbt.repository';
 
+const SUBMISSION_POLICY = 'explicit-q50-before-deadline-v1' as const;
+
 const roundUnavailable = (round: number, reason: string) =>
   new AppError(409, 'round_unavailable', 'This round is not available for CBT', { round, reason });
 
-/** Owner-locked original CBT. Legacy runs keep server-per-answer expiry behavior.
- * Batch practice keeps device drafts until one complete immutable submission. Pause is server-owned;
- * an expired batch remains pending until its frozen answers arrive, never graded prematurely as empty. */
+/** Owner-locked CBT: only an explicitly confirmed Q50 submission before the deadline
+ * creates results, attempts and growth. Expiry closes progress without grading. */
 @Injectable()
 export class CbtService {
   constructor(
@@ -43,7 +44,7 @@ export class CbtService {
       const status=c.ok?await this.roundAssetsReady(round,c.rows,AbortSignal.timeout(3_000)):{ready:false,reason:c.reason};
       return {round,available:status.ready,checkState:status.ready?'ready':status.reason==='asset_check_timeout'?'check-delayed':c.ok?'assets-pending':'catalog-pending',retryable:!status.ready,...(status.ready?{}:{reason:status.reason}),questions:CBT_SIZE,totalPoints:CBT_TOTAL_POINTS,durationMs:CBT_DURATION_MS};
     }));
-    return {batchSupported:true,readiness:'catalog-and-manifest',startVerifiesAllImages:true,rounds,imagesConfigured:this.assets.configured};
+    return {submissionPolicy:SUBMISSION_POLICY,batchSupported:true,readiness:'catalog-and-manifest',startVerifiesAllImages:true,rounds,imagesConfigured:this.assets.configured};
   }
 
   /** Read-only listing checks the catalog and registered public manifest (or full private files), including shared passages.
@@ -73,7 +74,10 @@ export class CbtService {
       const existing = await this.repo.findByKey(q, userId, dto.idempotencyKey);
       if (existing) return this.replayCreate(q, existing, dto.round);
       const candidate=(await q.query<CbtRunRow>("SELECT * FROM hanq.cbt_runs WHERE user_id=$1 AND exam_round=$2 AND attempt_policy='uninterrupted-v1' AND status IN ('ready','active') ORDER BY CASE WHEN status='active' THEN 0 ELSE 1 END, created_at DESC,id DESC LIMIT 1 FOR UPDATE",[userId,dto.round])).rows[0];
-      if(candidate)return {created:false,reused:true,...(await this.view(q,await this.expireIfDue(q,candidate,now)))};
+      if(candidate){
+        const settled=await this.expireIfDue(q,candidate,now);
+        if(settled.status!=='incomplete')return {created:false,reused:true,...(await this.view(q,settled))};
+      }
       const check = checkRound(dto.round, await this.repo.roundQuestions(q, dto.round));
       if (!check.ok) throw roundUnavailable(dto.round, check.reason);
       const id = randomUUID();
@@ -104,7 +108,7 @@ export class CbtService {
       });
     }
     const rows = await this.repo.listOwned(this.db.pool, userId);
-    return { runs: rows.map((r) => ({ ...this.summary(r, now), answered: r.answered })), serverTime: now.toISOString() };
+    return { submissionPolicy:SUBMISSION_POLICY, runs: rows.map((r) => ({ ...this.summary(r, now), answered: r.answered })), serverTime: now.toISOString() };
   }
 
   private tokenMatches(run:CbtRunRow,token?:string) {return !!token&&/^[0-9a-f-]{36}$/i.test(token)&&!!run.attempt_token_hash&&sha256(token).toString('hex')===run.attempt_token_hash;}
@@ -127,7 +131,7 @@ export class CbtService {
         await this.repo.start(q,run.id,started,new Date(started.getTime()+CBT_DURATION_MS));
         run=(await this.repo.findOwned(q,run.id,userId))!;
       }else if(run.status==='active'){
-        if(now>=run.ends_at!)run=await this.finalize(q,run,run.ends_at!,'expired',now);
+        if(now>=run.ends_at!)run=await this.expireIfDue(q,run,now);
         else if(claim){
           await q.query('UPDATE hanq.cbt_runs SET attempt_token_hash=$2 WHERE id=$1',[run.id,sha256(token).toString('hex')]);
           run=(await this.repo.findOwned(q,run.id,userId))!;
@@ -140,7 +144,7 @@ export class CbtService {
     const out=await this.locked(userId,id,async(q,run,now)=>{
       this.assertToken(run,token);
       if(run.status!=='active'||this.legacyClosed(run))return {closed:true as const};
-      if(now>=run.ends_at!){await this.finalize(q,run,run.ends_at!,'expired',now);return {closed:true as const};}
+      if(now>=run.ends_at!){await this.expireIfDue(q,run,now);return {closed:true as const};}
       const answers=[...dto.answers].sort((a,b)=>a.position-b.position),items=await this.repo.items(q,run.id);
       if(answers.length!==CBT_SIZE||answers.some((a,i)=>a.position!==i||(a.optionId!==null&&!items[i].option_ids.includes(a.optionId))))throw new AppError(400,'invalid_batch','Answers must match all stored questions');
       const hash=sha256(JSON.stringify([answers,dto.currentPosition])).toString('hex');
@@ -166,7 +170,14 @@ export class CbtService {
     return this.locked(userId,id,async(q,run,now)=>{
       if(this.legacyClosed(run))return this.view(q,run);
       if(run.status==='ready')throw new AppError(409,'run_not_started','Start the run first');
-      if(run.status==='active'){this.assertToken(run,token);run=await this.finalize(q,run,now>=run.ends_at!?run.ends_at!:now,now>=run.ends_at!?'expired':'submit',now);}
+      if(run.status==='active'){
+        this.assertToken(run,token);
+        if(now>=run.ends_at!)return this.view(q,await this.expireIfDue(q,run,now));
+        if(dto.submissionIntent!==SUBMISSION_POLICY)throw new AppError(409,'explicit_submit_required','Refresh the exam and explicitly confirm submission on question 50');
+        if(run.current_position!==CBT_SIZE-1||run.checkpoint_version<1)throw new AppError(409,'final_question_required','Save the latest answers on question 50 before submitting');
+        if(!(await this.repo.items(q,run.id)).some(item=>item.answer_option_id!==null))throw new AppError(409,'answers_required','Select at least one answer before submitting');
+        run=await this.finalize(q,run,now,'submit',now);
+      }
       return this.view(q,run);
     });
   }
@@ -190,7 +201,6 @@ export class CbtService {
   /** Own statistics over all final runs (same rules as a single result). */
   async stats(userId: string) {
     await this.list(userId); // Settle the owner's overdue sessions before computing their analysis.
-    await this.list(userId); // finalizes anything already past its deadline
     const rows = await this.repo.finalItems(this.db.pool, userId);
     const graded = rows.map((r) => this.graded(r));
     return { runs: new Set(rows.map((r) => r.run_id)).size, questions: graded.length, ...statsOf(graded) };
@@ -212,7 +222,11 @@ export class CbtService {
   }
 
   private async expireIfDue(q:PoolClient,run:CbtRunRow,now:Date):Promise<CbtRunRow>{
-    if(!this.legacyClosed(run)&&run.status==='active'&&run.ends_at&&now>=run.ends_at)return this.finalize(q,run,run.ends_at,'expired',now);return run;
+    if(!this.legacyClosed(run)&&run.status==='active'&&run.ends_at&&now>=run.ends_at){
+      await q.query("UPDATE hanq.cbt_runs SET status='incomplete',incomplete_at=$2,incomplete_reason='time_expired',updated_at=$2 WHERE id=$1 AND status='active'",[run.id,now]);
+      return (await this.repo.findOwned(q,run.id,run.user_id))!;
+    }
+    return run;
   }
 
   /** One transaction: grade the 50 items against the stored version, write exactly one attempt per item
@@ -221,9 +235,9 @@ export class CbtService {
    *  the same transaction. Status guard + row lock + unique submission ids + the ledger's unique keys make it happen once.
    *  No per-question growth (these attempts are source 'run' and never pass through submitPractice). If 009 is missing the
    *  ledger insert fails and the whole finalization rolls back (503 schema_not_ready) — never a final run without its reward.
-   *  `at` (deadline on expiry) stays the grading cut-off, finalAt, result time and ledger time; the 50 attempts are recorded at
+   *  `at` (explicit submission time) stays the grading cut-off, finalAt, result time and ledger time; the 50 attempts are recorded at
    *  `confirmedAt` (server clock now) so the wrong-note 24 h cooldown starts at the real confirmation, never backdated. */
-  private async finalize(q: PoolClient, run: CbtRunRow, at: Date, reason: 'submit' | 'expired', confirmedAt: Date): Promise<CbtRunRow> {
+  private async finalize(q: PoolClient, run: CbtRunRow, at: Date, reason: 'submit', confirmedAt: Date): Promise<CbtRunRow> {
     const items = await this.repo.items(q, run.id);
     const graded: GradedItem[] = [];
     for (const it of items) {
@@ -267,6 +281,7 @@ export class CbtService {
       title: `제${r.exam_round}회 한국사능력검정시험 (심화) CBT`,
       status: this.legacyClosed(r)?'incomplete':r.status,
       answerMode: r.answer_mode === 'batch' ? 'batch' : 'server',
+      submissionPolicy:SUBMISSION_POLICY,
       attemptPolicy:r.attempt_policy, progressPolicy:'automatic-restore-v1', incompleteReason:this.legacyClosed(r)?'policy_updated':r.incomplete_reason||null,
       paused: !!r.paused_at,
       checkpointVersion: r.checkpoint_version,

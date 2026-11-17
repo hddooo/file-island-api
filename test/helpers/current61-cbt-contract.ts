@@ -78,7 +78,7 @@ describe('authenticated CBT (isolated *_test database)', () => {
   const start = (s: Session, id: string) => api().post(`/api/v1/cbt/runs/${id}/start`).set(bearer(s.access)).send({attemptToken:token(id)});
   const answer = async(s: Session, id: string, position: number, optionId: string | null) => {const row=(await pool.query('SELECT checkpoint_version,current_position FROM hanq.cbt_runs WHERE id=$1',[id])).rows[0];const answers=await saved(id);const found=answers.find(x=>x.position===position);if(found)found.optionId=optionId;else answers.push({position,optionId});return checkpoint(s,id,row.checkpoint_version+1,answers,row.current_position);};
   const go = async(s: Session, id: string, position: number) => {const row=(await pool.query('SELECT checkpoint_version FROM hanq.cbt_runs WHERE id=$1',[id])).rows[0];return checkpoint(s,id,row.checkpoint_version+1,await saved(id),position);};
-  const submit = (s: Session, id: string) => api().post(`/api/v1/cbt/runs/${id}/submit`).set(bearer(s.access)).set('x-cbt-attempt-token',token(id)).send({submissionKey:randomUUID()});
+  const submit = (s: Session, id: string) => api().post(`/api/v1/cbt/runs/${id}/submit`).set(bearer(s.access)).set('x-cbt-attempt-token',token(id)).send({submissionKey:randomUUID(),submissionIntent:'explicit-q50-before-deadline-v1'});
   const get = (s: Session, id: string) => api().get(`/api/v1/cbt/runs/${id}`).set(bearer(s.access));
   const image = (s: Session, id: string, pos: number | string, which = 'image') =>
     api().get(`/api/v1/cbt/runs/${id}/questions/${pos}/${which}`).set(bearer(s.access)).set('x-cbt-attempt-token',token(id)).buffer(true).parse(binary);
@@ -195,8 +195,9 @@ describe('authenticated CBT (isolated *_test database)', () => {
       const binaryResponse = await p().get(`/api/v1/cbt/runs/${id}/questions/0/image`).set(bearer(P.access)).set('x-cbt-attempt-token',token(id)).buffer(true).parse(binary);
       assert.equal(binaryResponse.status, 200); assert.ok(binaryResponse.body.equals(files.get('/79-01.webp')));
       assert.equal((await p().get(`/api/v1/cbt/runs/${id}/questions/0/image`)).status, 401);
-      const final = await p().post(`/api/v1/cbt/runs/${id}/submit`).set(bearer(P.access)).set('x-cbt-attempt-token',token(id)).send({submissionKey:randomUUID()});
-      assert.equal(final.status, 200); assert.equal(final.body.run.result.unanswered, 50); assert.equal(final.body.run.result.score, 0);
+      assert.equal((await p().post(`/api/v1/cbt/runs/${id}/checkpoint`).set(bearer(P.access)).set('x-cbt-attempt-token',token(id)).send({version:1,answers:(await saved(id)).map((x,i)=>i===0?{...x,optionId:run.body.items[0].options[1].id}:x),currentPosition:49})).status,200);
+      const final = await p().post(`/api/v1/cbt/runs/${id}/submit`).set(bearer(P.access)).set('x-cbt-attempt-token',token(id)).send({submissionKey:randomUUID(),submissionIntent:'explicit-q50-before-deadline-v1'});
+      assert.equal(final.status, 200); assert.equal(final.body.run.result.unanswered,49); assert.equal(final.body.run.result.answered,1);
       files.delete('/79-50.webp');
       assert.equal((await p().get('/api/v1/cbt/rounds').set(bearer(P.access))).body.rounds.find((x:{round:number})=>x.round===79).available, true,'manifest registration remains separate from full start integrity');
       const next=await p().post('/api/v1/cbt/runs').set(bearer(P.access)).send({round:79,idempotencyKey:randomUUID()});
@@ -350,6 +351,7 @@ describe('authenticated CBT (isolated *_test database)', () => {
     const pre = await get(A, run.id);
     assertNoPregradeLeak(pre.body);
 
+    assert.equal((await go(A, run.id, 49)).status,200);
     const done = await submit(A, run.id);
     assert.equal(done.status, 200);
     const res = done.body.run.result;
@@ -436,7 +438,7 @@ describe('authenticated CBT (isolated *_test database)', () => {
     assert.ok(stats.body.runs >= 1);
   
     // Current61 reviewed first-owner/round bands, independent of the response's reported score.
-    const finishAtScore=async(who:Session,round:number,target:number)=>{const rows=await roundRows(round),choices=new Map<number,number[]>([[0,[]]]);for(let i=0;i<rows.length;i++)for(const [sum,indices]of [...choices]){const next=sum+rows[i].points;if(next<=target&&!choices.has(next))choices.set(next,[...indices,i]);}const selected=choices.get(target);assert(selected,'public catalog weights can express reviewed target');const id=(await create(who,round)).body.run.id;assert.equal((await start(who,id)).status,200);const answers=rows.map((q,position)=>({position,optionId:selected.includes(position)?q.correct_option_id:null}));assert.equal((await checkpoint(who,id,1,answers)).status,200);const result=await submit(who,id);assert.equal(result.status,200);assert.equal(result.body.run.result.score,target);assert.equal((await attemptsOf(id)).length,50);return{id,result};};
+    const finishAtScore=async(who:Session,round:number,target:number)=>{const rows=await roundRows(round),choices=new Map<number,number[]>([[0,[]]]);for(let i=0;i<rows.length;i++)for(const [sum,indices]of [...choices]){const next=sum+rows[i].points;if(next<=target&&!choices.has(next))choices.set(next,[...indices,i]);}const selected=choices.get(target);assert(selected,'public catalog weights can express reviewed target');const id=(await create(who,round)).body.run.id;assert.equal((await start(who,id)).status,200);const answers=rows.map((q,position)=>({position,optionId:selected.includes(position)?q.correct_option_id:wrongOf(q)}));assert.equal((await checkpoint(who,id,1,answers,49)).status,200);const result=await submit(who,id);assert.equal(result.status,200);assert.equal(result.body.run.result.score,target);assert.equal((await attemptsOf(id)).length,50);return{id,result};};
     for(const [score,reward]of [[59,-10],[60,3],[69,3],[70,5],[79,5],[80,10],[100,10]]){const who=await signup(t),one=await finishAtScore(who,79,score);assert.equal(one.result.body.run.result.rewardEligible,true);assert.equal(one.result.body.run.result.policyGrowthReward,reward);assert.equal(one.result.body.run.result.growthReward,reward);const first=await snapshot(one.id);assert.deepEqual((await submit(who,one.id)).body.run.result,one.result.body.run.result);assert.equal(await snapshot(one.id),first);assert.deepEqual((await pool.query('SELECT amount FROM hanq.growth_ledger WHERE cbt_run_id=$1',[one.id])).rows,[{amount:reward}]);if(score===80){const again=await finishAtScore(who,79,100);assert.equal(again.result.body.run.result.rewardEligible,false);assert.equal(again.result.body.run.result.growthReward,0);assert.deepEqual((await pool.query('SELECT amount FROM hanq.growth_ledger WHERE cbt_run_id=$1',[again.id])).rows,[{amount:0}]);const separate=await finishAtScore(who,78,100);assert.equal(separate.result.body.run.result.rewardEligible,true);assert.equal(separate.result.body.run.result.growthReward,10);}}
     // Explicit pre-reward legacy synthetic member: no historical ledger is removed or rewritten.
     const legacyId=randomUUID(),email=uniqueEmail('cbt-floor'),now=clock.now();await new UsersRepository().insert(pool,{id:legacyId,emailNormalized:email.toLowerCase(),emailDisplay:email,passwordHash:await new PasswordService().hash(PASSWORD),displayName:'synthetic legacy floor',now});await pool.query("UPDATE hanq.users SET approval_status='approved' WHERE id=$1",[legacyId]);await pool.query('INSERT INTO hanq.attendance(user_id,day,created_at) VALUES($1,$2,$3)',[legacyId,new Date(now.getTime()+9*3600000).toISOString().slice(0,10),now]);const legacy=await signin(t,email);assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.growth_ledger WHERE user_id=$1',[legacyId])).rows[0].n,0);// 052 backfill-equivalent projection for this single newly allocated legacy synthetic owner.
@@ -457,7 +459,7 @@ describe('authenticated CBT (isolated *_test database)', () => {
     for (const q of gradedRun.wrongIds) assert.ok(ids.has(q), `${q} appears in wrong notes`);
   });
 
-  it('the deadline finalizes once with answers saved before it; a late answer is never saved', async () => {
+  it('the deadline closes without grading; saved drafts survive and late answers never save', async () => {
     let D = await signup(t);
     const db = await roundRows(77);
     const run = (await create(D, 77)).body.run;
@@ -471,48 +473,56 @@ describe('authenticated CBT (isolated *_test database)', () => {
     assert.equal(late.status, 409);
     assert.equal(late.body.error.code, 'run_closed');
     const view = await get(D, run.id);
-    assert.equal(view.body.run.status, 'final');
-    assert.equal(view.body.run.finalReason, 'expired');
-    assert.equal(view.body.run.finalAt, s.endsAt);
-    assert.equal(view.body.items[2].selectedOptionId, null);
-    assert.equal(view.body.run.result.score, db[0].points + db[1].points);
-    assert.equal(view.body.run.result.answered, 2);
-    assert.equal(view.body.run.result.unanswered, 48);
-    assert.equal((await attemptsOf(run.id)).length, 50);
+    assert.equal(view.body.run.status, 'incomplete');
+    assert.equal(view.body.run.incompleteReason, 'time_expired');
+    assert.equal(view.body.run.finalAt, null);
+    assert.equal(view.body.run.result, null);
+    assert.deepEqual(view.body.items, []);
+    assert.equal((await saved(run.id))[2].optionId, null);
+    assert.equal((await attemptsOf(run.id)).length, 0);
     const sub = await submit(D, run.id);
     assert.equal(sub.status, 200);
-    assert.deepEqual(sub.body.run.result, view.body.run.result);
+    assert.equal(sub.body.run.result, null);
     assert.equal((await go(D, run.id, 1)).body.error.code, 'run_closed');
-    assert.equal((await attemptsOf(run.id)).length, 50);
-    const eg = await pool.query<{ amount: number }>(`SELECT amount FROM hanq.growth_ledger WHERE cbt_run_id = $1`, [run.id]);
-    assert.deepEqual(eg.rows.map((x) => x.amount), [-10], 'first-round low score reward is -10, unchanged by later submit');
-
-    // listing alone also finalizes a run that is past its deadline
+    assert.equal((await pool.query('SELECT 1 FROM hanq.growth_ledger WHERE cbt_run_id=$1',[run.id])).rowCount,0);
     const run2 = (await create(D, 73)).body.run;
     await start(D, run2.id);
     clock.advance(CBT_DURATION_MS + 5_000);
     D = await refresh(D);
     const list = await api().get('/api/v1/cbt/runs').set(bearer(D.access));
-    assert.equal(list.body.runs.find((r: { id: string }) => r.id === run2.id).status, 'final');
-    assert.equal((await attemptsOf(run2.id)).length, 50);
-    assert.equal((await pool.query(`SELECT count(*)::int n FROM hanq.growth_ledger WHERE cbt_run_id = $1`, [run2.id])).rows[0].n, 1, 'listing finalizes with exactly one reward');
-    // finalized 5 s after the deadline: the result keeps the deadline, the 50 attempts carry the real confirmation time (no backdating)
-    const confirmed = await pool.query<{ created_at: Date }>('SELECT DISTINCT created_at FROM hanq.attempts WHERE cbt_run_id = $1', [run2.id]);
-    assert.deepEqual(confirmed.rows.map((x) => x.created_at.getTime()), [clock.now().getTime()]);
-    assert.equal((await pool.query<{ final_at: Date; ends_at: Date }>('SELECT final_at, ends_at FROM hanq.cbt_runs WHERE id = $1', [run2.id])).rows.map((x) => x.final_at.getTime() === x.ends_at.getTime())[0], true);
+    assert.equal(list.body.runs.find((r: { id: string }) => r.id === run2.id).status, 'incomplete');
+    assert.equal((await attemptsOf(run2.id)).length, 0);
+    assert.equal((await pool.query('SELECT 1 FROM hanq.growth_ledger WHERE cbt_run_id=$1',[run2.id])).rowCount,0);
+    assert.equal((await api().get('/api/v1/cbt/stats').set(bearer(D.access))).body.runs,0);
+    const restart=await create(D,73);assert.equal(restart.status,201);assert.equal(restart.body.created,true);assert.notEqual(restart.body.run.id,run2.id);assert.equal(restart.body.run.status,'ready');
+
+  });
+
+  it('strict submit preserves drafts until saved Q50 intent; exact-deadline submit records nothing',async()=>{
+   let who=await signup(t);const id=(await create(who,79)).body.run.id,started=await start(who,id);
+   const answers=await saved(id);answers[0].optionId=(await roundRows(79))[0].correct_option_id;
+   assert.equal((await checkpoint(who,id,1,answers,48)).status,200);
+   const before=await snapshot(id);
+   const raw=await api().post(`/api/v1/cbt/runs/${id}/submit`).set(bearer(who.access)).set('x-cbt-attempt-token',token(id)).send({submissionKey:randomUUID()});
+   assert.equal(raw.status,409);assert.equal(raw.body.error.code,'explicit_submit_required');assert.equal(await snapshot(id),before);
+   assert.equal((await submit(who,id)).body.error.code,'final_question_required');assert.equal(await snapshot(id),before);
+   assert.equal((await checkpoint(who,id,2,answers,49)).status,200);
+   clock.set(new Date(started.body.run.endsAt));who=await refresh(who);
+   const late=await submit(who,id);assert.equal(late.status,200);assert.equal(late.body.run.status,'incomplete');assert.equal(late.body.run.result,null);
+   assert.equal((await attemptsOf(id)).length,0);assert.equal((await pool.query('SELECT 1 FROM hanq.growth_ledger WHERE cbt_run_id=$1',[id])).rowCount,0);
   });
 
   it("checkpoint samples server clock after actual row-lock wait crosses deadline",async()=>{
- let who=await signup(t);const id=(await create(who,79)).body.run.id;const started=await start(who,id),answers=await saved(id);answers[0].optionId=(await roundRows(79))[0].correct_option_id;const blocker=await pool.connect();try{await blocker.query('BEGIN');await blocker.query('SELECT id FROM hanq.cbt_runs WHERE id=$1 FOR UPDATE',[id]);const pending=checkpoint(who,id,1,answers).then(r=>r);let waiting=false;for(let i=0;i<200;i++){const r=await pool.query("SELECT count(*)::int n FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query LIKE '%cbt_runs%'");if(r.rows[0].n>0){waiting=true;break;}await new Promise(resolve=>setTimeout(resolve,5));}assert(waiting,'request really waits for row lock');clock.set(new Date(started.body.run.endsAt));await blocker.query('COMMIT');const late=await pending;assert.equal(late.status,409);assert.equal(late.body.error.code,'run_closed');who=await refresh(who);const view=await get(who,id);assert.equal(view.body.run.status,'final');assert.equal(view.body.run.finalAt,started.body.run.endsAt);assert.equal(view.body.items[0].selectedOptionId,null);assert.equal((await attemptsOf(id)).length,50);}finally{await blocker.query('ROLLBACK');blocker.release();}
+ let who=await signup(t);const id=(await create(who,79)).body.run.id;const started=await start(who,id),answers=await saved(id);answers[0].optionId=(await roundRows(79))[0].correct_option_id;const blocker=await pool.connect();try{await blocker.query('BEGIN');await blocker.query('SELECT id FROM hanq.cbt_runs WHERE id=$1 FOR UPDATE',[id]);const pending=checkpoint(who,id,1,answers).then(r=>r);let waiting=false;for(let i=0;i<200;i++){const r=await pool.query("SELECT count(*)::int n FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query LIKE '%cbt_runs%'");if(r.rows[0].n>0){waiting=true;break;}await new Promise(resolve=>setTimeout(resolve,5));}assert(waiting,'request really waits for row lock');clock.set(new Date(started.body.run.endsAt));await blocker.query('COMMIT');const late=await pending;assert.equal(late.status,409);assert.equal(late.body.error.code,'run_closed');who=await refresh(who);const view=await get(who,id);assert.equal(view.body.run.status,'incomplete');assert.equal(view.body.run.result,null);assert.deepEqual(view.body.items,[]);assert.equal((await saved(id))[0].optionId,null);assert.equal((await attemptsOf(id)).length,0);}finally{await blocker.query('ROLLBACK');blocker.release();}
 
 });
 
   it("checkpoint/submit race gives one immutable grading matching durable answers and one ledger row",async()=>{
- const who=await signup(t),rows=await roundRows(79),id=(await create(who,79)).body.run.id;await start(who,id);const answers=rows.map((q,position)=>({position,optionId:q.correct_option_id}));const raced=await Promise.all([checkpoint(who,id,1,answers),submit(who,id),submit(who,id)]);assert([200,409].includes(raced[0].status));if(raced[0].status===409)assert.equal(raced[0].body.error.code,'run_closed');assert.equal(raced[1].status,200);assert.equal(raced[2].status,200);const view=await get(who,id),stored=await saved(id),attempts=await attemptsOf(id);assert.equal(view.body.run.status,'final');assert.equal(attempts.length,50);let score=0;for(const [i,row]of rows.entries()){const a=attempts.find(x=>x.question_id===row.question_id)!;assert.equal(a.option_id,stored[i].optionId);assert.equal(a.correct,stored[i].optionId===row.correct_option_id);if(a.correct)score+=row.points;}assert.equal(view.body.run.result.score,score);assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.growth_ledger WHERE cbt_run_id=$1',[id])).rows[0].n,1);assert.deepEqual(raced[1].body.run.result,raced[2].body.run.result);
+ const who=await signup(t),rows=await roundRows(79),id=(await create(who,79)).body.run.id;await start(who,id);const answers=rows.map((q,position)=>({position,optionId:q.correct_option_id}));assert.equal((await checkpoint(who,id,1,(await saved(id)).map((x,i)=>i===0?{...x,optionId:rows[0].correct_option_id}:x),49)).status,200);const raced=await Promise.all([checkpoint(who,id,2,answers,49),submit(who,id),submit(who,id)]);assert([200,409].includes(raced[0].status));if(raced[0].status===409)assert.equal(raced[0].body.error.code,'run_closed');assert.equal(raced[1].status,200);assert.equal(raced[2].status,200);const view=await get(who,id),stored=await saved(id),attempts=await attemptsOf(id);assert.equal(view.body.run.status,'final');assert.equal(attempts.length,50);let score=0;for(const [i,row]of rows.entries()){const a=attempts.find(x=>x.question_id===row.question_id)!;assert.equal(a.option_id,stored[i].optionId);assert.equal(a.correct,stored[i].optionId===row.correct_option_id);if(a.correct)score+=row.points;}assert.equal(view.body.run.result.score,score);assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.growth_ledger WHERE cbt_run_id=$1',[id])).rows[0].n,1);assert.deepEqual(raced[1].body.run.result,raced[2].body.run.result);
  // Distinct runs compete for the same owner's first-round reward.
 
  // Synthetic DB-valid owner-lock stress fixture, NOT two runs created by the public API or evidence of historical occurrence.
- const owner=await signup(t),firstId=(await create(owner,79)).body.run.id;assert.equal((await start(owner,firstId)).status,200);assert.equal((await checkpoint(owner,firstId,1,answers)).status,200);
+ const owner=await signup(t),firstId=(await create(owner,79)).body.run.id;assert.equal((await start(owner,firstId)).status,200);assert.equal((await checkpoint(owner,firstId,1,answers,49)).status,200);
  const stableFirst=await snapshot(firstId),reuse=await create(owner,79);assert.equal(reuse.body.run.id,firstId);assert.equal(reuse.body.created,false);assert.equal(reuse.body.reused,true);assert.equal(await snapshot(firstId),stableFirst);
  const secondId=randomUUID(),secondToken=randomUUID(),ids=[firstId,secondId];assert.notEqual(firstId,secondId);tokens.set(secondId,secondToken);
  const fixture=createRequire(__filename)('/run/current-runtime-fixture.cjs') as {scope(c:ReturnType<typeof testConfig>):unknown;verifyDatabase(p:Pool,c:ReturnType<typeof testConfig>):Promise<unknown>};fixture.scope(testConfig());await fixture.verifyDatabase(pool,testConfig());
@@ -659,7 +669,7 @@ describe('authenticated CBT (isolated *_test database)', () => {
 });
 
   it("late checkpoint cannot freeze deadline; legacy-policy incomplete runs retain bytes and cannot resume",async()=>{
- let who=await signup(t);const id=(await create(who,79)).body.run.id,started=await start(who,id),answers=await saved(id);answers[0].optionId=(await roundRows(79))[0].correct_option_id;assert.equal((await checkpoint(who,id,1,answers)).status,200);clock.set(new Date(started.body.run.endsAt));who=await refresh(who);const late=await checkpoint(who,id,2,answers);assert.equal(late.status,409);assert.equal(late.body.error.code,'run_closed');const final=await get(who,id);assert.equal(final.body.run.status,'final');assert.equal(final.body.run.finalAt,started.body.run.endsAt);assert.equal((await attemptsOf(id)).length,50);
+ let who=await signup(t);const id=(await create(who,79)).body.run.id,started=await start(who,id),answers=await saved(id);answers[0].optionId=(await roundRows(79))[0].correct_option_id;assert.equal((await checkpoint(who,id,1,answers)).status,200);clock.set(new Date(started.body.run.endsAt));who=await refresh(who);const late=await checkpoint(who,id,2,answers);assert.equal(late.status,409);assert.equal(late.body.error.code,'run_closed');const final=await get(who,id);assert.equal(final.body.run.status,'incomplete');assert.equal(final.body.run.result,null);assert.equal((await attemptsOf(id)).length,0);
  const oldId=(await create(who,78)).body.run.id;await pool.query("UPDATE hanq.cbt_runs SET attempt_policy='legacy' WHERE id=$1",[oldId]);const before=await snapshot(oldId),old=await start(who,oldId);assert.equal(old.status,200);assert.equal(old.body.run.status,'incomplete');assert.equal(old.body.run.incompleteReason,'policy_updated');assert.equal(await snapshot(oldId),before);assert.equal((await attemptsOf(oldId)).length,0);
 
 });
@@ -671,7 +681,7 @@ describe('authenticated CBT (isolated *_test database)', () => {
  // Abandon delegates to get(), ignoring even a stale document token.
  const abandon=()=>api().post('/api/v1/cbt/runs/'+id+'/abandon').set(bearer(who.access)).set('x-cbt-attempt-token',oldToken).send({reason:'leave'});
  assert.equal((await abandon()).status,200);assert.equal(await snapshot(id),stable);tokens.set(id,nextToken);assert.equal((await checkpoint(who,id,2,answers,4)).status,200);assert.equal((await attemptsOf(id)).length,0);assert.equal(before.body.run.answered,2);
- clock.advance(CBT_DURATION_MS);who=await refresh(who);const expired=await abandon();assert.equal(expired.status,200);assert.equal(expired.body.run.status,'final');assert.equal(expired.body.run.result.answered,2);assert.equal((await attemptsOf(id)).length,50);const finalized=await snapshot(id);assert.deepEqual((await abandon()).body.run.result,expired.body.run.result);assert.equal(await snapshot(id),finalized);
+ clock.advance(CBT_DURATION_MS);who=await refresh(who);const expired=await abandon();assert.equal(expired.status,200);assert.equal(expired.body.run.status,'incomplete');assert.equal(expired.body.run.result,null);assert.equal((await attemptsOf(id)).length,0);const finalized=await snapshot(id);assert.deepEqual((await abandon()).body.run.result,expired.body.run.result);assert.equal(await snapshot(id),finalized);
 
 });
 

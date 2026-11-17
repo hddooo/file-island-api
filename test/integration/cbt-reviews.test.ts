@@ -65,10 +65,10 @@ describe('CBT server stars and partial reviews: isolated DB only',()=>{
    assert.equal((await post('/runs/'+full+'/submit',fullSubmission)).status,400);
    assert.equal((await post('/runs/'+full+'/answer',{position:0,optionId:answers[0].optionId})).status,409);
    const before=await pool.query('SELECT count(*)::int n FROM hanq.attempts WHERE cbt_run_id=$1',[full]);
-   assert.equal((await post('/runs/'+full+'/checkpoint',{version:1,answers,currentPosition:0})).status,200);
+   assert.equal((await post('/runs/'+full+'/checkpoint',{version:1,answers,currentPosition:49})).status,200);
    assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.attempts WHERE cbt_run_id=$1',[full])).rows[0].n,before.rows[0].n);
   }
-  const final=await post('/runs/'+full+'/submit',current61?{submissionKey:fullSubmission.submissionKey}:fullSubmission);assert.equal(final.status,200);
+  const final=await post('/runs/'+full+'/submit',current61?{submissionKey:fullSubmission.submissionKey,submissionIntent:'explicit-q50-before-deadline-v1'}:fullSubmission);assert.equal(final.status,200);
   const key=randomUUID(),one=await post('/reviews',{round:79,idempotencyKey:key});assert.equal(one.status,201);review=one.body.run.id;
   assert.deepEqual(one.body.items.map((i:{number:number})=>i.number),[2,4]);assert.equal(one.body.run.kind,'review');
   assert.equal((await post('/reviews',{round:79,idempotencyKey:key})).body.run.id,review);

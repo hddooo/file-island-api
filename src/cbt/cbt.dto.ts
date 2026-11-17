@@ -22,6 +22,7 @@ export class CbtGoDto {
 }
 
 export class CbtSubmitDto {
+  @IsOptional() @IsIn(['explicit-q50-before-deadline-v1']) submissionIntent?: 'explicit-q50-before-deadline-v1';
   @IsOptional() @IsString() @Matches(SUBMISSION_ID) submissionKey?: string;
   @IsOptional() @IsArray() @ArrayMinSize(50) @ArrayMaxSize(50) @ValidateNested({each:true}) @Type(() => CbtAnswerDto) answers?: CbtAnswerDto[];
   @IsOptional() @IsInt() @Min(0) @Max(49) currentPosition?: number;
@@ -39,5 +40,7 @@ export class CbtCheckpointDto {
  @IsArray() @ArrayMinSize(50) @ArrayMaxSize(50) @ValidateNested({each:true}) @Type(() => CbtAnswerDto) answers: CbtAnswerDto[];
  @IsInt() @Min(0) @Max(49) currentPosition: number;
 }
-export class CbtFinishDto { @IsOptional() @IsString() @Matches(SUBMISSION_ID) submissionKey?: string; }
+export class CbtFinishDto {
+ @IsOptional() @IsIn(['explicit-q50-before-deadline-v1']) submissionIntent?: 'explicit-q50-before-deadline-v1';
+ @IsOptional() @IsString() @Matches(SUBMISSION_ID) submissionKey?: string; }
 export class CbtAbandonDto { @IsOptional() @IsIn(['leave','reload','logout']) reason?: string; }
