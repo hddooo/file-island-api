@@ -1,15 +1,88 @@
 {
   "description": "Public historical terms and synthetic combinations only; no private quiz content or IDs.",
   "vectors": [
-    {"label": "learner short form", "expected": ["광개토왕"], "value": "광개토태왕", "correct": true, "ordered": true},
-    {"label": "learner short form", "expected": ["황국중앙총상회"], "value": "황국 총상회", "correct": true, "ordered": true},
-    {"label": "dot notation", "expected": ["3·1운동"], "value": "3.1운동", "correct": true, "ordered": true},
-    {"label": "parenthesis typed as one word", "expected": ["조선(후기)"], "value": "조선 후기", "correct": true, "ordered": true},
-    {"label": "parenthesis typed as one word", "expected": ["민립대학설립(건립)운동"], "value": "민립대학 설립 운동", "correct": true, "ordered": true},
-    {"label": "parenthesis typed as one word", "expected": ["민립대학설립(건립)운동"], "value": "민립대학건립운동", "correct": true, "ordered": true},
-    {"label": "still wrong", "expected": ["조선(후기)"], "value": "고려후기", "correct": false, "ordered": true},
-    {"label": "still wrong", "expected": ["황국중앙총상회"], "value": "황국협회", "correct": false, "ordered": true},
-    {"label": "still wrong", "expected": ["광개토왕"], "value": "장수왕", "correct": false, "ordered": true},    {
+    {
+      "label": "learner short form",
+      "expected": [
+        "광개토왕"
+      ],
+      "value": "광개토태왕",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "learner short form",
+      "expected": [
+        "황국중앙총상회"
+      ],
+      "value": "황국 총상회",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "dot notation",
+      "expected": [
+        "3·1운동"
+      ],
+      "value": "3.1운동",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "parenthesis typed as one word",
+      "expected": [
+        "조선(후기)"
+      ],
+      "value": "조선 후기",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "parenthesis typed as one word",
+      "expected": [
+        "민립대학설립(건립)운동"
+      ],
+      "value": "민립대학 설립 운동",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "parenthesis typed as one word",
+      "expected": [
+        "민립대학설립(건립)운동"
+      ],
+      "value": "민립대학건립운동",
+      "correct": true,
+      "ordered": true
+    },
+    {
+      "label": "still wrong",
+      "expected": [
+        "조선(후기)"
+      ],
+      "value": "고려후기",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "still wrong",
+      "expected": [
+        "황국중앙총상회"
+      ],
+      "value": "황국협회",
+      "correct": false,
+      "ordered": true
+    },
+    {
+      "label": "still wrong",
+      "expected": [
+        "광개토왕"
+      ],
+      "value": "장수왕",
+      "correct": false,
+      "ordered": true
+    },
+    {
       "label": "samguk equivalent",
       "expected": [
         "광개토왕"
@@ -290,12 +363,12 @@
       "ordered": true
     },
     {
-      "label": "colonial boundary",
+      "label": "colonial compact date event",
       "expected": [
         "3·1운동"
       ],
       "value": "31운동",
-      "correct": false,
+      "correct": true,
       "ordered": true
     },
     {
