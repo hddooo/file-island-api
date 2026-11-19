@@ -9,7 +9,7 @@ import { CLOCK, type Clock } from '../common/tokens';
 import { iso, requireUuid, sha256 } from '../common/util';
 import { DbService, type Queryable } from '../db/db.service';
 import { CbtAssetsService } from './cbt-assets.service';
-import { commonImage, questionImageName, stripAssets } from './cbt-policy';
+import { commonImage, isCbtRound, questionImageName, stripAssets } from './cbt-policy';
 import type { CbtReviewAnswersDto, CbtStarDto, CbtStarImportDto, CreateCbtReviewDto } from './cbt-review.dto';
 
 type Origin = 'exam' | 'review';
@@ -91,7 +91,7 @@ export class CbtReviewService {
  }
  /** Read-only revision-safe union. Active-only stars do not reveal exam answers. */
  async reviewMaterials(userId:string,round:number) {
-  if(!Number.isInteger(round)||round<70||round>80)throw new AppError(404,'round_not_found','No such round');
+  if(!isCbtRound(round))throw new AppError(404,'round_not_found','No such round');
   return this.db.tx(async q=>{
    await lockOwner(q,userId);
    const rows=(await q.query<Item & {run_id:string;exam_round:number;starred:boolean;ever_wrong:boolean}>(`WITH candidates AS (

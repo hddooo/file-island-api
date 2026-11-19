@@ -4,6 +4,7 @@ import { CurrentAuth, JwtAuthGuard, type AuthContext } from '../auth/guards';
 import { notFound } from '../common/app-error';
 import { CbtReviewAnswersDto, CbtStarDto, CbtStarImportDto, CreateCbtReviewDto } from './cbt-review.dto';
 import { CbtReviewService } from './cbt-review.service';
+import { isCbtRoundParam } from './cbt-policy';
 
 @Controller('api/v1/cbt') @UseGuards(JwtAuthGuard)
 export class CbtReviewController {
@@ -14,7 +15,7 @@ export class CbtReviewController {
  @Get('reviews/:id/stars') reviewStars(@CurrentAuth() w:AuthContext,@Param('id') id:string){return this.service.stars(w.userId,id,'review');}
  @Post('reviews/:id/stars') @HttpCode(200) reviewSave(@CurrentAuth() w:AuthContext,@Param('id') id:string,@Body() d:CbtStarDto){return this.service.saveStar(w.userId,id,'review',d);}
  @Post('reviews/:id/stars/import') @HttpCode(200) reviewImport(@CurrentAuth() w:AuthContext,@Param('id') id:string,@Body() d:CbtStarImportDto){return this.service.importStars(w.userId,id,'review',d);}
- @Get('review-materials/:round') materials(@CurrentAuth() w:AuthContext,@Param('round') round:string){if(!/^(7[0-9]|80)$/.test(round))throw notFound();return this.service.reviewMaterials(w.userId,Number(round));}
+ @Get('review-materials/:round') materials(@CurrentAuth() w:AuthContext,@Param('round') round:string){if(!isCbtRoundParam(round))throw notFound();return this.service.reviewMaterials(w.userId,Number(round));}
  @Get('notebook') notebook(@CurrentAuth() w:AuthContext){return this.service.notebook(w.userId);}
  @Post('reviews') create(@CurrentAuth() w:AuthContext,@Body() d:CreateCbtReviewDto){return this.service.create(w.userId,d);}
  @Get('reviews') list(@CurrentAuth() w:AuthContext){return this.service.list(w.userId);}

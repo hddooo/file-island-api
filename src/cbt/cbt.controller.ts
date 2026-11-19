@@ -4,6 +4,7 @@ import { AppError } from '../common/app-error';
 import { CurrentAuth, JwtAuthGuard, type AuthContext } from '../auth/guards';
 import { CbtStartDto, CbtCheckpointDto, CbtFinishDto, CbtAbandonDto, CbtAnswerDto, CbtGoDto, CbtPauseDto, CreateCbtRunDto } from './cbt.dto';
 import { CbtService } from './cbt.service';
+import { isCbtRoundParam } from './cbt-policy';
 
 function position(raw: string): number {
   if (!/^(0|[1-9]\d?)$/.test(raw) || Number(raw) > 49) throw new AppError(404, 'no_such_item', 'This run has no such position');
@@ -34,7 +35,7 @@ export class CbtController {
 
   @Get('rounds/:round')
   retryRound(@Param('round') raw:string){
-    if(!/^(?:7[0-9]|80)$/.test(raw))throw new AppError(404,'round_not_found','No such round');
+    if(!isCbtRoundParam(raw))throw new AppError(404,'round_not_found','No such round');
     return this.cbt.rounds(Number(raw));
   }
 

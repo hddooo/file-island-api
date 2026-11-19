@@ -1,8 +1,12 @@
 import type { QuestionRow } from '../questions/questions.repository';
 
-/** Authenticated official-round CBT: one past exam (rounds 79 → 70), its 50 original questions in original order,
+/** Authenticated official-round CBT: one past exam (rounds 80 → 67), its 50 original questions in original order,
  *  the 5 original numbered choices, original 1–3 point weights summing to 100, 80 minutes on the server clock. */
-export const CBT_ROUNDS = [80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70] as const;
+export const CBT_ROUNDS = [80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67] as const;
+export const CBT_MAX_ROUND = CBT_ROUNDS[0];
+export const CBT_MIN_ROUND = CBT_ROUNDS[CBT_ROUNDS.length - 1]!;
+export const isCbtRound = (round: number): boolean => Number.isInteger(round) && round >= CBT_MIN_ROUND && round <= CBT_MAX_ROUND;
+export const isCbtRoundParam = (raw: string): boolean => raw.length === 2 && /^\d{2}$/.test(raw) && isCbtRound(Number(raw));
 export const CBT_SIZE = 50;
 export const CBT_TOTAL_POINTS = 100;
 export const CBT_DURATION_MS = 80 * 60_000;
@@ -49,6 +53,7 @@ export type RoundCheck = { ok: true; rows: QuestionRow[] } | { ok: false; reason
 /** Validates a round EXACTLY as stored: numbers 1..50 once each, ids exam-RR-NN, options exam-RR-NN-option-1..5 in
  *  original order, points 1–3 summing to 100. Anything missing or unknown makes the round unavailable (never invented). */
 export function checkRound(round: number, rows: QuestionRow[]): RoundCheck {
+  if (!isCbtRound(round)) return { ok: false, reason: 'round_not_found' };
   const mine = rows.filter((r) => r.kind === 'mock' && r.exam_round === round);
   if (mine.length !== CBT_SIZE) return { ok: false, reason: 'question_count' };
   const sorted = mine.slice().sort((a, b) => (a.exam_number ?? 0) - (b.exam_number ?? 0));
@@ -65,7 +70,7 @@ export function checkRound(round: number, rows: QuestionRow[]): RoundCheck {
 
 // ---- private assets: canonical file names derived from validated integers, never from stored paths ----
 
-export const CBT_ASSET_NAME = /^(7\d|80)-(0[1-9]|[1-4]\d|50)\.webp$|^(7\d|80)-common(0[1-9]|[1-4]\d|50)-(0[1-9]|[1-4]\d|50)\.webp$/;
+export const CBT_ASSET_NAME = /^(?:6[7-9]|7\d|80)-(?:common(?:0[1-9]|[1-4]\d|50)-)?(?:0[1-9]|[1-4]\d|50)\.webp(?![\s\S])/;
 
 export const questionImageName = (round: number, number: number) => `${round}-${pad2(number)}.webp`;
 

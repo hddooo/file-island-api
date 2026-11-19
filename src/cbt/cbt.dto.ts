@@ -1,12 +1,13 @@
 import { Type } from 'class-transformer';
 import { ArrayMaxSize, ArrayMinSize, IsArray, IsIn, IsInt, IsOptional, IsString, Matches, Max, Min, ValidateIf, ValidateNested } from 'class-validator';
 import { OPTION_ID, SUBMISSION_ID } from '../attempts/attempts.dto';
+import { CBT_MIN_ROUND, CBT_MAX_ROUND } from './cbt-policy';
 
 /** No user id anywhere in a body: the owner always comes from the access token. Unknown fields are rejected
  *  (global ValidationPipe: whitelist + forbidNonWhitelisted). */
 export class CreateCbtRunDto {
   @IsOptional() @IsIn(['legacy','batch']) answerMode?: 'legacy' | 'batch';
-  @IsInt() @Min(70) @Max(80) round: number;
+  @IsInt() @Min(CBT_MIN_ROUND) @Max(CBT_MAX_ROUND) round: number;
   /** Client-generated key (e.g. a UUID) that makes create retries and double clicks return the same run. */
   @IsString() @Matches(SUBMISSION_ID) idempotencyKey: string;
 }
