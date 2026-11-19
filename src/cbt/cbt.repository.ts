@@ -1,3 +1,4 @@
+import {formalCatalogSql} from './cbt-official-versions';
 import { Injectable } from '@nestjs/common';
 import type { Queryable } from '../db/db.service';
 import type { QuestionRow } from '../questions/questions.repository';
@@ -56,7 +57,7 @@ export class CbtRepository {
   /** Current versions of one official round (validated by the caller; nothing is filled in). */
   async roundQuestions(q: Queryable, round: number): Promise<QuestionRow[]> {
     const r = await q.query<QuestionRow>(
-      `SELECT * FROM hanq.question_versions WHERE is_current AND kind = 'mock' AND exam_round = $1 ORDER BY exam_number`,
+      `SELECT q.* FROM hanq.question_versions q WHERE ${formalCatalogSql('q')} AND q.kind = 'mock' AND q.exam_round = $1 ORDER BY q.exam_number`,
       [round],
     );
     return r.rows;
@@ -64,7 +65,7 @@ export class CbtRepository {
 
   async allRoundQuestions(q: Queryable, rounds: readonly number[]): Promise<QuestionRow[]> {
     const r = await q.query<QuestionRow>(
-      `SELECT * FROM hanq.question_versions WHERE is_current AND kind = 'mock' AND exam_round = ANY ($1::int[]) ORDER BY exam_round DESC, exam_number`,
+      `SELECT q.* FROM hanq.question_versions q WHERE ${formalCatalogSql('q')} AND q.kind = 'mock' AND q.exam_round = ANY ($1::int[]) ORDER BY q.exam_round DESC, q.exam_number`,
       [rounds],
     );
     return r.rows;
