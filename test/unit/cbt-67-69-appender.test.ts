@@ -27,8 +27,8 @@ test('targeted appendix refuses other rounds, inconsistent grading, and incomple
   assert.throws(()=>parseCbt67To69Append(missing),{message:'source_scope'});
   missing.questions['exam-70-01']=structuredClone(missing.questions['exam-67-02']!);
   assert.throws(()=>parseCbt67To69Append(missing),{message:'source_scope'});
-  const wrongAnswer=source();wrongAnswer.questions['exam-68-01']!.answer=2;
+  const wrongAnswer=source();(wrongAnswer.questions['exam-68-01'] as any).answer=2;
   assert.throws(()=>parseCbt67To69Append(wrongAnswer),{message:'source_item'});
-  const wrongPoints=source();wrongPoints.questions['exam-69-01']!.points=1;
+  const wrongPoints=source();(wrongPoints.questions['exam-69-01'] as any).points=1;
   assert.throws(()=>parseCbt67To69Append(wrongPoints),{message:'source_round'});
 });
