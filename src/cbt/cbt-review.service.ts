@@ -91,29 +91,41 @@ export class CbtReviewService {
   });
  }
  /** Read-only revision-safe union. Active-only stars do not reveal exam answers. */
- async reviewMaterials(userId:string,round:number) {
+ async reviewMaterials(userId:string,round:number,includeUnanswered=false) {
   if(!isCbtRound(round))throw new AppError(404,'round_not_found','No such round');
   return this.db.tx(async q=>{
    await lockOwner(q,userId);
-   const rows=(await q.query<Item & {run_id:string;exam_round:number;starred:boolean;ever_wrong:boolean}>(`WITH candidates AS (
-    SELECT i.*,r.exam_round,r.final_at,v.correct_option_id,v.public_payload,v.review_payload,v.era,
+   const rows=(await q.query<Item & {run_id:string;exam_round:number;starred:boolean;ever_wrong:boolean;source_kind:Origin}>(`WITH candidates AS (
+    SELECT i.run_id,i.position,i.question_id,i.version,i.exam_number,i.points,i.option_ids,i.answer_option_id,
+     r.exam_round,r.final_at,v.correct_option_id,v.public_payload,v.review_payload,v.era,'exam'::text source_kind,
      coalesce(s.starred AND hanq.wrong_history_visible(s.user_id,'history',s.updated_at),false) material_starred,
-     (i.correct=false AND i.answer_option_id IS NOT NULL AND hanq.wrong_history_visible(r.user_id,'history',r.created_at)) material_wrong
+     (i.correct=false AND (i.answer_option_id IS NOT NULL OR $3::boolean) AND hanq.wrong_history_visible(r.user_id,'history',r.created_at)) material_wrong
     FROM hanq.cbt_run_items i JOIN hanq.cbt_runs r ON r.id=i.run_id AND r.user_id=i.user_id
     JOIN hanq.question_versions v ON v.question_id=i.question_id AND v.version=i.version
     LEFT JOIN hanq.cbt_question_stars s ON s.user_id=i.user_id AND s.question_id=i.question_id AND s.version=i.version
     WHERE i.user_id=$1 AND r.status='final' AND r.exam_round=$2
+    UNION ALL
+    SELECT i.review_id AS run_id,i.position,i.question_id,i.version,i.exam_number,i.points,i.option_ids,i.answer_option_id,
+     r.exam_round,r.final_at,v.correct_option_id,v.public_payload,v.review_payload,v.era,'review'::text source_kind,
+     coalesce(s.starred AND hanq.wrong_history_visible(s.user_id,'history',s.updated_at),false) material_starred,
+     (i.correct=false AND i.answer_option_id IS NOT NULL) material_wrong
+    FROM hanq.cbt_review_items i JOIN hanq.cbt_reviews r ON r.id=i.review_id AND r.user_id=i.user_id
+    JOIN hanq.question_versions v ON v.question_id=i.question_id AND v.version=i.version
+    LEFT JOIN hanq.cbt_question_stars s ON s.user_id=i.user_id AND s.question_id=i.question_id AND s.version=i.version
+    WHERE $3::boolean AND i.user_id=$1 AND r.status='final' AND r.exam_round=$2
+      AND hanq.wrong_history_visible(r.user_id,'history',r.created_at)
    ), eligible AS (SELECT * FROM candidates WHERE material_starred OR material_wrong)
    SELECT DISTINCT ON(question_id) *,bool_or(material_starred) OVER(PARTITION BY question_id) starred,
     bool_or(material_wrong) OVER(PARTITION BY question_id) ever_wrong FROM eligible
-   ORDER BY question_id,final_at DESC,run_id DESC LIMIT 51`,[userId,round])).rows;
+   ORDER BY question_id,final_at DESC,run_id DESC,source_kind LIMIT 51`,[userId,round,includeUnanswered])).rows;
    const pending=(await q.query<{n:number}>(`SELECT count(DISTINCT s.question_id)::int n FROM hanq.cbt_question_stars s JOIN hanq.question_versions v ON v.question_id=s.question_id AND v.version=s.version
     WHERE s.user_id=$1 AND s.starred AND v.kind='mock' AND v.exam_round=$2 AND hanq.wrong_history_visible(s.user_id,'history',s.updated_at)
-    AND NOT EXISTS(SELECT 1 FROM hanq.cbt_run_items i JOIN hanq.cbt_runs r ON r.id=i.run_id AND r.user_id=i.user_id WHERE i.user_id=s.user_id AND i.question_id=s.question_id AND i.version=s.version AND r.status='final')`,[userId,round])).rows[0].n;
-   return {scope:'exam-starred-or-ever-wrong',round,resetAt:(await learningResetStatus(q,userId)).history.resetAt,pendingStarCount:pending,limit:50,hasMore:rows.length>50,items:rows.slice(0,50).sort((a,b)=>a.exam_number-b.exam_number).map(i=>{
-    const base='/api/v1/cbt/runs/'+i.run_id+'/questions/'+i.position,common=commonImage(round,i.exam_number,i.public_payload),correct=i.answer_option_id===i.correct_option_id;
+    AND NOT EXISTS(SELECT 1 FROM hanq.cbt_run_items i JOIN hanq.cbt_runs r ON r.id=i.run_id AND r.user_id=i.user_id WHERE i.user_id=s.user_id AND i.question_id=s.question_id AND i.version=s.version AND r.status='final')
+    AND (NOT $3::boolean OR NOT EXISTS(SELECT 1 FROM hanq.cbt_review_items i JOIN hanq.cbt_reviews r ON r.id=i.review_id AND r.user_id=i.user_id WHERE i.user_id=s.user_id AND i.question_id=s.question_id AND i.version=s.version AND r.status='final' AND r.exam_round=$2 AND hanq.wrong_history_visible(r.user_id,'history',r.created_at)))`,[userId,round,includeUnanswered])).rows[0].n;
+   return {scope:'exam-starred-or-ever-wrong',round,...(includeUnanswered?{includesUnanswered:true}:{}),resetAt:(await learningResetStatus(q,userId)).history.resetAt,pendingStarCount:pending,limit:50,hasMore:rows.length>50,items:rows.slice(0,50).sort((a,b)=>a.exam_number-b.exam_number).map(i=>{
+    const base='/api/v1/cbt/'+(i.source_kind==='review'?'reviews':'runs')+'/'+i.run_id+'/questions/'+i.position,common=commonImage(round,i.exam_number,i.public_payload),correct=i.answer_option_id===i.correct_option_id;
     return {questionId:i.question_id,version:i.version,exam:round,number:i.exam_number,position:i.position,runId:i.run_id,points:i.points,
-     starred:i.starred,everWrong:i.ever_wrong,selectedOptionId:i.answer_option_id,image:base+'/image',common:common?{image:base+'/common',questionNumbers:common.numbers}:null,
+     ...(includeUnanswered?{source:i.source_kind}:{}),starred:i.starred,everWrong:i.ever_wrong,selectedOptionId:i.answer_option_id,image:base+'/image',common:common?{image:base+'/common',questionNumbers:common.numbers}:null,
      options:i.option_ids.map((id,k)=>({id,number:k+1})),review:{status:!i.answer_option_id?'unanswered':correct?'correct':'wrong',correct,earned:correct?i.points:0,correctNumber:i.option_ids.indexOf(i.correct_option_id)+1,correctOptionId:i.correct_option_id,item:stripAssets(i.review_payload),options:i.option_ids.map((id,k)=>({id,number:k+1,selected:id===i.answer_option_id,correct:id===i.correct_option_id}))}};
    })};
   });

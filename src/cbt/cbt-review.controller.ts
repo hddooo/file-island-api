@@ -16,6 +16,7 @@ export class CbtReviewController {
  @Post('reviews/:id/stars') @HttpCode(200) reviewSave(@CurrentAuth() w:AuthContext,@Param('id') id:string,@Body() d:CbtStarDto){return this.service.saveStar(w.userId,id,'review',d);}
  @Post('reviews/:id/stars/import') @HttpCode(200) reviewImport(@CurrentAuth() w:AuthContext,@Param('id') id:string,@Body() d:CbtStarImportDto){return this.service.importStars(w.userId,id,'review',d);}
  @Get('review-materials/:round') materials(@CurrentAuth() w:AuthContext,@Param('round') round:string){if(!isCbtRoundParam(round))throw notFound();return this.service.reviewMaterials(w.userId,Number(round));}
+ @Get('worksheet-materials/:round') worksheetMaterials(@CurrentAuth() w:AuthContext,@Param('round') round:string){if(!isCbtRoundParam(round))throw notFound();return this.service.reviewMaterials(w.userId,Number(round),true);}
  @Get('notebook') notebook(@CurrentAuth() w:AuthContext){return this.service.notebook(w.userId);}
  @Post('reviews') create(@CurrentAuth() w:AuthContext,@Body() d:CreateCbtReviewDto){return this.service.create(w.userId,d);}
  @Get('reviews') list(@CurrentAuth() w:AuthContext){return this.service.list(w.userId);}
