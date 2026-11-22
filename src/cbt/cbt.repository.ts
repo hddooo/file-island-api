@@ -147,11 +147,11 @@ export class CbtRepository {
   }
 
   /** All graded items of the owner's final runs (newest 200 runs). */
-  async finalItems(q: Queryable, userId: string): Promise<(CbtItemRow & { run_id: string })[]> {
-    const r = await q.query<CbtItemRow & { run_id: string }>(
-      `SELECT i.run_id, i.position, i.question_id, i.version, i.exam_number, i.points, i.option_ids, i.answer_option_id, i.answered_at, i.correct, i.attempt_id,
+  async finalItems(q: Queryable, userId: string): Promise<(CbtItemRow & { run_id: string; paper_imported: boolean })[]> {
+    const r = await q.query<CbtItemRow & { run_id: string; paper_imported: boolean }>(
+      `SELECT i.run_id, r.paper_imported, i.position, i.question_id, i.version, i.exam_number, i.points, i.option_ids, i.answer_option_id, i.answered_at, i.correct, i.attempt_id,
               qv.era, qv.public_payload, qv.correct_option_id, qv.review_payload
-         FROM (SELECT id FROM hanq.cbt_runs WHERE user_id = $1 AND status = 'final' AND hanq.wrong_history_visible(user_id, 'history', created_at) ORDER BY final_at DESC LIMIT 200) r
+         FROM (SELECT id, coalesce(result->>'paperImported','false')='true' paper_imported FROM hanq.cbt_runs WHERE user_id = $1 AND status = 'final' AND hanq.wrong_history_visible(user_id, 'history', created_at) ORDER BY final_at DESC LIMIT 200) r
          JOIN hanq.cbt_run_items i ON i.run_id = r.id
          JOIN hanq.question_versions qv ON qv.question_id = i.question_id AND qv.version = i.version
         ORDER BY i.run_id, i.position`,
@@ -173,7 +173,7 @@ export class CbtRepository {
     await q.query(`UPDATE hanq.cbt_runs SET current_position = $2, updated_at = $3 WHERE id = $1 AND status = 'active'`, [runId, position, now]);
   }
 
-  async gradeItem(q: Queryable, runId: string, position: number, correct: boolean, attemptId: string): Promise<void> {
+  async gradeItem(q: Queryable, runId: string, position: number, correct: boolean, attemptId: string | null): Promise<void> {
     await q.query('UPDATE hanq.cbt_run_items SET correct = $3, attempt_id = $4 WHERE run_id = $1 AND position = $2', [runId, position, correct, attemptId]);
   }
 

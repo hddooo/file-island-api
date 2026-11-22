@@ -2,7 +2,7 @@ import { Body, Controller, Get, Headers, HttpCode, Param, Post, Res, UseGuards }
 import type { Response } from 'express';
 import { AppError } from '../common/app-error';
 import { CurrentAuth, JwtAuthGuard, type AuthContext } from '../auth/guards';
-import { CbtStartDto, CbtCheckpointDto, CbtFinishDto, CbtAbandonDto, CbtAnswerDto, CbtGoDto, CbtPauseDto, CreateCbtRunDto } from './cbt.dto';
+import { CbtStartDto, CbtCheckpointDto, CbtFinishDto, CbtAbandonDto, CbtAnswerDto, CbtGoDto, CbtPauseDto, CreateCbtRunDto, CbtPaperImportDto } from './cbt.dto';
 import { CbtService } from './cbt.service';
 import { isCbtRoundParam } from './cbt-policy';
 
@@ -47,6 +47,12 @@ export class CbtController {
   @Post('runs')
   create(@CurrentAuth() who: AuthContext, @Body() dto: CreateCbtRunDto) {
     return this.cbt.create(who.userId, dto);
+  }
+
+  @Post('runs/paper-import')
+  @HttpCode(200)
+  importPaper(@CurrentAuth() who: AuthContext, @Body() dto: CbtPaperImportDto) {
+    return this.cbt.importPaper(who.userId, dto);
   }
 
   @Get('runs')

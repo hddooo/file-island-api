@@ -12,6 +12,13 @@ export class CreateCbtRunDto {
   @IsString() @Matches(SUBMISSION_ID) idempotencyKey: string;
 }
 
+export class CbtPaperImportDto {
+  @IsInt() @Min(CBT_MIN_ROUND) @Max(CBT_MAX_ROUND) round: number;
+  @IsArray() @ArrayMaxSize(50) @IsInt({each:true}) @Min(1,{each:true}) @Max(50,{each:true}) wrongQuestionNumbers: number[];
+  @IsArray() @ArrayMaxSize(50) @IsInt({each:true}) @Min(1,{each:true}) @Max(50,{each:true}) starredQuestionNumbers: number[];
+  @IsString() @Matches(SUBMISSION_ID) idempotencyKey: string;
+}
+
 export class CbtAnswerDto {
   @IsInt() @Min(0) @Max(49) position: number;
   /** An option id of that question, or null to clear the answer. Must be present. */

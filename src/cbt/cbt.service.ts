@@ -1,6 +1,6 @@
 import {cbtFirstRoundReward} from './cbt-policy';
 import { boundedGrowth } from '../common/growth-floor';
-import type { CbtPauseDto, CbtSubmitDto, CbtCheckpointDto } from './cbt.dto';
+import type { CbtPauseDto, CbtSubmitDto, CbtCheckpointDto, CbtPaperImportDto } from './cbt.dto';
 import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import type { PoolClient } from 'pg';
@@ -92,6 +92,59 @@ export class CbtService {
     });
   }
 
+  /** Save a self-reported paper result without inventing the selected wrong options or awarding growth. */
+  async importPaper(userId: string, dto: CbtPaperImportDto) {
+    const normalize = (numbers: number[]) => [...new Set(numbers)].sort((a,b) => a-b);
+    const wrong = normalize(dto.wrongQuestionNumbers), starred = normalize(dto.starredQuestionNumbers);
+    const hash = sha256(JSON.stringify([dto.round,wrong,starred])).toString('hex');
+    const key = 'paper-v1-' + sha256(dto.idempotencyKey).toString('hex');
+    const receipt = (run: CbtRunRow, reused: boolean) => ({
+      runId:run.id, round:run.exam_round, status:'final' as const, score:Number(run.result!.score),
+      correctCount:CBT_SIZE-wrong.length, wrongCount:wrong.length, starredCount:starred.length, reused,
+    });
+    return this.db.tx(async q => {
+      await lockOwner(q,userId);
+      const existing = await this.repo.findByKey(q,userId,key);
+      if(existing) {
+        if(existing.status!=='final' || existing.result?.paperImportHash!==hash)
+          throw new AppError(409,'idempotency_conflict','This idempotency key was already used with different inputs');
+        return receipt(existing,true);
+      }
+      const now = this.clock.now();
+      const active = await q.query(
+        "SELECT 1 FROM hanq.cbt_runs WHERE user_id=$1 AND exam_round=$2 AND status='active' AND attempt_policy='uninterrupted-v1' AND ends_at>$3 LIMIT 1",
+        [userId,dto.round,now],
+      );
+      if(active.rows.length) throw new AppError(409,'paper_import_active_run','Finish the active exam before adding its paper result');
+      const checked=checkRound(dto.round,await this.repo.roundQuestions(q,dto.round));
+      if(!checked.ok) throw roundUnavailable(dto.round,checked.reason);
+      const id=randomUUID(), wrongSet=new Set(wrong), starSet=new Set(starred);
+      if(!(await this.repo.insertRun(q,{id,userId,key,round:dto.round,now,mode:'batch'})))
+        throw new AppError(409,'create_conflict','Try again');
+      await this.repo.insertItems(q,id,userId,checked.rows);
+      await this.repo.start(q,id,now,new Date(now.getTime()+CBT_DURATION_MS));
+      const items=await this.repo.items(q,id);
+      const graded:GradedItem[]=[];
+      for(const item of items) {
+        const correct=!wrongSet.has(item.exam_number);
+        await this.repo.gradeItem(q,id,item.position,correct,null);
+        graded.push({position:item.position,era:item.era,part:initialPart(item.review_payload),points:item.points,answered:true,correct});
+        if(starSet.has(item.exam_number)) await q.query(
+          `INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at)
+           VALUES($1,$2,$3,true,$4) ON CONFLICT(user_id,question_id,version)
+           DO UPDATE SET starred=true,updated_at=EXCLUDED.updated_at`,
+          [userId,item.question_id,item.version,now],
+        );
+      }
+      const policyResult=resultOf(dto.round,graded,'submit',now);
+      await this.repo.finalize(q,id,now,'submit',{
+        ...policyResult,paperImported:true,paperImportHash:hash,paperWrongCount:policyResult.wrong,
+        growthPolicy:'paper-import-no-reward-v1',rewardEligible:false,policyGrowthReward:0,growthReward:0,
+      });
+      return receipt((await this.repo.findOwned(q,id,userId))!,false);
+    });
+  }
+
   private async replayCreate(q: PoolClient, run: CbtRunRow, round: number) {
     if (run.exam_round !== round) throw new AppError(409, 'idempotency_conflict', 'This idempotency key was already used for another round');
     const locked = (await this.repo.findOwned(q, run.id, run.user_id, true))!;
@@ -108,7 +161,7 @@ export class CbtService {
       });
     }
     const rows = await this.repo.listOwned(this.db.pool, userId);
-    return { submissionPolicy:SUBMISSION_POLICY, runs: rows.map((r) => ({ ...this.summary(r, now), answered: r.answered })), serverTime: now.toISOString() };
+    return { submissionPolicy:SUBMISSION_POLICY, runs: rows.map((r) => ({ ...this.summary(r, now), answered: r.result?.paperImported === true ? CBT_SIZE : r.answered })), serverTime: now.toISOString() };
   }
 
   private tokenMatches(run:CbtRunRow,token?:string) {return !!token&&/^[0-9a-f-]{36}$/i.test(token)&&!!run.attempt_token_hash&&sha256(token).toString('hex')===run.attempt_token_hash;}
@@ -202,7 +255,7 @@ export class CbtService {
   async stats(userId: string) {
     await this.list(userId); // Settle the owner's overdue sessions before computing their analysis.
     const rows = await this.repo.finalItems(this.db.pool, userId);
-    const graded = rows.map((r) => this.graded(r));
+    const graded = rows.map((r) => this.graded(r, r.paper_imported));
     return { runs: new Set(rows.map((r) => r.run_id)).size, questions: graded.length, ...statsOf(graded) };
   }
 
@@ -259,7 +312,7 @@ export class CbtService {
     const policyResult = resultOf(run.exam_round, graded, reason, at);
     // Every finalization holds lockOwner before the run lock. Concurrent runs of the same owner
     // therefore see the first committed final for this round; historical finals consume the slot too.
-    const previous=await q.query('SELECT 1 FROM hanq.cbt_runs WHERE user_id=$1 AND exam_round=$2 AND status=\'final\' AND id<>$3 LIMIT 1',[run.user_id,run.exam_round,run.id]);
+    const previous=await q.query('SELECT 1 FROM hanq.cbt_runs WHERE user_id=$1 AND exam_round=$2 AND status=\'final\' AND id<>$3 AND NOT (coalesce(result,\'{}\'::jsonb) ? \'paperImportHash\') LIMIT 1',[run.user_id,run.exam_round,run.id]);
     const rewardEligible=previous.rows.length===0,policyGrowthReward=rewardEligible?cbtFirstRoundReward(policyResult.score):0;
     const result = {...policyResult,growthPolicy:'round-first-score-bands-v1',rewardEligible,policyGrowthReward,growthReward:await boundedGrowth(q,run.user_id,policyGrowthReward)};
     await this.repo.finalize(q, run.id, at, reason, result);
@@ -270,8 +323,8 @@ export class CbtService {
     return (await this.repo.findOwned(q, run.id, run.user_id))!;
   }
 
-  private graded(it: CbtItemRow): GradedItem {
-    return { position: it.position, era: it.era, part: initialPart(it.review_payload), points: it.points, answered: it.correct !== null && it.answer_option_id !== null, correct: it.correct === true };
+  private graded(it: CbtItemRow, paperImported = false): GradedItem {
+    return { position: it.position, era: it.era, part: initialPart(it.review_payload), points: it.points, answered: it.correct !== null && (paperImported || it.answer_option_id !== null), correct: it.correct === true };
   }
 
   private summary(r: CbtRunRow, now: Date) {
@@ -297,7 +350,7 @@ export class CbtService {
       finalReason: r.final_reason,
       remainingMs: r.status === 'active' && r.ends_at ? r.paused_at ? r.pause_remaining_ms : Math.max(0, r.ends_at.getTime() - now.getTime()) : null,
       serverTime: now.toISOString(),
-      result: r.status === 'final' ? r.result : null,
+      result: r.status === 'final' && r.result ? Object.fromEntries(Object.entries(r.result).filter(([key]) => key!=='paperImportHash')) : null,
     };
   }
 
@@ -327,18 +380,18 @@ export class CbtService {
     const final = run.status === 'final';
     const eras = final ? await this.repo.validEraIds(q) : new Set<string>();
     return {
-      run: { ...this.summary(run, now), answered: items.filter((i) => i.answer_option_id !== null).length },
+      run: { ...this.summary(run, now), answered: run.result?.paperImported === true ? CBT_SIZE : items.filter((i) => i.answer_option_id !== null).length },
       items: run.status==='incomplete'||this.legacyClosed(run)?[]:items.map((i) => {
         const pub = this.publicItem(run, i);
         if (!final) return pub;
-        return { ...pub, review: this.review(i, eras) };
+        return { ...pub, ...(run.result?.paperImported === true ? {paperImported:true,...(i.correct===false?{paperWrong:true}:{})} : {}), review: this.review(i, eras, run.result?.paperImported === true) };
       }),
     };
   }
 
   /** Only for the owner's FINAL run: full review of all five original options, asset references stripped. */
-  private review(i: CbtItemRow, validEras: Set<string>) {
-    const g = this.graded(i);
+  private review(i: CbtItemRow, validEras: Set<string>, paperImported=false) {
+    const g = this.graded(i,paperImported);
     const rawOptions = Array.isArray(i.review_payload.options) ? (i.review_payload.options as unknown[]) : [];
     const optionOf = (id: string, k: number): Record<string, unknown> => {
       const isRec = (x: unknown): x is Record<string, unknown> => !!x && typeof x === 'object' && !Array.isArray(x);
