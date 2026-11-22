@@ -90,7 +90,8 @@ export class CbtReviewService {
    return this.view(q,await this.owned(q,userId,id));
   });
  }
- /** Read-only revision-safe union. Active-only stars do not reveal exam answers. */
+ /** Read-only revision-safe union. Both round feeds include finalized exam blanks;
+  * the worksheet also includes finalized re-review candidates. Active-only stars never reveal answers. */
  async reviewMaterials(userId:string,round:number,includeUnanswered=false) {
   if(!isCbtRound(round))throw new AppError(404,'round_not_found','No such round');
   return this.db.tx(async q=>{
@@ -100,7 +101,7 @@ export class CbtReviewService {
      r.exam_round,r.final_at,v.correct_option_id,v.public_payload,v.review_payload,v.era,'exam'::text source_kind,
      (coalesce(r.result->>'paperImported','false')='true') paper_imported,
      coalesce(s.starred AND hanq.wrong_history_visible(s.user_id,'history',s.updated_at),false) material_starred,
-     (i.correct=false AND (i.answer_option_id IS NOT NULL OR $3::boolean OR coalesce(r.result->>'paperImported','false')='true') AND hanq.wrong_history_visible(r.user_id,'history',r.created_at)) material_wrong
+     (i.correct=false AND hanq.wrong_history_visible(r.user_id,'history',r.created_at)) material_wrong
     FROM hanq.cbt_run_items i JOIN hanq.cbt_runs r ON r.id=i.run_id AND r.user_id=i.user_id
     JOIN hanq.question_versions v ON v.question_id=i.question_id AND v.version=i.version
     LEFT JOIN hanq.cbt_question_stars s ON s.user_id=i.user_id AND s.question_id=i.question_id AND s.version=i.version
