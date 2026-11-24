@@ -33,8 +33,11 @@ const EVER_WRONG = `(
  OR EXISTS(SELECT 1 FROM hanq.visible_manual_wrong_notes m WHERE m.user_id=$1 AND m.question_id=v.question_id AND m.source_key LIKE 'book-manual/%')
  OR EXISTS(SELECT 1 FROM hanq.cbt_mixed_review_items x JOIN hanq.cbt_mixed_reviews s ON s.id=x.review_id AND s.user_id=x.user_id WHERE x.user_id=$1 AND x.question_id=v.question_id AND s.status='final' AND x.correct=false AND ${VISIBLE})
 )`;
-const POOL_SQL = `SELECT v.question_id,v.version,v.exam_round,v.exam_number,v.points,v.option_ids FROM hanq.question_versions v
- WHERE ${formalCatalogSql('v')} AND v.kind='mock' AND v.exam_round BETWEEN ${CBT_MIN_ROUND} AND ${CBT_MAX_ROUND} AND ${EVER_WRONG}
+/** A question the owner currently marks with a star on any version (stars are shared by exams, reviews and Uigeumbu). */
+const STARRED = `EXISTS(SELECT 1 FROM hanq.cbt_question_stars st WHERE st.user_id=$1 AND st.question_id=v.question_id AND st.starred AND hanq.wrong_history_visible(st.user_id,'history',st.updated_at))`;
+/** "모든 문제 다시 풀기": every ever-wrong question plus every currently starred question. */
+const POOL_SQL =`SELECT v.question_id,v.version,v.exam_round,v.exam_number,v.points,v.option_ids FROM hanq.question_versions v
+ WHERE ${formalCatalogSql('v')} AND v.kind='mock' AND v.exam_round BETWEEN ${CBT_MIN_ROUND} AND ${CBT_MAX_ROUND} AND (${EVER_WRONG} OR ${STARRED})
  ORDER BY v.exam_round,v.exam_number LIMIT ${UIGEUMBU_MAX_ITEMS+1}`;
 
 /** Uigeumbu (의금부): untimed mixed-round practice of the owner's CBT mistakes, with its own submitted history.

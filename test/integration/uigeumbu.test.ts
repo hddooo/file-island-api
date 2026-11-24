@@ -99,4 +99,16 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
   const s=(await get('/uigeumbu')).body;assert.equal(s.rounds.length,10);assert.equal(s.rounds[0].sequence,12);assert.equal(s.rounds[9].sequence,3);assert.equal(s.last.wrong,3);
   assert.equal((await get('/uigeumbu',B)).body.rounds.length,0);
  });
+ it('all: starred questions join the ever-wrong pool; last-wrong stays wrong-only',async()=>{
+  const q=rounds[79][0];assert.equal((await get('/uigeumbu')).body.pool.all,3);
+  await pool.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4)`,[A.userId,q.question_id,q.version,t.clock.now()]);
+  assert.equal((await get('/uigeumbu')).body.pool.all,4);
+  const all=await create('all');assert.deepEqual(all.body.items.map((i:{exam:number;number:number})=>[i.exam,i.number]),[[78,10],[79,1],[79,2],[79,5]]);assert.equal(all.body.items[1].starred,true);
+  for(const i of all.body.items)await post('/uigeumbu/sessions/'+all.body.session.id+'/answer',{position:i.position,optionId:(i.exam===78?rounds[78][9]:rounds[79][i.number-1]).correct_option_id});
+  assert.equal((await submit(all.body.session.id)).body.session.result.correct,4);
+  assert.equal((await create('last-wrong')).body.error.code,'review_empty','a starred but correct question is not a last-round mistake');
+  await pool.query(`UPDATE hanq.cbt_question_stars SET starred=false WHERE user_id=$1 AND question_id=$2`,[A.userId,q.question_id]);
+  assert.equal((await get('/uigeumbu')).body.pool.all,3,'clearing the star removes it again');
+  assert.equal((await get('/uigeumbu',B)).body.pool.all,0);
+ });
 });
