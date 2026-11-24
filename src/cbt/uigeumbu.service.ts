@@ -19,7 +19,7 @@ interface Session {
 interface Item {
  position:number; question_id:string; version:string; exam_round:number; exam_number:number; points:number; option_ids:string[];
  answer_option_id:string|null; checked:boolean; correct:boolean|null; correct_option_id:string;
- public_payload:Record<string,unknown>; review_payload:Record<string,unknown>; era:string|null; starred:boolean;
+ public_payload:Record<string,unknown>; review_payload:Record<string,unknown>; era:string|null; starred:boolean; triple:boolean;
 }
 type Candidate = Pick<Item,'question_id'|'version'|'exam_round'|'exam_number'|'points'|'option_ids'>;
 
@@ -35,9 +35,11 @@ const EVER_WRONG = `(
 )`;
 /** A question the owner currently marks with a star on any version (stars are shared by exams, reviews and Uigeumbu). */
 const STARRED = `EXISTS(SELECT 1 FROM hanq.cbt_question_stars st WHERE st.user_id=$1 AND st.question_id=v.question_id AND st.starred AND hanq.wrong_history_visible(st.user_id,'history',st.updated_at))`;
-/** "모든 문제 다시 풀기": every ever-wrong question plus every currently starred question. */
+/** A question the owner marks with a Uigeumbu triple star (★★★), its own marks kept apart from CBT stars. */
+const TRIPLE = `EXISTS(SELECT 1 FROM hanq.uigeumbu_stars ts WHERE ts.user_id=$1 AND ts.question_id=v.question_id AND ts.starred AND hanq.wrong_history_visible(ts.user_id,'history',ts.updated_at))`;
+/** "모든 문제 다시 풀기": every ever-wrong question plus every currently starred (CBT star or ★★★) question. */
 const POOL_SQL =`SELECT v.question_id,v.version,v.exam_round,v.exam_number,v.points,v.option_ids FROM hanq.question_versions v
- WHERE ${formalCatalogSql('v')} AND v.kind='mock' AND v.exam_round BETWEEN ${CBT_MIN_ROUND} AND ${CBT_MAX_ROUND} AND (${EVER_WRONG} OR ${STARRED})
+ WHERE ${formalCatalogSql('v')} AND v.kind='mock' AND v.exam_round BETWEEN ${CBT_MIN_ROUND} AND ${CBT_MAX_ROUND} AND (${EVER_WRONG} OR ${STARRED} OR ${TRIPLE})
  ORDER BY v.exam_round,v.exam_number LIMIT ${UIGEUMBU_MAX_ITEMS+1}`;
 
 /** Uigeumbu (의금부): untimed mixed-round practice of the owner's CBT mistakes, with its own submitted history.
@@ -55,7 +57,8 @@ export class UigeumbuService {
  }
  private async items(q:Queryable,userId:string,id:string){
   return (await q.query<Item>(`SELECT i.*,v.correct_option_id,v.public_payload,v.review_payload,v.era,
-   coalesce((SELECT st.starred FROM hanq.cbt_question_stars st WHERE st.user_id=i.user_id AND st.question_id=i.question_id AND st.version=i.version AND hanq.wrong_history_visible(st.user_id,'history',st.updated_at)),false) starred
+   coalesce((SELECT st.starred FROM hanq.cbt_question_stars st WHERE st.user_id=i.user_id AND st.question_id=i.question_id AND st.version=i.version AND hanq.wrong_history_visible(st.user_id,'history',st.updated_at)),false) starred,
+   coalesce((SELECT ts.starred FROM hanq.uigeumbu_stars ts WHERE ts.user_id=i.user_id AND ts.question_id=i.question_id AND hanq.wrong_history_visible(ts.user_id,'history',ts.updated_at)),false) triple
    FROM hanq.cbt_mixed_review_items i JOIN hanq.question_versions v ON v.question_id=i.question_id AND v.version=i.version
    WHERE i.review_id=$1 AND i.user_id=$2 ORDER BY i.position`,[id,userId])).rows;
  }
@@ -71,7 +74,7 @@ export class UigeumbuService {
  private itemView(s:Session,i:Item){
   const base=`/api/v1/cbt/uigeumbu/sessions/${s.id}/questions/${i.position}`,common=commonImage(i.exam_round,i.exam_number,i.public_payload);
   const item={position:i.position,questionId:i.question_id,version:i.version,exam:i.exam_round,number:i.exam_number,points:i.points,era:i.era,
-   options:i.option_ids.map((id,k)=>({id,number:k+1})),selectedOptionId:i.answer_option_id,checked:i.checked,starred:i.starred,
+   options:i.option_ids.map((id,k)=>({id,number:k+1})),selectedOptionId:i.answer_option_id,checked:i.checked,starred:i.starred,tripleStarred:i.triple,
    image:base+'/image',common:common?{image:base+'/common',questionNumbers:common.numbers}:null};
   const correct=i.answer_option_id!==null&&i.answer_option_id===i.correct_option_id;
   return {...item,review:{status:i.answer_option_id===null?'unanswered':correct?'correct':'wrong',correct,correctNumber:i.option_ids.indexOf(i.correct_option_id)+1,correctOptionId:i.correct_option_id,item:stripAssets(i.review_payload),
@@ -95,10 +98,11 @@ export class UigeumbuService {
      (SELECT count(answer_option_id)::int FROM hanq.cbt_mixed_review_items i WHERE i.review_id=s.id AND i.user_id=s.user_id) answered
      FROM hanq.cbt_mixed_reviews s WHERE s.user_id=$1 AND s.status='active' AND ${VISIBLE} ORDER BY s.created_at DESC,s.id LIMIT 1`,[userId])).rows[0];
    const stars=(await q.query<{n:number}>(`SELECT count(DISTINCT st.question_id)::int n FROM hanq.cbt_question_stars st WHERE st.user_id=$1 AND st.starred AND hanq.wrong_history_visible(st.user_id,'history',st.updated_at)`,[userId])).rows[0].n;
+   const tripleStars=(await q.query<{n:number}>(`SELECT count(*)::int n FROM hanq.uigeumbu_stars ts WHERE ts.user_id=$1 AND ts.starred AND hanq.wrong_history_visible(ts.user_id,'history',ts.updated_at)`,[userId])).rows[0].n;
    const score=(r:Record<string,unknown>|null)=>({correct:Number(r?.correct)||0,wrong:Number(r?.wrong)||0,unanswered:Number(r?.unanswered)||0});
    return {
     resetAt:(await learningResetStatus(q,userId)).history.resetAt,
-    pool:{all:Math.min(pool.length,UIGEUMBU_MAX_ITEMS),hasMore:pool.length>UIGEUMBU_MAX_ITEMS},stars,
+    pool:{all:Math.min(pool.length,UIGEUMBU_MAX_ITEMS),hasMore:pool.length>UIGEUMBU_MAX_ITEMS},stars,tripleStars,
     last:finals[0]?{id:finals[0].id,sequence:finals[0].seq,wrong:finals[0].wrong}:null,
     active:active?{id:active.id,scope:active.scope,parentId:active.parent_id,total:active.total,answered:active.answered,createdAt:iso(active.created_at)}:null,
     rounds:finals.map(f=>({id:f.id,sequence:f.seq,scope:f.scope,createdAt:iso(f.created_at),finalAt:iso(f.final_at),total:f.total,missed:f.wrong,...score(f.result),
@@ -148,7 +152,7 @@ export class UigeumbuService {
    if(parent.scope==='round-review'||parent.status!=='final')throw new AppError(409,'review_parent_invalid','Only a submitted Uigeumbu round can be reviewed');
    const key='round-review|'+dto.idempotencyKey,old=await this.replay(q,userId,key);
    if(old){if(old.parent_id!==parent.id||old.status==='abandoned')throw new AppError(409,'idempotency_conflict','Key already used');return this.view(q,old);}
-   const rows=(await this.items(q,userId,parent.id)).filter(i=>i.correct!==true||i.starred);
+   const rows=(await this.items(q,userId,parent.id)).filter(i=>i.correct!==true||i.starred||i.triple);
    return this.open(q,userId,key,'round-review',parent.id,rows);
   });
  }
@@ -203,12 +207,23 @@ export class UigeumbuService {
    return {position:dto.position,starred:dto.starred};
   });
  }
+ /** Uigeumbu ★★★ on one question of the owner's session (any status except abandoned). */
+ async triple(userId:string,id:string,dto:UigeumbuStarDto){
+  return this.db.tx(async q=>{
+   await lockOwner(q,userId);const s=await this.owned(q,userId,id);
+   const i=(await this.items(q,userId,s.id))[dto.position];if(!i)throw notFound();
+   await assertWrongResetGeneration(q,userId,'history',dto.resetAt);
+   await q.query(`INSERT INTO hanq.uigeumbu_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,$4,$5) ON CONFLICT(user_id,question_id) DO UPDATE SET version=EXCLUDED.version,starred=EXCLUDED.starred,updated_at=EXCLUDED.updated_at`,[userId,i.question_id,i.version,dto.starred,this.clock.now()]);
+   return {position:dto.position,tripleStarred:dto.starred};
+  });
+ }
  /** Clears every CBT question star of the owner (exam, review and Uigeumbu share them). Rows stay as false so an old device import never revives them. */
  async resetStars(userId:string,dto:UigeumbuStarResetDto){
   return this.db.tx(async q=>{
    await lockOwner(q,userId);await assertWrongResetGeneration(q,userId,'history',dto.resetAt);
-   const r=await q.query(`UPDATE hanq.cbt_question_stars SET starred=false,updated_at=$2 WHERE user_id=$1 AND starred`,[userId,this.clock.now()]);
-   return {cleared:r.rowCount??0};
+   const now=this.clock.now(),r=await q.query(`UPDATE hanq.cbt_question_stars SET starred=false,updated_at=$2 WHERE user_id=$1 AND starred`,[userId,now]);
+   const t=await q.query(`UPDATE hanq.uigeumbu_stars SET starred=false,updated_at=$2 WHERE user_id=$1 AND starred`,[userId,now]);
+   return {cleared:(r.rowCount??0)+(t.rowCount??0),stars:r.rowCount??0,tripleStars:t.rowCount??0};
   });
  }
  async image(userId:string,id:string,position:number,which:'question'|'common'){
