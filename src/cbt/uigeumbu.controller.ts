@@ -2,13 +2,14 @@ import { Body, Controller, Get, HttpCode, Param, Post, Res, UseGuards } from '@n
 import type { Response } from 'express';
 import { CurrentAuth, JwtAuthGuard, type AuthContext } from '../auth/guards';
 import { notFound } from '../common/app-error';
-import { CreateUigeumbuReviewDto, CreateUigeumbuSessionDto, UIGEUMBU_MAX_ITEMS, UigeumbuAnswerDto, UigeumbuPositionDto, UigeumbuStarDto, UigeumbuSubmitDto } from './uigeumbu.dto';
+import { CreateUigeumbuReviewDto, CreateUigeumbuSessionDto, UIGEUMBU_MAX_ITEMS, UigeumbuAnswerDto, UigeumbuPositionDto, UigeumbuStarDto, UigeumbuStarResetDto, UigeumbuSubmitDto } from './uigeumbu.dto';
 import { UigeumbuService } from './uigeumbu.service';
 
 @Controller('api/v1/cbt/uigeumbu') @UseGuards(JwtAuthGuard)
 export class UigeumbuController {
  constructor(private readonly service:UigeumbuService) {}
  @Get() summary(@CurrentAuth() w:AuthContext){return this.service.summary(w.userId);}
+ @Post('stars/reset') @HttpCode(200) resetStars(@CurrentAuth() w:AuthContext,@Body() d:UigeumbuStarResetDto){return this.service.resetStars(w.userId,d);}
  @Post('sessions') create(@CurrentAuth() w:AuthContext,@Body() d:CreateUigeumbuSessionDto){return this.service.create(w.userId,d);}
  @Get('sessions/:id') get(@CurrentAuth() w:AuthContext,@Param('id') id:string){return this.service.get(w.userId,id);}
  @Post('sessions/:id/reviews') review(@CurrentAuth() w:AuthContext,@Param('id') id:string,@Body() d:CreateUigeumbuReviewDto){return this.service.createReview(w.userId,id,d);}

@@ -9,7 +9,7 @@ import { assertWrongResetGeneration, learningResetStatus } from '../profile/lear
 import { CbtAssetsService } from './cbt-assets.service';
 import { formalCatalogSql } from './cbt-official-versions';
 import { CBT_MAX_ROUND, CBT_MIN_ROUND, commonImage, questionImageName, stripAssets } from './cbt-policy';
-import { UIGEUMBU_MAX_ITEMS, type CreateUigeumbuReviewDto, type CreateUigeumbuSessionDto, type UigeumbuAnswerDto, type UigeumbuPositionDto, type UigeumbuStarDto, type UigeumbuSubmitDto } from './uigeumbu.dto';
+import { UIGEUMBU_MAX_ITEMS, type CreateUigeumbuReviewDto, type CreateUigeumbuSessionDto, type UigeumbuAnswerDto, type UigeumbuPositionDto, type UigeumbuStarDto, type UigeumbuStarResetDto, type UigeumbuSubmitDto } from './uigeumbu.dto';
 
 type Scope = 'all'|'last-wrong'|'round-review';
 interface Session {
@@ -94,10 +94,11 @@ export class UigeumbuService {
    const active=(await q.query<Session & {total:number;answered:number}>(`SELECT s.*,(SELECT count(*)::int FROM hanq.cbt_mixed_review_items i WHERE i.review_id=s.id AND i.user_id=s.user_id) total,
      (SELECT count(answer_option_id)::int FROM hanq.cbt_mixed_review_items i WHERE i.review_id=s.id AND i.user_id=s.user_id) answered
      FROM hanq.cbt_mixed_reviews s WHERE s.user_id=$1 AND s.status='active' AND ${VISIBLE} ORDER BY s.created_at DESC,s.id LIMIT 1`,[userId])).rows[0];
+   const stars=(await q.query<{n:number}>(`SELECT count(DISTINCT st.question_id)::int n FROM hanq.cbt_question_stars st WHERE st.user_id=$1 AND st.starred AND hanq.wrong_history_visible(st.user_id,'history',st.updated_at)`,[userId])).rows[0].n;
    const score=(r:Record<string,unknown>|null)=>({correct:Number(r?.correct)||0,wrong:Number(r?.wrong)||0,unanswered:Number(r?.unanswered)||0});
    return {
     resetAt:(await learningResetStatus(q,userId)).history.resetAt,
-    pool:{all:Math.min(pool.length,UIGEUMBU_MAX_ITEMS),hasMore:pool.length>UIGEUMBU_MAX_ITEMS},
+    pool:{all:Math.min(pool.length,UIGEUMBU_MAX_ITEMS),hasMore:pool.length>UIGEUMBU_MAX_ITEMS},stars,
     last:finals[0]?{id:finals[0].id,sequence:finals[0].seq,wrong:finals[0].wrong}:null,
     active:active?{id:active.id,scope:active.scope,parentId:active.parent_id,total:active.total,answered:active.answered,createdAt:iso(active.created_at)}:null,
     rounds:finals.map(f=>({id:f.id,sequence:f.seq,scope:f.scope,createdAt:iso(f.created_at),finalAt:iso(f.final_at),total:f.total,missed:f.wrong,...score(f.result),
@@ -200,6 +201,14 @@ export class UigeumbuService {
    await assertWrongResetGeneration(q,userId,'history',dto.resetAt);
    await q.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,$4,$5) ON CONFLICT(user_id,question_id,version) DO UPDATE SET starred=EXCLUDED.starred,updated_at=EXCLUDED.updated_at`,[userId,i.question_id,i.version,dto.starred,this.clock.now()]);
    return {position:dto.position,starred:dto.starred};
+  });
+ }
+ /** Clears every CBT question star of the owner (exam, review and Uigeumbu share them). Rows stay as false so an old device import never revives them. */
+ async resetStars(userId:string,dto:UigeumbuStarResetDto){
+  return this.db.tx(async q=>{
+   await lockOwner(q,userId);await assertWrongResetGeneration(q,userId,'history',dto.resetAt);
+   const r=await q.query(`UPDATE hanq.cbt_question_stars SET starred=false,updated_at=$2 WHERE user_id=$1 AND starred`,[userId,this.clock.now()]);
+   return {cleared:r.rowCount??0};
   });
  }
  async image(userId:string,id:string,position:number,which:'question'|'common'){

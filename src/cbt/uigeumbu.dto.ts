@@ -20,6 +20,10 @@ export class UigeumbuPositionDto {
 export class UigeumbuSubmitDto {
  @IsString() @Matches(SUBMISSION_ID) submissionKey: string;
 }
+export class UigeumbuStarResetDto {
+ @IsIn(['RESET_STARS']) confirmation: 'RESET_STARS';
+ @IsOptional() @IsISO8601() resetAt?: string|null;
+}
 export class UigeumbuStarDto {
  @IsInt() @Min(0) @Max(UIGEUMBU_MAX_ITEMS-1) position: number;
  @IsBoolean() starred: boolean;

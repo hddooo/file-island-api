@@ -112,4 +112,15 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
   assert.equal((await get('/uigeumbu')).body.pool.all,3,'clearing the star removes it again');
   assert.equal((await get('/uigeumbu',B)).body.pool.all,0);
  });
+ it('star reset clears every star of the owner only, releasing star-only questions from the all pool',async()=>{
+  const q=rounds[79][2];await pool.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4) ON CONFLICT(user_id,question_id,version) DO UPDATE SET starred=true`,[A.userId,q.question_id,q.version,t.clock.now()]);
+  await pool.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4)`,[B.userId,q.question_id,q.version,t.clock.now()]);
+  const before=(await get('/uigeumbu')).body;assert.ok(before.stars>=1);assert.equal(before.pool.all,4);
+  assert.equal((await post('/uigeumbu/stars/reset',{})).status,400,'explicit confirmation required');
+  const r=await post('/uigeumbu/stars/reset',{confirmation:'RESET_STARS'});assert.equal(r.status,200);assert.ok(r.body.cleared>=1);
+  const after=(await get('/uigeumbu')).body;assert.equal(after.stars,0);assert.equal(after.pool.all,3,'ever-wrong questions stay; star-only ones leave');
+  assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.cbt_question_stars WHERE user_id=$1 AND starred',[A.userId])).rows[0].n,0);
+  assert.equal((await get('/uigeumbu',B)).body.stars,1,'other owners keep their stars');
+  assert.equal((await api().post('/api/v1/cbt/uigeumbu/stars/reset').send({confirmation:'RESET_STARS'})).status,401);
+ });
 });
