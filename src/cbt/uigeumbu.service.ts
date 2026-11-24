@@ -33,13 +33,11 @@ const EVER_WRONG = `(
  OR EXISTS(SELECT 1 FROM hanq.visible_manual_wrong_notes m WHERE m.user_id=$1 AND m.question_id=v.question_id AND m.source_key LIKE 'book-manual/%')
  OR EXISTS(SELECT 1 FROM hanq.cbt_mixed_review_items x JOIN hanq.cbt_mixed_reviews s ON s.id=x.review_id AND s.user_id=x.user_id WHERE x.user_id=$1 AND x.question_id=v.question_id AND s.status='final' AND x.correct=false AND ${VISIBLE})
 )`;
-/** A question the owner currently marks with a star on any version (stars are shared by exams, reviews and Uigeumbu). */
-const STARRED = `EXISTS(SELECT 1 FROM hanq.cbt_question_stars st WHERE st.user_id=$1 AND st.question_id=v.question_id AND st.starred AND hanq.wrong_history_visible(st.user_id,'history',st.updated_at))`;
 /** A question the owner marks with a Uigeumbu triple star (★★★), its own marks kept apart from CBT stars. */
 const TRIPLE = `EXISTS(SELECT 1 FROM hanq.uigeumbu_stars ts WHERE ts.user_id=$1 AND ts.question_id=v.question_id AND ts.starred AND hanq.wrong_history_visible(ts.user_id,'history',ts.updated_at))`;
-/** "모든 문제 다시 풀기": every ever-wrong question plus every currently starred (CBT star or ★★★) question. */
+/** "모든 문제 다시 풀기": every ever-wrong question plus every Uigeumbu ★★★ question (CBT exam stars are not part of Uigeumbu). */
 const POOL_SQL =`SELECT v.question_id,v.version,v.exam_round,v.exam_number,v.points,v.option_ids FROM hanq.question_versions v
- WHERE ${formalCatalogSql('v')} AND v.kind='mock' AND v.exam_round BETWEEN ${CBT_MIN_ROUND} AND ${CBT_MAX_ROUND} AND (${EVER_WRONG} OR ${STARRED} OR ${TRIPLE})
+ WHERE ${formalCatalogSql('v')} AND v.kind='mock' AND v.exam_round BETWEEN ${CBT_MIN_ROUND} AND ${CBT_MAX_ROUND} AND (${EVER_WRONG} OR ${TRIPLE})
  ORDER BY v.exam_round,v.exam_number LIMIT ${UIGEUMBU_MAX_ITEMS+1}`;
 
 /** Uigeumbu (의금부): untimed mixed-round practice of the owner's CBT mistakes, with its own submitted history.
@@ -152,7 +150,7 @@ export class UigeumbuService {
    if(parent.scope==='round-review'||parent.status!=='final')throw new AppError(409,'review_parent_invalid','Only a submitted Uigeumbu round can be reviewed');
    const key='round-review|'+dto.idempotencyKey,old=await this.replay(q,userId,key);
    if(old){if(old.parent_id!==parent.id||old.status==='abandoned')throw new AppError(409,'idempotency_conflict','Key already used');return this.view(q,old);}
-   const rows=(await this.items(q,userId,parent.id)).filter(i=>i.correct!==true||i.starred||i.triple);
+   const rows=(await this.items(q,userId,parent.id)).filter(i=>i.correct!==true||i.triple);
    return this.open(q,userId,key,'round-review',parent.id,rows);
   });
  }

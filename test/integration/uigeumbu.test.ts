@@ -77,10 +77,11 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
  });
  it('round review: wrong + unanswered + starred items, instant check that cannot be changed, recorded under its round',async()=>{
   const round=(await get('/uigeumbu')).body.rounds[0];
-  assert.equal((await post('/uigeumbu/sessions/'+round.id+'/stars',{position:0,starred:true})).status,200);
-  assert.equal((await post('/uigeumbu/sessions/'+round.id+'/stars',{position:0,starred:true},B)).status,404);
+  assert.equal((await post('/uigeumbu/sessions/'+round.id+'/triple-stars',{position:0,starred:true})).status,200);
+  assert.equal((await post('/uigeumbu/sessions/'+round.id+'/triple-stars',{position:0,starred:true},B)).status,404);
+  assert.equal((await post('/uigeumbu/sessions/'+round.id+'/stars',{position:1,starred:true})).status,200,'a CBT star alone does not bring a question back');
   const r=await post('/uigeumbu/sessions/'+round.id+'/reviews',{idempotencyKey:randomUUID()});assert.equal(r.status,201);const id=r.body.session.id;
-  assert.equal(r.body.session.checkMode,true);assert.equal(r.body.session.scope,'round-review');assert.equal(r.body.items.length,3);assert.equal(r.body.items[0].starred,true);
+  assert.equal(r.body.session.checkMode,true);assert.equal(r.body.session.scope,'round-review');assert.equal(r.body.items.length,3);assert.equal(r.body.items[0].tripleStarred,true);
   const q=rounds[78][9],ok=await post('/uigeumbu/sessions/'+id+'/answer',{position:0,optionId:q.correct_option_id});
   assert.equal(ok.body.item.review.correct,true);assert.equal(ok.body.item.checked,true);
   assert.equal((await post('/uigeumbu/sessions/'+id+'/answer',{position:0,optionId:wrong(q)})).body.error.code,'answer_checked');
@@ -100,32 +101,34 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
   const s=(await get('/uigeumbu')).body;assert.equal(s.rounds.length,10);assert.equal(s.rounds[0].sequence,12);assert.equal(s.rounds[9].sequence,3);assert.equal(s.last.wrong,3);
   assert.equal((await get('/uigeumbu',B)).body.rounds.length,0);
  });
- it('all: starred questions join the ever-wrong pool; last-wrong stays wrong-only',async()=>{
-  const q=rounds[79][0];assert.equal((await get('/uigeumbu')).body.pool.all,3);
-  await pool.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4)`,[A.userId,q.question_id,q.version,t.clock.now()]);
-  assert.equal((await get('/uigeumbu')).body.pool.all,4);
-  const all=await create('all');assert.deepEqual(all.body.items.map((i:{exam:number;number:number})=>[i.exam,i.number]),[[78,10],[79,1],[79,2],[79,5]]);assert.equal(all.body.items[1].starred,true);
+ it('all: a CBT exam star does not join the Uigeumbu pool; ★★★ does; last-wrong stays wrong-only',async()=>{
+  const q=rounds[79][0];const base=(await get('/uigeumbu')).body.pool.all;
+  await pool.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4) ON CONFLICT(user_id,question_id,version) DO UPDATE SET starred=true`,[A.userId,q.question_id,q.version,t.clock.now()]);
+  assert.equal((await get('/uigeumbu')).body.pool.all,base,'CBT stars stay out of Uigeumbu');
+  await pool.query(`INSERT INTO hanq.uigeumbu_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4) ON CONFLICT(user_id,question_id) DO UPDATE SET starred=true`,[A.userId,q.question_id,q.version,t.clock.now()]);
+  assert.equal((await get('/uigeumbu')).body.pool.all,base+1);
+  const all=await create('all');assert.ok(all.body.items.some((i:{exam:number;number:number;tripleStarred:boolean})=>i.exam===79&&i.number===1&&i.tripleStarred));
   for(const i of all.body.items)await post('/uigeumbu/sessions/'+all.body.session.id+'/answer',{position:i.position,optionId:(i.exam===78?rounds[78][9]:rounds[79][i.number-1]).correct_option_id});
   assert.equal((await submit(all.body.session.id)).body.session.result.correct,4);
   assert.equal((await create('last-wrong')).body.error.code,'review_empty','a starred but correct question is not a last-round mistake');
-  await pool.query(`UPDATE hanq.cbt_question_stars SET starred=false WHERE user_id=$1 AND question_id=$2`,[A.userId,q.question_id]);
-  assert.equal((await get('/uigeumbu')).body.pool.all,3,'clearing the star removes it again');
+  await pool.query(`UPDATE hanq.uigeumbu_stars SET starred=false WHERE user_id=$1 AND question_id=$2`,[A.userId,q.question_id]);
+  assert.equal((await get('/uigeumbu')).body.pool.all,base,'clearing ★★★ removes it again');
   assert.equal((await get('/uigeumbu',B)).body.pool.all,0);
  });
  it('★★★ is separate from CBT stars: joins the all pool and the round review, then star reset clears it',async()=>{
-  const s=(await get('/uigeumbu')).body,q=rounds[79][3];assert.equal(s.tripleStars,0);
+  const s=(await get('/uigeumbu')).body,q=rounds[79][3],base3=s.tripleStars;
   const all=await create('all');const id=all.body.session.id;const pos=all.body.items.length-1;
   assert.equal((await post('/uigeumbu/sessions/'+id+'/triple-stars',{position:pos,starred:true},B)).status,404);
   const ts=await post('/uigeumbu/sessions/'+id+'/triple-stars',{position:pos,starred:true});assert.equal(ts.status,200);assert.equal(ts.body.tripleStarred,true);
   const view=(await get('/uigeumbu/sessions/'+id)).body;assert.equal(view.items[pos].tripleStarred,true);assert.equal(view.items[pos].starred,false,'CBT star untouched');
   for(const i of view.items)await post('/uigeumbu/sessions/'+id+'/answer',{position:i.position,optionId:i.review.correctOptionId});
   const done=await submit(id);assert.equal(done.body.session.result.correct,view.items.length);
-  const rv=await post('/uigeumbu/sessions/'+id+'/reviews',{idempotencyKey:randomUUID()});assert.equal(rv.status,201);assert.equal(rv.body.items.filter((i:{tripleStarred:boolean})=>i.tripleStarred).length,1);assert.ok(rv.body.items.every((i:{starred:boolean;tripleStarred:boolean})=>i.starred||i.tripleStarred),'all correct: only starred / ★★★ questions come back');
+  const rv=await post('/uigeumbu/sessions/'+id+'/reviews',{idempotencyKey:randomUUID()});assert.equal(rv.status,201);assert.ok(rv.body.items.some((i:{position:number;tripleStarred:boolean})=>i.tripleStarred));assert.ok(rv.body.items.every((i:{starred:boolean;tripleStarred:boolean})=>i.starred||i.tripleStarred),'all correct: only starred / ★★★ questions come back');
   await submit(rv.body.session.id);
   // a correct, never-wrong question with ★★★ joins the all pool
   const before=(await get('/uigeumbu')).body.pool.all;
   await pool.query(`INSERT INTO hanq.uigeumbu_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4)`,[A.userId,q.question_id,q.version,t.clock.now()]);
-  const after=(await get('/uigeumbu')).body;assert.equal(after.pool.all,before+1);assert.equal(after.tripleStars,2);
+  const after=(await get('/uigeumbu')).body;assert.equal(after.pool.all,before+1);assert.equal(after.tripleStars,base3+2);
   assert.equal((await get('/uigeumbu',B)).body.tripleStars,0);
  });
  it('3별 reset clears only ★★★ and keeps CBT stars',async()=>{
@@ -138,7 +141,8 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
  it('star reset clears every star of the owner only, releasing star-only questions from the all pool',async()=>{
   const q=rounds[79][2];await pool.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4) ON CONFLICT(user_id,question_id,version) DO UPDATE SET starred=true`,[A.userId,q.question_id,q.version,t.clock.now()]);
   await pool.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4)`,[B.userId,q.question_id,q.version,t.clock.now()]);
-  const before=(await get('/uigeumbu')).body;assert.ok(before.stars>=1);assert.ok(before.pool.all>3,'star-only questions are in the pool before the reset');
+  await pool.query(`INSERT INTO hanq.uigeumbu_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4) ON CONFLICT(user_id,question_id) DO UPDATE SET starred=true`,[A.userId,rounds[79][5].question_id,rounds[79][5].version,t.clock.now()]);
+  const before=(await get('/uigeumbu')).body;assert.ok(before.stars>=1);assert.ok(before.pool.all>3,'★★★-only questions are in the pool before the reset');
   assert.equal((await post('/uigeumbu/stars/reset',{})).status,400,'explicit confirmation required');
   const r=await post('/uigeumbu/stars/reset',{confirmation:'RESET_STARS'});assert.equal(r.status,200);assert.ok(r.body.cleared>=1);
   const after=(await get('/uigeumbu')).body;assert.equal(after.stars,0);assert.equal(after.tripleStars,0);assert.equal(after.pool.all,3,'ever-wrong questions stay; star-only ones leave');
