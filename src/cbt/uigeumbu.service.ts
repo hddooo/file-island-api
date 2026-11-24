@@ -41,6 +41,8 @@ const POOL_SQL =`SELECT v.question_id,v.version,v.exam_round,v.exam_number,v.poi
  ORDER BY v.exam_round,v.exam_number LIMIT ${UIGEUMBU_MAX_ITEMS+1}`;
 
 /** Uigeumbu (의금부): untimed mixed-round practice of the owner's CBT mistakes, with its own submitted history.
+ * Every session is checked one question at a time like the CBT wrong/star review: answers are included for practice,
+ * and each submitted answer is locked server-side.
  * Writes only cbt_mixed_reviews/_items and the owner's existing question stars; never attempts, growth, exams or reviews. */
 @Injectable()
 export class UigeumbuService {
@@ -63,7 +65,7 @@ export class UigeumbuService {
   return (await q.query<{n:number}>(`SELECT count(*)::int n FROM hanq.cbt_mixed_reviews s WHERE s.user_id=$1 AND s.status='final' AND ${MAIN} AND ${VISIBLE} AND (s.final_at,s.id)<=($2,$3)`,[s.user_id,s.final_at,s.id])).rows[0].n;
  }
  private sessionView(s:Session,items:Item[],sequence:number|null,resetAt:string|null){
-  return {id:s.id,kind:'uigeumbu',scope:s.scope,parentId:s.parent_id,sequence,status:s.status,checkMode:s.scope==='round-review',currentPosition:Math.min(s.current_position,Math.max(items.length-1,0)),
+  return {id:s.id,kind:'uigeumbu',scope:s.scope,parentId:s.parent_id,sequence,status:s.status,checkMode:true,currentPosition:Math.min(s.current_position,Math.max(items.length-1,0)),
    createdAt:iso(s.created_at),finalAt:iso(s.final_at),result:s.result,total:items.length,answered:items.filter(i=>i.answer_option_id!==null).length,resetAt};
  }
  private itemView(s:Session,i:Item){
@@ -71,7 +73,6 @@ export class UigeumbuService {
   const item={position:i.position,questionId:i.question_id,version:i.version,exam:i.exam_round,number:i.exam_number,points:i.points,era:i.era,
    options:i.option_ids.map((id,k)=>({id,number:k+1})),selectedOptionId:i.answer_option_id,checked:i.checked,starred:i.starred,
    image:base+'/image',common:common?{image:base+'/common',questionNumbers:common.numbers}:null};
-  if(s.status!=='final'&&!(s.scope==='round-review'&&i.checked))return item;
   const correct=i.answer_option_id!==null&&i.answer_option_id===i.correct_option_id;
   return {...item,review:{status:i.answer_option_id===null?'unanswered':correct?'correct':'wrong',correct,correctNumber:i.option_ids.indexOf(i.correct_option_id)+1,correctOptionId:i.correct_option_id,item:stripAssets(i.review_payload),
    options:i.option_ids.map((id,k)=>({id,number:k+1,selected:id===i.answer_option_id,correct:id===i.correct_option_id}))}};
@@ -161,7 +162,7 @@ export class UigeumbuService {
    if(!i)throw notFound();
    if(dto.optionId!==null&&!i.option_ids.includes(dto.optionId))throw new AppError(400,'invalid_option','Unknown option for this question');
    if(i.checked){if(dto.optionId===i.answer_option_id)return {session:this.sessionView(s,items,null,null),item:this.itemView(s,i)};throw new AppError(409,'answer_checked','This answer was already checked');}
-   const check=s.scope==='round-review'&&dto.optionId!==null,now=this.clock.now();
+   const check=dto.optionId!==null,now=this.clock.now();
    await q.query(`UPDATE hanq.cbt_mixed_review_items SET answer_option_id=$4,checked=$5,correct=$6,answered_at=$7 WHERE review_id=$1 AND user_id=$2 AND position=$3`,
     [id,userId,dto.position,dto.optionId,check,check?dto.optionId===i.correct_option_id:null,dto.optionId===null?null:now]);
    await q.query('UPDATE hanq.cbt_mixed_reviews SET current_position=$3 WHERE id=$1 AND user_id=$2',[id,userId,dto.position]);

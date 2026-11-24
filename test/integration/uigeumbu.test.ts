@@ -53,7 +53,7 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
  it('records an untimed round without writing attempts, growth, exams or reviews; 10 most recent rounds',async()=>{
   const before=await totals(A),key=randomUUID(),c=await create('all',A,key);assert.equal(c.status,201);const id=c.body.session.id;
   assert.deepEqual(c.body.items.map((i:{exam:number;number:number})=>[i.exam,i.number]),[[78,10],[79,2],[79,5]]);
-  assert.equal(c.body.session.checkMode,false);assert.equal(c.body.session.total,3);assert.ok(c.body.items.every((i:object)=>!('review' in i)));
+  assert.equal(c.body.session.checkMode,true);assert.equal(c.body.session.total,3);assert.ok(c.body.items.every((i:{review:{status:string;correctOptionId:string}})=>i.review.status==='unanswered'&&i.review.correctOptionId),'one-question practice carries answers like the CBT wrong/star review');
   assert.equal((await create('all',A,key)).body.session.id,id);
   assert.equal((await get('/uigeumbu/sessions/'+id,B)).status,404);
   const img=await get('/uigeumbu/sessions/'+id+'/questions/0/image');assert.equal(img.status,200);assert.equal(img.headers['content-type'],'image/webp');
@@ -61,7 +61,8 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
   const q78=rounds[78][9],q79=rounds[79][1];
   assert.equal((await post('/uigeumbu/sessions/'+id+'/answer',{position:0,optionId:'nope'})).status,400);
   assert.equal((await post('/uigeumbu/sessions/'+id+'/answer',{position:0,optionId:q78.correct_option_id},B)).status,404);
-  const a=await post('/uigeumbu/sessions/'+id+'/answer',{position:0,optionId:q78.correct_option_id});assert.equal(a.status,200);assert.equal(a.body.item.selectedOptionId,q78.correct_option_id);assert.ok(!('review' in a.body.item));
+  const a=await post('/uigeumbu/sessions/'+id+'/answer',{position:0,optionId:q78.correct_option_id});assert.equal(a.status,200);assert.equal(a.body.item.selectedOptionId,q78.correct_option_id);assert.equal(a.body.item.checked,true);assert.equal(a.body.item.review.correct,true);
+  assert.equal((await post('/uigeumbu/sessions/'+id+'/answer',{position:0,optionId:wrong(q78)})).body.error.code,'answer_checked','a checked answer is locked');
   assert.equal((await post('/uigeumbu/sessions/'+id+'/answer',{position:1,optionId:wrong(q79)})).status,200);
   assert.equal((await post('/uigeumbu/sessions/'+id+'/position',{currentPosition:2})).status,200);
   assert.equal((await post('/uigeumbu/sessions/'+id+'/position',{currentPosition:3})).status,404);
