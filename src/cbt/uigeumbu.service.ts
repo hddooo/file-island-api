@@ -39,6 +39,17 @@ const TRIPLE = `EXISTS(SELECT 1 FROM hanq.uigeumbu_stars ts WHERE ts.user_id=$1 
 const POOL_SQL =`SELECT v.question_id,v.version,v.exam_round,v.exam_number,v.points,v.option_ids FROM hanq.question_versions v
  WHERE ${formalCatalogSql('v')} AND v.kind='mock' AND v.exam_round BETWEEN ${CBT_MIN_ROUND} AND ${CBT_MAX_ROUND} AND (${EVER_WRONG} OR ${TRIPLE})
  ORDER BY v.exam_round,v.exam_number LIMIT ${UIGEUMBU_MAX_ITEMS+1}`;
+/** "내 약점 개념": how many times the owner really got each pooled question wrong — official CBT answers, CBT partial
+ * reviews, paper imports, book reports and checked Uigeumbu answers (any session that was not abandoned). Read only. */
+const WEAKNESS_SQL =`SELECT v.question_id,v.version,v.exam_round,v.exam_number,
+ ((SELECT count(*) FROM hanq.visible_wrong_attempts a WHERE a.user_id=$1 AND a.question_id=v.question_id AND NOT a.correct AND a.option_id IS NOT NULL AND (a.cbt_run_id IS NOT NULL OR a.cbt_review_id IS NOT NULL))
+ +(SELECT count(*) FROM hanq.cbt_run_items i JOIN hanq.cbt_runs r ON r.id=i.run_id AND r.user_id=i.user_id WHERE i.user_id=$1 AND i.question_id=v.question_id AND i.correct=false AND r.status='final' AND coalesce(r.result->>'paperImported','false')='true' AND hanq.wrong_history_visible(r.user_id,'history',r.created_at))
+ +(SELECT count(*) FROM hanq.visible_manual_wrong_notes m WHERE m.user_id=$1 AND m.question_id=v.question_id AND m.source_key LIKE 'book-manual/%')
+ +(SELECT count(*) FROM hanq.cbt_mixed_review_items x JOIN hanq.cbt_mixed_reviews s ON s.id=x.review_id AND s.user_id=x.user_id WHERE x.user_id=$1 AND x.question_id=v.question_id AND s.status<>'abandoned' AND x.checked AND x.correct=false AND ${VISIBLE}))::int misses,
+ ${TRIPLE} triple
+ FROM hanq.question_versions v
+ WHERE ${formalCatalogSql('v')} AND v.kind='mock' AND v.exam_round BETWEEN ${CBT_MIN_ROUND} AND ${CBT_MAX_ROUND} AND (${EVER_WRONG} OR ${TRIPLE})
+ ORDER BY misses DESC,v.exam_round,v.exam_number LIMIT ${UIGEUMBU_MAX_ITEMS}`;
 
 /** Uigeumbu (의금부): untimed mixed-round practice of the owner's CBT mistakes, with its own submitted history.
  * Every session is checked one question at a time like the CBT wrong/star review: answers are included for practice,
@@ -83,6 +94,11 @@ export class UigeumbuService {
   return {session:this.sessionView(s,items,await this.sequence(q,s),resetAt),items:items.map(i=>this.itemView(s,i))};
  }
 
+ /** Every pooled question with the owner's real miss count, most-missed first (read only). */
+ async weakness(userId:string){
+  const rows=(await this.db.pool.query<{question_id:string;version:string;exam_round:number;exam_number:number;misses:number;triple:boolean}>(WEAKNESS_SQL,[userId])).rows;
+  return {items:rows.map(r=>({questionId:r.question_id,version:r.version,exam:r.exam_round,number:r.exam_number,misses:r.misses,tripleStarred:r.triple}))};
+ }
  async summary(userId:string){
   return this.db.tx(async q=>{
    const pool=await this.pool(q,userId);

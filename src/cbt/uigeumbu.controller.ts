@@ -8,6 +8,7 @@ import { UigeumbuService } from './uigeumbu.service';
 @Controller('api/v1/cbt/uigeumbu') @UseGuards(JwtAuthGuard)
 export class UigeumbuController {
  constructor(private readonly service:UigeumbuService) {}
+ @Get('weakness') weakness(@CurrentAuth() w:AuthContext){return this.service.weakness(w.userId);}
  @Get() summary(@CurrentAuth() w:AuthContext){return this.service.summary(w.userId);}
  @Post('triple-stars/reset') @HttpCode(200) resetTriple(@CurrentAuth() w:AuthContext,@Body() d:UigeumbuTripleResetDto){return this.service.resetTriple(w.userId,d);}
  @Post('stars/reset') @HttpCode(200) resetStars(@CurrentAuth() w:AuthContext,@Body() d:UigeumbuStarResetDto){return this.service.resetStars(w.userId,d);}

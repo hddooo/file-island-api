@@ -91,6 +91,16 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
   const f=await submit(id);assert.equal(f.status,200);assert.equal(f.body.session.sequence,null);
   const s=(await get('/uigeumbu')).body;assert.equal(s.rounds.length,1);assert.equal(s.rounds[0].reviews.length,1);assert.deepEqual([s.rounds[0].reviews[0].total,s.rounds[0].reviews[0].correct],[3,1]);
  });
+ it('weakness: counts every real miss per question across exams and Uigeumbu answers, owner-scoped, most-missed first',async()=>{
+  assert.equal((await api().get('/api/v1/cbt/uigeumbu/weakness')).status,401);
+  const r=await get('/uigeumbu/weakness');assert.equal(r.status,200);
+  const key=(i:{exam:number;number:number})=>i.exam+'-'+i.number,m=Object.fromEntries(r.body.items.map((i:{exam:number;number:number;misses:number})=>[key(i),i.misses]));
+  // 79-2: exam + first Uigeumbu round + its review. 79-5: exam only (left unanswered later). 78-10: exam only (answered right later).
+  assert.deepEqual(m,{'79-2':3,'79-5':1,'78-10':1});
+  assert.deepEqual(key(r.body.items[0]),'79-2');
+  assert.equal(r.body.items.find((i:{exam:number;number:number})=>key(i)==='78-10').tripleStarred,true);
+  assert.deepEqual((await get('/uigeumbu/weakness',B)).body.items,[]);
+ });
  it('last-wrong uses only the latest submitted main round; a new start closes the unfinished one',async()=>{
   const c=await create('last-wrong');assert.equal(c.status,201);assert.deepEqual(c.body.items.map((i:{exam:number;number:number})=>[i.exam,i.number]),[[79,2],[79,5]]);
   const open=await create('all');assert.equal(open.status,201);assert.equal((await get('/uigeumbu/sessions/'+c.body.session.id)).status,404);
