@@ -128,6 +128,13 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
   const after=(await get('/uigeumbu')).body;assert.equal(after.pool.all,before+1);assert.equal(after.tripleStars,2);
   assert.equal((await get('/uigeumbu',B)).body.tripleStars,0);
  });
+ it('3별 reset clears only ★★★ and keeps CBT stars',async()=>{
+  const q=rounds[79][4];await pool.query(`INSERT INTO hanq.uigeumbu_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4) ON CONFLICT(user_id,question_id) DO UPDATE SET starred=true`,[A.userId,q.question_id,q.version,t.clock.now()]);
+  const before=(await get('/uigeumbu')).body;assert.ok(before.tripleStars>=1);
+  assert.equal((await post('/uigeumbu/triple-stars/reset',{confirmation:'RESET_STARS'})).status,400);
+  const r=await post('/uigeumbu/triple-stars/reset',{confirmation:'RESET_TRIPLE_STARS'});assert.equal(r.status,200);assert.equal(r.body.tripleStars,before.tripleStars);
+  const after=(await get('/uigeumbu')).body;assert.equal(after.tripleStars,0);assert.equal(after.stars,before.stars,'CBT stars untouched');
+ });
  it('star reset clears every star of the owner only, releasing star-only questions from the all pool',async()=>{
   const q=rounds[79][2];await pool.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4) ON CONFLICT(user_id,question_id,version) DO UPDATE SET starred=true`,[A.userId,q.question_id,q.version,t.clock.now()]);
   await pool.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4)`,[B.userId,q.question_id,q.version,t.clock.now()]);

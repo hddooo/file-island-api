@@ -9,7 +9,7 @@ import { assertWrongResetGeneration, learningResetStatus } from '../profile/lear
 import { CbtAssetsService } from './cbt-assets.service';
 import { formalCatalogSql } from './cbt-official-versions';
 import { CBT_MAX_ROUND, CBT_MIN_ROUND, commonImage, questionImageName, stripAssets } from './cbt-policy';
-import { UIGEUMBU_MAX_ITEMS, type CreateUigeumbuReviewDto, type CreateUigeumbuSessionDto, type UigeumbuAnswerDto, type UigeumbuPositionDto, type UigeumbuStarDto, type UigeumbuStarResetDto, type UigeumbuSubmitDto } from './uigeumbu.dto';
+import { UIGEUMBU_MAX_ITEMS, type CreateUigeumbuReviewDto, type CreateUigeumbuSessionDto, type UigeumbuAnswerDto, type UigeumbuPositionDto, type UigeumbuStarDto, type UigeumbuStarResetDto, type UigeumbuSubmitDto, type UigeumbuTripleResetDto } from './uigeumbu.dto';
 
 type Scope = 'all'|'last-wrong'|'round-review';
 interface Session {
@@ -215,6 +215,14 @@ export class UigeumbuService {
    await assertWrongResetGeneration(q,userId,'history',dto.resetAt);
    await q.query(`INSERT INTO hanq.uigeumbu_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,$4,$5) ON CONFLICT(user_id,question_id) DO UPDATE SET version=EXCLUDED.version,starred=EXCLUDED.starred,updated_at=EXCLUDED.updated_at`,[userId,i.question_id,i.version,dto.starred,this.clock.now()]);
    return {position:dto.position,tripleStarred:dto.starred};
+  });
+ }
+ /** Clears only the owner's Uigeumbu ★★★ (CBT exam/review stars are untouched). */
+ async resetTriple(userId:string,dto:UigeumbuTripleResetDto){
+  return this.db.tx(async q=>{
+   await lockOwner(q,userId);await assertWrongResetGeneration(q,userId,'history',dto.resetAt);
+   const t=await q.query(`UPDATE hanq.uigeumbu_stars SET starred=false,updated_at=$2 WHERE user_id=$1 AND starred`,[userId,this.clock.now()]);
+   return {tripleStars:t.rowCount??0};
   });
  }
  /** Clears every CBT question star of the owner (exam, review and Uigeumbu share them). Rows stay as false so an old device import never revives them. */

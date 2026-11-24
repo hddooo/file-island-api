@@ -20,6 +20,10 @@ export class UigeumbuPositionDto {
 export class UigeumbuSubmitDto {
  @IsString() @Matches(SUBMISSION_ID) submissionKey: string;
 }
+export class UigeumbuTripleResetDto {
+ @IsIn(['RESET_TRIPLE_STARS']) confirmation: 'RESET_TRIPLE_STARS';
+ @IsOptional() @IsISO8601() resetAt?: string|null;
+}
 export class UigeumbuStarResetDto {
  @IsIn(['RESET_STARS']) confirmation: 'RESET_STARS';
  @IsOptional() @IsISO8601() resetAt?: string|null;
