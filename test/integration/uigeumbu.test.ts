@@ -161,7 +161,7 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
   assert.equal((await get('/uigeumbu',B)).body.stars,1,'other owners keep their stars');
   assert.equal((await api().post('/api/v1/cbt/uigeumbu/stars/reset').send({confirmation:'RESET_STARS'})).status,401);
  });
- it('mock-wrong: the latest official exam\'s misses plus stars marked since it began; a retake starts with no stars shown',async()=>{
+ it('mock-wrong: every round\'s latest exam misses plus stars marked since it began; a retake replaces the round and starts unstarred',async()=>{
   const C=await member(),q=rounds[79];
   assert.equal((await create('mock-wrong',C)).body.error.code,'no_mock_round');
   // An old star on #40, from before the exam.
@@ -171,18 +171,22 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
   const st=await get('/runs/'+run1+'/stars',C);assert.equal(st.status,200);assert.equal(st.body.flags[39],false,'a star from before this exam is not pre-marked');
   const mark=await post('/runs/'+run1+'/stars',{signature:st.body.signature,position:29,starred:true,resetAt:null},C);assert.equal(mark.status,200,JSON.stringify(mark.body));
   assert.equal(mark.body.flags[29],true);assert.equal(mark.body.flags.filter(Boolean).length,1);
-  const sum=(await get('/uigeumbu',C)).body;assert.deepEqual(sum.mock,{round:79,finalAt:sum.mock.finalAt,wrong:2,starred:1,total:3});
+  assert.deepEqual((await get('/uigeumbu',C)).body.mock,{rounds:1,wrong:2,starred:1,total:3});
   const c=await create('mock-wrong',C);assert.equal(c.status,201,JSON.stringify(c.body));
   assert.deepEqual(c.body.items.map((i:{exam:number;number:number})=>[i.exam,i.number]),[[79,2],[79,3],[79,30]]);assert.equal(c.body.session.scope,'mock-wrong');
   assert.equal((await get('/uigeumbu',C)).body.active.scope,'mock-wrong');
   assert.equal((await pool.query('SELECT scope FROM hanq.cbt_mixed_reviews WHERE id=$1',[c.body.session.id])).rows[0].scope,'all','stored as a main round; no schema change');
+  // Another round joins; then retaking 79 replaces 79's mistakes with the new attempt's (none).
+  t.clock.advance(1000);
+  await exam(78,(x,i)=>i===9?wrong(x):x.correct_option_id,C);
+  assert.deepEqual((await get('/uigeumbu',C)).body.mock,{rounds:2,wrong:3,starred:1,total:4});
   // Retake the same round: no stars shown, and the newest exam is the one used.
   t.clock.advance(1000);
   const run2=await exam(79,x=>x.correct_option_id,C);
   assert.equal((await get('/runs/'+run2+'/stars',C)).body.flags.some(Boolean),false,'a retake starts with a clean star sheet');
   assert.equal((await get('/runs/'+run1+'/stars',C)).body.flags[29],true,'the earlier exam still shows its own star');
-  assert.deepEqual((await get('/uigeumbu',C)).body.mock,{round:79,finalAt:(await get('/uigeumbu',C)).body.mock.finalAt,wrong:0,starred:0,total:0});
-  assert.equal((await create('mock-wrong',C)).body.error.code,'review_empty');
+  assert.deepEqual((await get('/uigeumbu',C)).body.mock,{rounds:2,wrong:1,starred:0,total:1});
+  const c2=await create('mock-wrong',C);assert.equal(c2.status,201);assert.deepEqual(c2.body.items.map((i:{exam:number;number:number})=>[i.exam,i.number]),[[78,10]],'only each round\'s latest attempt counts');
   assert.equal((await get('/uigeumbu',B)).body.mock,null,'owner scoped');
  });
 });

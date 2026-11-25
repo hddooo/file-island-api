@@ -28,13 +28,14 @@ const MAIN = `s.scope IN ('all','last-wrong')`;
 /** "최근 실전 회차 오답·별표": stored as a main 'all' round (no schema change) and told apart by its key prefix. */
 const MOCK_KEY = 'mock-wrong|';
 const scopeOf = (s:Pick<Session,'scope'|'idempotency_key'>) => s.idempotency_key?.startsWith(MOCK_KEY)?'mock-wrong':s.scope;
-/** The owner's latest submitted official mock exam (taken in the app or added from paper). */
-const LATEST_MOCK_SQL = `SELECT r.id,r.exam_round,r.final_at,coalesce(r.started_at,r.created_at) since FROM hanq.cbt_runs r
- WHERE r.user_id=$1 AND r.status='final' AND hanq.wrong_history_visible(r.user_id,'history',r.created_at) ORDER BY r.final_at DESC,r.id DESC LIMIT 1`;
-/** That exam's questions not answered correctly, plus the ones starred since it began (exact versions, exam order). */
-const MOCK_ITEMS_SQL = `SELECT i.question_id,i.version,r.exam_round,i.exam_number,i.points,i.option_ids,(i.correct IS NOT TRUE) wrong,
+/** For every official mock round the owner has submitted (in the app or from paper), only the latest attempt of that round:
+ * its questions not answered correctly, plus the ones starred since that attempt began (exact versions, round/number order).
+ * An older attempt's mistakes drop out once the round is retaken. */
+const MOCK_ITEMS_SQL = `WITH latest AS (SELECT DISTINCT ON (r.exam_round) r.id FROM hanq.cbt_runs r
+  WHERE r.user_id=$1 AND r.status='final' AND hanq.wrong_history_visible(r.user_id,'history',r.created_at) ORDER BY r.exam_round,r.final_at DESC,r.id DESC)
+ SELECT i.question_id,i.version,r.exam_round,i.exam_number,i.points,i.option_ids,(i.correct IS NOT TRUE) wrong,
  EXISTS(SELECT 1 FROM hanq.cbt_question_stars st WHERE st.user_id=i.user_id AND st.question_id=i.question_id AND st.version=i.version AND st.starred AND st.updated_at>=coalesce(r.started_at,r.created_at) AND hanq.wrong_history_visible(st.user_id,'history',st.updated_at)) star
- FROM hanq.cbt_run_items i JOIN hanq.cbt_runs r ON r.id=i.run_id AND r.user_id=i.user_id WHERE i.run_id=$2 AND i.user_id=$1 ORDER BY i.exam_number`;
+ FROM hanq.cbt_run_items i JOIN hanq.cbt_runs r ON r.id=i.run_id AND r.user_id=i.user_id WHERE i.user_id=$1 AND i.run_id IN (SELECT id FROM latest) ORDER BY r.exam_round,i.exam_number`;
 /** A real mistake on any version of the question, from an official CBT exam, a CBT partial review, a paper import,
  * a book report or an earlier Uigeumbu session. Unanswered items and other islands' practice never count. */
 const EVER_WRONG = `(
@@ -122,15 +123,14 @@ export class UigeumbuService {
      (SELECT count(answer_option_id)::int FROM hanq.cbt_mixed_review_items i WHERE i.review_id=s.id AND i.user_id=s.user_id) answered
      FROM hanq.cbt_mixed_reviews s WHERE s.user_id=$1 AND s.status='active' AND ${VISIBLE} ORDER BY s.created_at DESC,s.id LIMIT 1`,[userId])).rows[0];
    const stars=(await q.query<{n:number}>(`SELECT count(DISTINCT st.question_id)::int n FROM hanq.cbt_question_stars st WHERE st.user_id=$1 AND st.starred AND hanq.wrong_history_visible(st.user_id,'history',st.updated_at)`,[userId])).rows[0].n;
-   const latest=(await q.query<{id:string;exam_round:number;final_at:Date}>(LATEST_MOCK_SQL,[userId])).rows[0];
-   const mockRows=latest?(await q.query<{wrong:boolean;star:boolean}>(MOCK_ITEMS_SQL,[userId,latest.id])).rows:[];
+   const mockRows=(await q.query<{exam_round:number;wrong:boolean;star:boolean}>(MOCK_ITEMS_SQL,[userId])).rows;
    const tripleStars=(await q.query<{n:number}>(`SELECT count(*)::int n FROM hanq.uigeumbu_stars ts WHERE ts.user_id=$1 AND ts.starred AND hanq.wrong_history_visible(ts.user_id,'history',ts.updated_at)`,[userId])).rows[0].n;
    const score=(r:Record<string,unknown>|null)=>({correct:Number(r?.correct)||0,wrong:Number(r?.wrong)||0,unanswered:Number(r?.unanswered)||0});
    return {
     resetAt:(await learningResetStatus(q,userId)).history.resetAt,
     pool:{all:Math.min(pool.length,UIGEUMBU_MAX_ITEMS),hasMore:pool.length>UIGEUMBU_MAX_ITEMS},stars,tripleStars,
     last:finals[0]?{id:finals[0].id,sequence:finals[0].seq,wrong:finals[0].wrong}:null,
-    mock:latest?{round:latest.exam_round,finalAt:iso(latest.final_at),wrong:mockRows.filter(r=>r.wrong).length,starred:mockRows.filter(r=>r.star).length,total:mockRows.filter(r=>r.wrong||r.star).length}:null,
+    mock:mockRows.length?{rounds:new Set(mockRows.map(r=>r.exam_round)).size,wrong:mockRows.filter(r=>r.wrong).length,starred:mockRows.filter(r=>r.star).length,total:mockRows.filter(r=>r.wrong||r.star).length}:null,
     active:active?{id:active.id,scope:scopeOf(active),parentId:active.parent_id,total:active.total,answered:active.answered,createdAt:iso(active.created_at)}:null,
     rounds:finals.map(f=>({id:f.id,sequence:f.seq,scope:scopeOf(f),createdAt:iso(f.created_at),finalAt:iso(f.final_at),total:f.total,missed:f.wrong,...score(f.result),
      reviews:reviews.filter(r=>r.parent_id===f.id).map(r=>({id:r.id,createdAt:iso(r.created_at),finalAt:iso(r.final_at),total:r.total,...score(r.result)}))})),
@@ -165,9 +165,9 @@ export class UigeumbuService {
    let rows:Candidate[];
    if(dto.scope==='all')rows=await this.pool(q,userId);
    else if(dto.scope==='mock-wrong'){
-    const latest=(await q.query<{id:string}>(LATEST_MOCK_SQL,[userId])).rows[0];
-    if(!latest)throw new AppError(409,'no_mock_round','No submitted mock exam yet');
-    rows=(await q.query<Candidate & {wrong:boolean;star:boolean}>(MOCK_ITEMS_SQL,[userId,latest.id])).rows.filter(r=>r.wrong||r.star);
+    const all=(await q.query<Candidate & {wrong:boolean;star:boolean}>(MOCK_ITEMS_SQL,[userId])).rows;
+    if(!all.length)throw new AppError(409,'no_mock_round','No submitted mock exam yet');
+    rows=all.filter(r=>r.wrong||r.star);
    }
    else{
     const last=(await q.query<{id:string}>(`SELECT s.id FROM hanq.cbt_mixed_reviews s WHERE s.user_id=$1 AND s.status='final' AND ${MAIN} AND ${VISIBLE} ORDER BY s.final_at DESC,s.id DESC LIMIT 1`,[userId])).rows[0];
