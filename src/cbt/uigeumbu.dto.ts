@@ -4,7 +4,7 @@ import { SUBMISSION_ID } from '../attempts/attempts.dto';
 export const UIGEUMBU_MAX_ITEMS = 700;
 
 export class CreateUigeumbuSessionDto {
- @IsIn(['all','last-wrong']) scope: 'all'|'last-wrong';
+ @IsIn(['all','last-wrong','mock-wrong']) scope: 'all'|'last-wrong'|'mock-wrong';
  @IsString() @Matches(SUBMISSION_ID) idempotencyKey: string;
 }
 export class CreateUigeumbuReviewDto {

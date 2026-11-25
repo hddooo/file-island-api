@@ -26,10 +26,11 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
   const answers=rounds[round].map((q,i)=>({position:i,optionId:pick(q,i)}));
   const cp=await run('/checkpoint',{version:1,answers,currentPosition:49});assert.equal(cp.status,200,JSON.stringify(cp.body));
   const done=await run('/submit',{submissionKey:randomUUID(),submissionIntent:'explicit-q50-before-deadline-v1'});assert.equal(done.status,200,JSON.stringify(done.body));
+  return id as string;
  }
  /** Real signup through the approval flow, approved directly in the disposable DB, then a real sign-in. */
  async function member(){const email='uig.'+randomUUID()+'@example.test';const r=await signupResponse(t,email);assert.equal(r.status,201);assert.equal((await pool.query("UPDATE hanq.users SET approval_status='approved' WHERE email_normalized=$1 AND approval_status='pending'",[email])).rowCount,1);return signin(t,email);}
- const create=(scope:'all'|'last-wrong',s=A,key=randomUUID())=>post('/uigeumbu/sessions',{scope,idempotencyKey:key},s);
+ const create=(scope:'all'|'last-wrong'|'mock-wrong',s=A,key=randomUUID())=>post('/uigeumbu/sessions',{scope,idempotencyKey:key},s);
  const submit=(id:string,s=A,key=randomUUID())=>(t.clock.advance(1000),post)('/uigeumbu/sessions/'+id+'/submit',{submissionKey:key},s);
  before(async()=>{
   pool=await freshDatabase(testConfig());const dir=mkdtempSync(join(tmpdir(),'hanq-uigeumbu-assets-'));
@@ -159,5 +160,29 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
   assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.cbt_question_stars WHERE user_id=$1 AND starred',[A.userId])).rows[0].n,0);
   assert.equal((await get('/uigeumbu',B)).body.stars,1,'other owners keep their stars');
   assert.equal((await api().post('/api/v1/cbt/uigeumbu/stars/reset').send({confirmation:'RESET_STARS'})).status,401);
+ });
+ it('mock-wrong: the latest official exam\'s misses plus stars marked since it began; a retake starts with no stars shown',async()=>{
+  const C=await member(),q=rounds[79];
+  assert.equal((await create('mock-wrong',C)).body.error.code,'no_mock_round');
+  // An old star on #40, from before the exam.
+  await pool.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4)`,[C.userId,q[39].question_id,q[39].version,new Date(t.clock.now().getTime()-86400000)]);
+  t.clock.advance(1000);
+  const run1=await exam(79,(x,i)=>i===1?wrong(x):i===2?null:x.correct_option_id,C);
+  const st=await get('/runs/'+run1+'/stars',C);assert.equal(st.status,200);assert.equal(st.body.flags[39],false,'a star from before this exam is not pre-marked');
+  const mark=await post('/runs/'+run1+'/stars',{signature:st.body.signature,position:29,starred:true,resetAt:null},C);assert.equal(mark.status,200,JSON.stringify(mark.body));
+  assert.equal(mark.body.flags[29],true);assert.equal(mark.body.flags.filter(Boolean).length,1);
+  const sum=(await get('/uigeumbu',C)).body;assert.deepEqual(sum.mock,{round:79,finalAt:sum.mock.finalAt,wrong:2,starred:1,total:3});
+  const c=await create('mock-wrong',C);assert.equal(c.status,201,JSON.stringify(c.body));
+  assert.deepEqual(c.body.items.map((i:{exam:number;number:number})=>[i.exam,i.number]),[[79,2],[79,3],[79,30]]);assert.equal(c.body.session.scope,'mock-wrong');
+  assert.equal((await get('/uigeumbu',C)).body.active.scope,'mock-wrong');
+  assert.equal((await pool.query('SELECT scope FROM hanq.cbt_mixed_reviews WHERE id=$1',[c.body.session.id])).rows[0].scope,'all','stored as a main round; no schema change');
+  // Retake the same round: no stars shown, and the newest exam is the one used.
+  t.clock.advance(1000);
+  const run2=await exam(79,x=>x.correct_option_id,C);
+  assert.equal((await get('/runs/'+run2+'/stars',C)).body.flags.some(Boolean),false,'a retake starts with a clean star sheet');
+  assert.equal((await get('/runs/'+run1+'/stars',C)).body.flags[29],true,'the earlier exam still shows its own star');
+  assert.deepEqual((await get('/uigeumbu',C)).body.mock,{round:79,finalAt:(await get('/uigeumbu',C)).body.mock.finalAt,wrong:0,starred:0,total:0});
+  assert.equal((await create('mock-wrong',C)).body.error.code,'review_empty');
+  assert.equal((await get('/uigeumbu',B)).body.mock,null,'owner scoped');
  });
 });
