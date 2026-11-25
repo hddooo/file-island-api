@@ -145,6 +145,27 @@ export class CbtService {
     });
   }
 
+  /** The owner may delete a self-reported paper result (it has no attempts, no growth row and no XP).
+   *  Real exams stay: their attempts, wrong notes and XP depend on them. Stars it added are kept. */
+  async deletePaper(userId: string, id: string) {
+    const runId = requireUuid(id);
+    return this.db.tx(async q => {
+      await lockOwner(q,userId);
+      const run = await this.repo.findOwned(q,runId,userId,true);
+      if(!run) throw notFound();
+      if(run.status!=='final' || typeof run.result?.paperImportHash!=='string')
+        throw new AppError(409,'run_not_deletable','Only a paper-imported result can be deleted');
+      const linked=await q.query('SELECT 1 FROM hanq.growth_ledger WHERE cbt_run_id=$1 UNION ALL SELECT 1 FROM hanq.attempts WHERE cbt_run_id=$1 LIMIT 1',[run.id]);
+      if(linked.rows.length) throw new AppError(409,'run_not_deletable','This result has linked records');
+      try { await q.query('DELETE FROM hanq.cbt_runs WHERE id=$1 AND user_id=$2',[run.id,userId]); }
+      catch(e) { // Before migration 070 the immutability trigger refuses every final run.
+        if((e as {code?:string}).code==='P0001') throw new AppError(503,'schema_not_ready','Deleting a paper result is not available yet');
+        throw e;
+      }
+      return { deleted:true, runId:run.id, round:run.exam_round };
+    });
+  }
+
   private async replayCreate(q: PoolClient, run: CbtRunRow, round: number) {
     if (run.exam_round !== round) throw new AppError(409, 'idempotency_conflict', 'This idempotency key was already used for another round');
     const locked = (await this.repo.findOwned(q, run.id, run.user_id, true))!;

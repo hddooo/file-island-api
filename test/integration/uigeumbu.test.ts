@@ -189,4 +189,23 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
   const c2=await create('mock-wrong',C);assert.equal(c2.status,201);assert.deepEqual(c2.body.items.map((i:{exam:number;number:number})=>[i.exam,i.number]),[[78,10]],'only each round\'s latest attempt counts');
   assert.equal((await get('/uigeumbu',B)).body.mock,null,'owner scoped');
  });
+ it('lets the owner delete only a paper-imported result',async()=>{
+  const D=await member(),real=await exam(78,q=>q.correct_option_id,D);
+  const p=await post('/runs/paper-import',{round:79,wrongQuestionNumbers:[3,7],starredQuestionNumbers:[7],idempotencyKey:randomUUID()},D);assert.equal(p.status,200,JSON.stringify(p.body));const paper=p.body.runId;
+  assert.equal((await get('/uigeumbu',D)).body.mock.total,2);
+  const before=await totals(D);
+  assert.equal((await api().post('/api/v1/cbt/runs/'+paper+'/delete')).status,401);
+  assert.equal((await post('/runs/'+paper+'/delete',{},B)).status,404,'another owner sees 404');
+  const r=await post('/runs/'+real+'/delete',{},D);assert.equal(r.status,409);assert.equal(r.body.error.code,'run_not_deletable');
+  assert.equal((await post('/runs/not-a-uuid/delete',{},D)).status,404);
+  const d=await post('/runs/'+paper+'/delete',{},D);assert.equal(d.status,200,JSON.stringify(d.body));assert.deepEqual(d.body,{deleted:true,runId:paper,round:79});
+  const after=await totals(D);assert.deepEqual(after,{...before,runs:before.runs-1},'only the paper run goes; attempts and XP stay');
+  assert.equal((await pool.query('SELECT count(*)::int n FROM hanq.cbt_run_items WHERE run_id=$1',[paper])).rows[0].n,0);
+  assert.equal((await get('/runs/'+paper,D)).status,404);
+  assert.deepEqual((await get('/runs',D)).body.runs.map((x:{id:string})=>x.id),[real]);
+  assert.equal((await get('/uigeumbu',D)).body.mock.total,0,'the deleted round no longer feeds the latest-wrong pool');
+  assert.equal((await post('/runs/'+paper+'/delete',{},D)).status,404);
+  await assert.rejects(pool.query('DELETE FROM hanq.cbt_runs WHERE id=$1',[real]),/a final run is immutable/,'real exams stay immutable in the DB');
+  await assert.rejects(pool.query('DELETE FROM hanq.cbt_run_items WHERE run_id=$1',[real]),/immutable/);
+ });
 });

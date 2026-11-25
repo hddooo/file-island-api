@@ -55,6 +55,12 @@ export class CbtController {
     return this.cbt.importPaper(who.userId, dto);
   }
 
+  @Post('runs/:id/delete')
+  @HttpCode(200)
+  deletePaper(@CurrentAuth() who: AuthContext, @Param('id') id: string) {
+    return this.cbt.deletePaper(who.userId, id);
+  }
+
   @Get('runs')
   list(@CurrentAuth() who: AuthContext) {
     return this.cbt.list(who.userId);
