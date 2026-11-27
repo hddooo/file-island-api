@@ -78,6 +78,7 @@
   "scripts/test-toeic-recall.cjs",
   "scripts/test-toeic-script-status.cjs",
   "scripts/test-ui-lock-ownership.cjs",
+  "scripts/test-uigeumbu-start-pdf.cjs",
   "scripts/test-vocabulary-paraphrases.cjs",
   "scripts/test-vocabulary-repartition.cjs",
   "scripts/test-weakness-records-race.cjs",

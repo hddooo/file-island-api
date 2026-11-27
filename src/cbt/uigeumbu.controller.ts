@@ -10,6 +10,13 @@ export class UigeumbuController {
  constructor(private readonly service:UigeumbuService) {}
  @Get('weakness') weakness(@CurrentAuth() w:AuthContext){return this.service.weakness(w.userId);}
  @Get() summary(@CurrentAuth() w:AuthContext){return this.service.summary(w.userId);}
+ /** Read-only PDF source for a start menu (모든 문제 / 직전 회차 오답 / 실전 회차별 최근 오답): no session is created. */
+ @Get('preview/:scope') preview(@CurrentAuth() w:AuthContext,@Param('scope') scope:string){return this.service.preview(w.userId,scope);}
+ @Get('preview/:scope/questions/:questionId/:which') async previewImage(@CurrentAuth() w:AuthContext,@Param('scope') scope:string,@Param('questionId') qid:string,@Param('which') which:string,@Res() res:Response){
+  if(!['image','common'].includes(which))throw notFound();
+  const bytes=await this.service.previewImage(w.userId,scope,qid,which==='image'?'question':'common');
+  res.status(200).set({'Content-Type':'image/webp','Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Content-Length':String(bytes.length)}).end(bytes);
+ }
  @Post('triple-stars/reset') @HttpCode(200) resetTriple(@CurrentAuth() w:AuthContext,@Body() d:UigeumbuTripleResetDto){return this.service.resetTriple(w.userId,d);}
  @Post('stars/reset') @HttpCode(200) resetStars(@CurrentAuth() w:AuthContext,@Body() d:UigeumbuStarResetDto){return this.service.resetStars(w.userId,d);}
  @Post('sessions') create(@CurrentAuth() w:AuthContext,@Body() d:CreateUigeumbuSessionDto){return this.service.create(w.userId,d);}

@@ -22,6 +22,8 @@ interface Item {
  public_payload:Record<string,unknown>; review_payload:Record<string,unknown>; era:string|null; starred:boolean; triple:boolean;
 }
 type Candidate = Pick<Item,'question_id'|'version'|'exam_round'|'exam_number'|'points'|'option_ids'>;
+type StartScope = 'all'|'last-wrong'|'mock-wrong';
+const startScope = (v:string):StartScope => {if(v==='all'||v==='last-wrong'||v==='mock-wrong')return v;throw notFound();};
 
 const VISIBLE = `hanq.wrong_history_visible(s.user_id,'history',s.created_at)`;
 const MAIN = `s.scope IN ('all','last-wrong')`;
@@ -162,21 +164,52 @@ export class UigeumbuService {
    await lockOwner(q,userId);
    const key=dto.scope+'|'+dto.idempotencyKey,old=await this.replay(q,userId,key);
    if(old){if(old.status==='abandoned')throw new AppError(409,'idempotency_conflict','Key already used');return this.view(q,old);}
-   let rows:Candidate[];
-   if(dto.scope==='all')rows=await this.pool(q,userId);
-   else if(dto.scope==='mock-wrong'){
-    const all=(await q.query<Candidate & {wrong:boolean;star:boolean}>(MOCK_ITEMS_SQL,[userId])).rows;
-    if(!all.length)throw new AppError(409,'no_mock_round','No submitted mock exam yet');
-    rows=all.filter(r=>r.wrong||r.star);
-   }
-   else{
-    const last=(await q.query<{id:string}>(`SELECT s.id FROM hanq.cbt_mixed_reviews s WHERE s.user_id=$1 AND s.status='final' AND ${MAIN} AND ${VISIBLE} ORDER BY s.final_at DESC,s.id DESC LIMIT 1`,[userId])).rows[0];
-    if(!last)throw new AppError(409,'no_previous_round','No submitted Uigeumbu round yet');
-    rows=(await q.query<Candidate>(`SELECT question_id,version,exam_round,exam_number,points,option_ids FROM hanq.cbt_mixed_review_items WHERE review_id=$1 AND user_id=$2 AND correct IS NOT TRUE ORDER BY position`,[last.id,userId])).rows;
-   }
+   const rows=await this.candidates(q,userId,dto.scope);
    // key is already 'mock-wrong|…' for this scope, which is how scopeOf() recognises it later.
    return this.open(q,userId,key,dto.scope==='mock-wrong'?'all':dto.scope,null,rows);
   });
+ }
+ /** The questions a new session of this start scope would hold (same rules as create; read only). */
+ private async candidates(q:Queryable,userId:string,scope:StartScope):Promise<Candidate[]>{
+  if(scope==='all')return this.pool(q,userId);
+  if(scope==='mock-wrong'){
+   const all=(await q.query<Candidate & {wrong:boolean;star:boolean}>(MOCK_ITEMS_SQL,[userId])).rows;
+   if(!all.length)throw new AppError(409,'no_mock_round','No submitted mock exam yet');
+   return all.filter(r=>r.wrong||r.star);
+  }
+  const last=(await q.query<{id:string}>(`SELECT s.id FROM hanq.cbt_mixed_reviews s WHERE s.user_id=$1 AND s.status='final' AND ${MAIN} AND ${VISIBLE} ORDER BY s.final_at DESC,s.id DESC LIMIT 1`,[userId])).rows[0];
+  if(!last)throw new AppError(409,'no_previous_round','No submitted Uigeumbu round yet');
+  return (await q.query<Candidate>(`SELECT question_id,version,exam_round,exam_number,points,option_ids FROM hanq.cbt_mixed_review_items WHERE review_id=$1 AND user_id=$2 AND correct IS NOT TRUE ORDER BY position`,[last.id,userId])).rows;
+ }
+ /** PDF of a start menu without starting a session: the same questions with answers and the reviewed explanation.
+  *  Writes nothing; images are served only for questions that are in this scope for the owner right now. */
+ async preview(userId:string,scope:string){
+  const s=startScope(scope);
+  return this.db.tx(async q=>{
+   const rows=await this.candidates(q,userId,s);
+   if(!rows.length)throw new AppError(409,'review_empty','No wrong or starred questions to print');
+   const picked=rows.slice(0,UIGEUMBU_MAX_ITEMS);
+   const meta=(await q.query<Pick<Item,'question_id'|'version'|'correct_option_id'|'public_payload'|'review_payload'|'era'>>(`SELECT question_id,version,correct_option_id,public_payload,review_payload,era FROM hanq.question_versions
+    WHERE (question_id,version) IN (SELECT * FROM unnest($1::text[],$2::text[]))`,[picked.map(r=>r.question_id),picked.map(r=>r.version)])).rows;
+   const byKey=new Map(meta.map(m=>[m.question_id+'|'+m.version,m]));
+   const items=picked.map((r,position)=>{
+    const m=byKey.get(r.question_id+'|'+r.version);if(!m||!Array.isArray(r.option_ids)||r.option_ids.length!==5)throw new AppError(409,'question_options_unavailable','Question options are unavailable');
+    const base=`/api/v1/cbt/uigeumbu/preview/${s}/questions/${r.question_id}`,common=commonImage(r.exam_round,r.exam_number,m.public_payload);
+    return {position,questionId:r.question_id,version:r.version,exam:r.exam_round,number:r.exam_number,points:r.points,era:m.era,
+     options:r.option_ids.map((id,k)=>({id,number:k+1})),selectedOptionId:null,image:base+'/image',common:common?{image:base+'/common',questionNumbers:common.numbers}:null,
+     review:{status:'unanswered',correct:false,correctNumber:r.option_ids.indexOf(m.correct_option_id)+1,correctOptionId:m.correct_option_id,item:stripAssets(m.review_payload),
+      options:r.option_ids.map((id,k)=>({id,number:k+1,selected:false,correct:id===m.correct_option_id}))}};
+   });
+   return {scope:s,total:rows.length,hasMore:rows.length>picked.length,items};
+  });
+ }
+ async previewImage(userId:string,scope:string,questionId:string,which:'question'|'common'){
+  const s=startScope(scope);if(!/^exam-\d\d-\d\d$/.test(questionId))throw notFound();
+  const row=(await this.candidates(this.db.pool,userId,s)).find(r=>r.question_id===questionId);if(!row)throw notFound();
+  const pub=(await this.db.pool.query<{public_payload:Record<string,unknown>}>('SELECT public_payload FROM hanq.question_versions WHERE question_id=$1 AND version=$2',[row.question_id,row.version])).rows[0];
+  if(!pub)throw notFound();const common=commonImage(row.exam_round,row.exam_number,pub.public_payload);
+  if(which==='common'&&!common)throw notFound();
+  return this.assets.read(which==='common'?common!.name:questionImageName(row.exam_round,row.exam_number));
  }
  async createReview(userId:string,parentId:string,dto:CreateUigeumbuReviewDto){
   return this.db.tx(async q=>{

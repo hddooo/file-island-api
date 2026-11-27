@@ -51,6 +51,24 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
   assert.equal((await create('all',B)).body.error.code,'review_empty');
   assert.equal((await post('/uigeumbu/sessions',{scope:'everything',idempotencyKey:randomUUID()})).status,400);
  });
+ it('preview: start-menu PDF source with answers, owner-scoped, writes nothing and serves only in-scope images',async()=>{
+  const sessions=async()=>(await pool.query('SELECT count(*)::int n FROM hanq.cbt_mixed_reviews WHERE user_id=$1',[A.userId])).rows[0].n,before=await sessions();
+  assert.equal((await api().get('/api/v1/cbt/uigeumbu/preview/all')).status,401);
+  const all=await get('/uigeumbu/preview/all');assert.equal(all.status,200,JSON.stringify(all.body));
+  type P={exam:number;number:number;questionId:string;image:string;review:{correctNumber:number;correctOptionId:string}};
+  assert.deepEqual(all.body.items.map((i:P)=>[i.exam,i.number]),[[78,10],[79,2],[79,5]]);assert.equal(all.body.hasMore,false);
+  for(const i of all.body.items as P[]){const q=rounds[i.exam][i.number-1];assert.equal(i.review.correctOptionId,q.correct_option_id);assert.equal(i.review.correctNumber,q.option_ids.indexOf(q.correct_option_id)+1);assert.equal(i.image,`/api/v1/cbt/uigeumbu/preview/all/questions/${i.questionId}/image`);}
+  const img=await get(all.body.items[0].image.replace('/api/v1/cbt',''));assert.equal(img.status,200);assert.equal(img.headers['content-type'],'image/webp');
+  assert.equal((await get('/uigeumbu/preview/all/questions/exam-79-01/image')).status,404,'a question outside the scope is not served');
+  assert.equal((await get(all.body.items[0].image.replace('/api/v1/cbt',''),B)).status,404,'another owner cannot read it');
+  const mock=await get('/uigeumbu/preview/mock-wrong');assert.equal(mock.status,200);
+  assert.deepEqual(mock.body.items.map((i:P)=>[i.exam,i.number]),[[78,10],[79,2],[79,3],[79,5]],'latest exam misses including the unanswered one');
+  assert.equal((await get('/uigeumbu/preview/mock-wrong/questions/exam-79-03/image')).status,200);
+  assert.equal((await get('/uigeumbu/preview/last-wrong')).body.error.code,'no_previous_round');
+  assert.equal((await get('/uigeumbu/preview/all',B)).body.error.code,'review_empty');
+  assert.equal((await get('/uigeumbu/preview/everything')).status,404);
+  assert.equal(await sessions(),before,'printing never starts or closes a session');
+ });
  it('records an untimed round without writing attempts, growth, exams or reviews; 10 most recent rounds',async()=>{
   const before=await totals(A),key=randomUUID(),c=await create('all',A,key);assert.equal(c.status,201);const id=c.body.session.id;
   assert.deepEqual(c.body.items.map((i:{exam:number;number:number})=>[i.exam,i.number]),[[78,10],[79,2],[79,5]]);
