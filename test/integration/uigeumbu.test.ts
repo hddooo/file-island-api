@@ -92,7 +92,7 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
   assert.equal((await post('/uigeumbu/sessions/'+id+'/answer',{position:2,optionId:null})).body.error.code,'session_closed');
   assert.deepEqual(await totals(A),before);
   await assert.rejects(pool.query(`UPDATE hanq.cbt_mixed_reviews SET current_position=1 WHERE id=$1`,[id]));
-  const s=(await get('/uigeumbu')).body;assert.equal(s.rounds.length,1);assert.deepEqual([s.rounds[0].sequence,s.rounds[0].scope,s.rounds[0].total,s.rounds[0].correct,s.rounds[0].wrong],[1,'all',3,1,1]);assert.deepEqual(s.last,{id,sequence:1,wrong:2});assert.equal(s.active,null);
+  const s=(await get('/uigeumbu')).body;assert.equal(s.rounds.length,1);assert.deepEqual([s.rounds[0].sequence,s.rounds[0].scope,s.rounds[0].total,s.rounds[0].correct,s.rounds[0].wrong],[1,'all',3,1,1]);assert.deepEqual(s.last,{id,sequence:1,wrong:2,starred:0,total:2});assert.equal(s.active,null);
  });
  it('round review: wrong + unanswered + starred items, instant check that cannot be changed, recorded under its round',async()=>{
   const round=(await get('/uigeumbu')).body.rounds[0];
@@ -120,17 +120,17 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
   assert.equal(r.body.items.find((i:{exam:number;number:number})=>key(i)==='78-10').tripleStarred,true);
   assert.deepEqual((await get('/uigeumbu/weakness',B)).body.items,[]);
  });
- it('last-wrong uses only the latest submitted main round; a new start closes the unfinished one',async()=>{
-  const c=await create('last-wrong');assert.equal(c.status,201);assert.deepEqual(c.body.items.map((i:{exam:number;number:number})=>[i.exam,i.number]),[[79,2],[79,5]]);
+ it('last-wrong uses only the latest submitted main round (misses + its ★★★); a new start closes the unfinished one',async()=>{
+  const c=await create('last-wrong');assert.equal(c.status,201);assert.deepEqual(c.body.items.map((i:{exam:number;number:number})=>[i.exam,i.number]),[[78,10],[79,2],[79,5]],'78-10 carries ★★★ from the earlier test');
   const open=await create('all');assert.equal(open.status,201);assert.equal((await get('/uigeumbu/sessions/'+c.body.session.id)).status,404);
   for(const i of open.body.items)await post('/uigeumbu/sessions/'+open.body.session.id+'/answer',{position:i.position,optionId:i.exam===78?rounds[78][9].correct_option_id:rounds[79][i.number-1].correct_option_id});
   const f=await submit(open.body.session.id);assert.equal(f.body.session.result.correct,3);assert.equal(f.body.session.sequence,2);
-  assert.equal((await create('last-wrong')).body.error.code,'review_empty');
+  assert.deepEqual((await get('/uigeumbu/preview/last-wrong')).body.items.map((i:{exam:number;number:number})=>[i.exam,i.number]),[[78,10]],'all correct: only the ★★★ question stays');
   for(let n=0;n<10;n++){const x=await create('all');assert.equal((await submit(x.body.session.id)).status,200);}
   const s=(await get('/uigeumbu')).body;assert.equal(s.rounds.length,10);assert.equal(s.rounds[0].sequence,12);assert.equal(s.rounds[9].sequence,3);assert.equal(s.last.wrong,3);
   assert.equal((await get('/uigeumbu',B)).body.rounds.length,0);
  });
- it('all: a CBT exam star does not join the Uigeumbu pool; ★★★ does; last-wrong stays wrong-only',async()=>{
+ it('all: a CBT exam star does not join the Uigeumbu pool; ★★★ does; last-wrong adds the last round\'s ★★★',async()=>{
   const q=rounds[79][0];const base=(await get('/uigeumbu')).body.pool.all;
   await pool.query(`INSERT INTO hanq.cbt_question_stars(user_id,question_id,version,starred,updated_at) VALUES($1,$2,$3,true,$4) ON CONFLICT(user_id,question_id,version) DO UPDATE SET starred=true`,[A.userId,q.question_id,q.version,t.clock.now()]);
   assert.equal((await get('/uigeumbu')).body.pool.all,base,'CBT stars stay out of Uigeumbu');
@@ -139,8 +139,10 @@ describe('Uigeumbu mixed-round wrong practice: isolated DB only',()=>{
   const all=await create('all');assert.ok(all.body.items.some((i:{exam:number;number:number;tripleStarred:boolean})=>i.exam===79&&i.number===1&&i.tripleStarred));
   for(const i of all.body.items)await post('/uigeumbu/sessions/'+all.body.session.id+'/answer',{position:i.position,optionId:(i.exam===78?rounds[78][9]:rounds[79][i.number-1]).correct_option_id});
   assert.equal((await submit(all.body.session.id)).body.session.result.correct,4);
-  assert.equal((await create('last-wrong')).body.error.code,'review_empty','a starred but correct question is not a last-round mistake');
+  const sum=(await get('/uigeumbu')).body.last;assert.equal(sum.wrong,0);assert.equal(sum.starred,2);assert.equal(sum.total,2);
+  assert.deepEqual((await get('/uigeumbu/preview/last-wrong')).body.items.map((i:{exam:number;number:number})=>[i.exam,i.number]),[[78,10],[79,1]],'a ★★★ question of the last round is printed even when answered correctly');
   await pool.query(`UPDATE hanq.uigeumbu_stars SET starred=false WHERE user_id=$1 AND question_id=$2`,[A.userId,q.question_id]);
+  assert.deepEqual((await get('/uigeumbu/preview/last-wrong')).body.items.map((i:{exam:number;number:number})=>[i.exam,i.number]),[[78,10]],'without ★★★ a correct question leaves last-wrong');
   assert.equal((await get('/uigeumbu')).body.pool.all,base,'clearing ★★★ removes it again');
   assert.equal((await get('/uigeumbu',B)).body.pool.all,0);
  });

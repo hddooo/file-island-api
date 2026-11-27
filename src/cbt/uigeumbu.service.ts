@@ -48,6 +48,8 @@ const EVER_WRONG = `(
 )`;
 /** A question the owner marks with a Uigeumbu triple star (★★★), its own marks kept apart from CBT stars. */
 const TRIPLE = `EXISTS(SELECT 1 FROM hanq.uigeumbu_stars ts WHERE ts.user_id=$1 AND ts.question_id=v.question_id AND ts.starred AND hanq.wrong_history_visible(ts.user_id,'history',ts.updated_at))`;
+/** The same ★★★ mark for a stored session item `i`. */
+const ITEM_TRIPLE = `EXISTS(SELECT 1 FROM hanq.uigeumbu_stars ts WHERE ts.user_id=i.user_id AND ts.question_id=i.question_id AND ts.starred AND hanq.wrong_history_visible(ts.user_id,'history',ts.updated_at))`;
 /** "모든 문제 다시 풀기": every ever-wrong question plus every Uigeumbu ★★★ question (CBT exam stars are not part of Uigeumbu). */
 const POOL_SQL =`SELECT v.question_id,v.version,v.exam_round,v.exam_number,v.points,v.option_ids FROM hanq.question_versions v
  WHERE ${formalCatalogSql('v')} AND v.kind='mock' AND v.exam_round BETWEEN ${CBT_MIN_ROUND} AND ${CBT_MAX_ROUND} AND (${EVER_WRONG} OR ${TRIPLE})
@@ -115,9 +117,11 @@ export class UigeumbuService {
  async summary(userId:string){
   return this.db.tx(async q=>{
    const pool=await this.pool(q,userId);
-   const finals=(await q.query<Session & {seq:number;total:number;wrong:number}>(`SELECT * FROM (SELECT s.*,row_number() OVER(ORDER BY s.final_at,s.id)::int seq,
+   const finals=(await q.query<Session & {seq:number;total:number;wrong:number;starred:number;picked:number}>(`SELECT * FROM (SELECT s.*,row_number() OVER(ORDER BY s.final_at,s.id)::int seq,
      (SELECT count(*)::int FROM hanq.cbt_mixed_review_items i WHERE i.review_id=s.id AND i.user_id=s.user_id) total,
-     (SELECT count(*)::int FROM hanq.cbt_mixed_review_items i WHERE i.review_id=s.id AND i.user_id=s.user_id AND i.correct IS NOT TRUE) wrong
+     (SELECT count(*)::int FROM hanq.cbt_mixed_review_items i WHERE i.review_id=s.id AND i.user_id=s.user_id AND i.correct IS NOT TRUE) wrong,
+     (SELECT count(*)::int FROM hanq.cbt_mixed_review_items i WHERE i.review_id=s.id AND i.user_id=s.user_id AND ${ITEM_TRIPLE}) starred,
+     (SELECT count(*)::int FROM hanq.cbt_mixed_review_items i WHERE i.review_id=s.id AND i.user_id=s.user_id AND (i.correct IS NOT TRUE OR ${ITEM_TRIPLE})) picked
      FROM hanq.cbt_mixed_reviews s WHERE s.user_id=$1 AND s.status='final' AND ${MAIN} AND ${VISIBLE}) ranked ORDER BY seq DESC LIMIT 10`,[userId])).rows;
    const reviews=finals.length?(await q.query<Session & {total:number}>(`SELECT s.*,(SELECT count(*)::int FROM hanq.cbt_mixed_review_items i WHERE i.review_id=s.id AND i.user_id=s.user_id) total
      FROM hanq.cbt_mixed_reviews s WHERE s.user_id=$1 AND s.status='final' AND s.parent_id=ANY($2::uuid[]) AND ${VISIBLE} ORDER BY s.final_at,s.id`,[userId,finals.map(f=>f.id)])).rows:[];
@@ -131,7 +135,7 @@ export class UigeumbuService {
    return {
     resetAt:(await learningResetStatus(q,userId)).history.resetAt,
     pool:{all:Math.min(pool.length,UIGEUMBU_MAX_ITEMS),hasMore:pool.length>UIGEUMBU_MAX_ITEMS},stars,tripleStars,
-    last:finals[0]?{id:finals[0].id,sequence:finals[0].seq,wrong:finals[0].wrong}:null,
+    last:finals[0]?{id:finals[0].id,sequence:finals[0].seq,wrong:finals[0].wrong,starred:finals[0].starred,total:finals[0].picked}:null,
     mock:mockRows.length?{rounds:new Set(mockRows.map(r=>r.exam_round)).size,wrong:mockRows.filter(r=>r.wrong).length,starred:mockRows.filter(r=>r.star).length,total:mockRows.filter(r=>r.wrong||r.star).length}:null,
     active:active?{id:active.id,scope:scopeOf(active),parentId:active.parent_id,total:active.total,answered:active.answered,createdAt:iso(active.created_at)}:null,
     rounds:finals.map(f=>({id:f.id,sequence:f.seq,scope:scopeOf(f),createdAt:iso(f.created_at),finalAt:iso(f.final_at),total:f.total,missed:f.wrong,...score(f.result),
@@ -179,7 +183,8 @@ export class UigeumbuService {
   }
   const last=(await q.query<{id:string}>(`SELECT s.id FROM hanq.cbt_mixed_reviews s WHERE s.user_id=$1 AND s.status='final' AND ${MAIN} AND ${VISIBLE} ORDER BY s.final_at DESC,s.id DESC LIMIT 1`,[userId])).rows[0];
   if(!last)throw new AppError(409,'no_previous_round','No submitted Uigeumbu round yet');
-  return (await q.query<Candidate>(`SELECT question_id,version,exam_round,exam_number,points,option_ids FROM hanq.cbt_mixed_review_items WHERE review_id=$1 AND user_id=$2 AND correct IS NOT TRUE ORDER BY position`,[last.id,userId])).rows;
+  // 직전 회차에서 맞히지 못한 문제 + 지금 ★★★가 붙어 있는 문제(맞혔어도).
+  return (await q.query<Candidate>(`SELECT i.question_id,i.version,i.exam_round,i.exam_number,i.points,i.option_ids FROM hanq.cbt_mixed_review_items i WHERE i.review_id=$1 AND i.user_id=$2 AND (i.correct IS NOT TRUE OR ${ITEM_TRIPLE}) ORDER BY i.position`,[last.id,userId])).rows;
  }
  /** PDF of a start menu without starting a session: the same questions with answers and the reviewed explanation.
   *  Writes nothing; images are served only for questions that are in this scope for the owner right now. */
